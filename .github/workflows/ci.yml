@@ -1,0 +1,24 @@
+# Проверка на каждый push и pull request: unit-тесты, Android Lint и сборка.
+# Паролей и ключей не нужно: тесты работают с поддельным LibreLinkUp.
+name: CI
+on: [push, pull_request]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"   # gradle/gradle-daemon-jvm.properties требует JDK 25
+          cache: gradle
+      - run: chmod +x gradlew
+      - name: Unit-тесты, Lint и сборка
+        run: ./gradlew testDebugUnitTest lintDebug assembleDebug
+      - name: Отчёты, если что-то упало
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: app/build/reports/
