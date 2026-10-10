@@ -1,2 +1,10 @@
-gradlew text eol=lf
+# Текст — с LF и в репозитории, и в рабочей копии (Android Studio и Gradle это понимают)
+* text=auto eol=lf
 *.bat text eol=crlf
+
+*.jar binary
+*.png binary
+*.webp binary
+*.ttf binary
+*.jks binary
+*.keystore binary

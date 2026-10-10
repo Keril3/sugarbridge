@@ -14,3 +14,9 @@
 .cxx
 local.properties
 *.apk
+.kotlin/
+
+# Ключи подписи и пароли — никогда в git
+*.jks
+*.keystore
+keystore.properties

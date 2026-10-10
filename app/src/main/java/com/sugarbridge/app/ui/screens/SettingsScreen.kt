@@ -15,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -141,6 +142,9 @@ fun SettingsScreen(vm: MainViewModel, actions: AppActions) {
 
         TenshiCard {
             CardTitle("О SugarBridge")
+            val context = LocalContext.current
+            val version = remember { context.packageManager.getPackageInfo(context.packageName, 0).versionName }
+            Text("Версия $version", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
             Hint(
                 "Не медицинское изделие: тревоги о низком и высоком сахаре и решения о лечении — только по LibreLink. " +
                     "LibreLinkUp и LibreView используются через неофициальный API, только ваш аккаунт и ваши данные."
