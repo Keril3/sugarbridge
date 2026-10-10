@@ -179,3 +179,8 @@ APK в Releases собирает и подписывает GitHub Actions, ко�
   [libreview-unofficial](https://github.com/FokkeZB/libreview-unofficial),
   [HTTP-дамп LibreLinkUp](https://gist.github.com/khskekec/6c13ba01b10d3018d816706a32ae8ab2).
 - Шрифт [Nunito](https://github.com/googlefonts/nunito) — SIL Open Font License, см. [licenses/](licenses/).
+
+## Лицензия
+
+[MIT](LICENSE). Шрифт Nunito распространяется по своей лицензии OFL. FreeStyle, Libre, LibreLink,
+LibreLinkUp и LibreView — товарные знаки Abbott; Samsung Health — Samsung; Health Connect — Google.
