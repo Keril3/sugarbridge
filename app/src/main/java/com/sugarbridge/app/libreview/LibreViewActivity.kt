@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
+import com.sugarbridge.app.libre.Libre
 import com.sugarbridge.app.ui.components.AngelBackground
 import com.sugarbridge.app.ui.components.Hint
 import com.sugarbridge.app.ui.components.TenshiCard
@@ -43,6 +44,7 @@ import java.io.File
 import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URLDecoder
+import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -96,7 +98,8 @@ class LibreViewActivity : ComponentActivity() {
         }
         CookieManager.getInstance().setAcceptThirdPartyCookies(web, true)   // капча живёт на другом домене
         val testPage = intent.getStringExtra(EXTRA_TEST_HTML)   // только для инструментального теста
-        if (testPage != null) web.loadDataWithBaseURL(START_URL, testPage, "text/html", "utf-8", null) else web.loadUrl(START_URL)
+        val site = libreViewSite(Libre.client(this)?.region, Locale.getDefault().country)
+        if (testPage != null) web.loadDataWithBaseURL(site, testPage, "text/html", "utf-8", null) else web.loadUrl(site)
         onBackPressedDispatcher.addCallback(this) { if (web.canGoBack()) web.goBack() else finish() }
 
         setContent {
@@ -210,7 +213,6 @@ class LibreViewActivity : ComponentActivity() {
     companion object {
         const val EXTRA_PATH = "path"
         internal const val EXTRA_TEST_HTML = "test_html"
-        private const val START_URL = "https://www.libreview.com/"
 
         private fun trusted(host: String?): Boolean =
             host != null && listOf("libreview.com", "libreview.io", "libreview.ru").any { host == it || host.endsWith(".$it") }

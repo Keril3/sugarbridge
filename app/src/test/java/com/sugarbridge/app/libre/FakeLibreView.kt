@@ -2,14 +2,19 @@ package com.sugarbridge.app.libre
 
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.IOException
 import java.net.URI
 import java.time.LocalDateTime
 
 const val PATIENT = "11111111-2222-3333-4444-555555555555"
 
-/** Поддельный LibreLinkUp: отвечает как настоящий, но без интернета и без аккаунта. */
+/**
+ * Поддельный LibreLinkUp: отвечает как настоящий, но без интернета и без аккаунта.
+ * Как у Abbott, это две отдельные системы: российский сервер не знает аккаунтов остального мира
+ * и наоборот, а внутри мирового сервера регионы переадресуют друг на друга.
+ */
 class FakeLibreView(
-    private val home: String = "api.libreview.ru",   // в каком регионе «живёт» аккаунт
+    private val home: String = "api.libreview.ru",   // на каком сервере «живёт» аккаунт
     private val password: String = "secret",
 ) : HttpTransport {
     var token = "T0KEN-1"
@@ -20,12 +25,16 @@ class FakeLibreView(
     var connections = JSONArray().put(JSONObject().put("patientId", PATIENT).put("firstName", "Я"))
     var minVersion: String? = null    // сервер требует версию приложения не ниже этой
     var alwaysAskVersion = false      // …и просит её, даже если она уже такая (API сломался)
+    var step: String? = null          // вход ждёт действия человека: «tou» — принять условия
+    var unreachable = emptySet<String>()   // серверы, до которых нет связи
     var logins = 0
+    val loginHosts = mutableListOf<String>()   // куда по очереди пытался войти клиент
     val requests = mutableListOf<String>()   // журнал запросов, чтобы проверять их в тестах
 
     override fun send(method: String, url: String, headers: Map<String, String>, body: String?): HttpResponse {
         check(headers["product"] == "llu.android") { "Клиент не прислал заголовок product" }
         val uri = URI(url)
+        if (uri.host in unreachable) throw IOException("нет связи с ${uri.host}")
         requests.add("$method ${uri.host}${uri.path}")
         val min = minVersion
         if (min != null && (alwaysAskVersion || compareVersions(headers["version"] ?: "0", min) < 0)) {
@@ -55,19 +64,34 @@ class FakeLibreView(
 
     private fun login(host: String, body: JSONObject): HttpResponse {
         logins++
-        if (host != home) {   // аккаунт в другом регионе — сервер просит перейти туда
-            val region = home.removePrefix("api-").substringBefore(".libreview.io")
-            return ok(JSONObject().put("redirect", true).put("region", region))
+        loginHosts += host
+        // российский и мировой серверы — разные системы: чужой аккаунт для них как неверный пароль
+        if (host.endsWith(".ru") != home.endsWith(".ru")) return notAuthenticated()
+        if (host != home) {   // аккаунт в другом регионе мирового сервера — сервер просит перейти туда
+            return ok(JSONObject().put("redirect", true).put("region", regionOf(home)))
         }
-        if (body.getString("password") != password) {
-            val error = JSONObject().put("message", "notAuthenticated")
-            return HttpResponse(200, JSONObject().put("status", 2).put("error", error).toString())
+        if (body.getString("password") != password) return notAuthenticated()
+        step?.let {
+            val data = JSONObject().put("step", JSONObject().put("type", it))
+            return HttpResponse(200, JSONObject().put("status", 4).put("data", data).toString())
         }
         return ok(
             JSONObject()
                 .put("user", JSONObject().put("id", "user-42"))
                 .put("authTicket", JSONObject().put("token", token))
         )
+    }
+
+    // дословно как настоящие серверы Abbott отвечают на чужой аккаунт или неверный пароль
+    private fun notAuthenticated(): HttpResponse {
+        val error = JSONObject().put("message", "incorrect username/password")
+        return HttpResponse(200, JSONObject().put("status", 2).put("error", error).toString())
+    }
+
+    private fun regionOf(host: String): String = when (host) {
+        "api.libreview.ru" -> "ru"
+        "api.libreview.io" -> "us"
+        else -> host.removePrefix("api-").substringBefore(".libreview.io")
     }
 
     private fun graph(): JSONObject {

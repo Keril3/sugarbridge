@@ -11,8 +11,16 @@ import java.time.Instant
 
 class LibreClientTest {
 
-    private fun client(fake: HttpTransport, password: String = "secret", session: Session? = null) =
-        LibreClient("me@example.com", password, http = fake, session = session)
+    // порядок серверов как на телефоне в России; от страны компьютера, где идут тесты, ничего не зависит
+    private val ruFirst = listOf("ru", "us")
+    private val worldFirst = listOf("us", "ru")
+
+    private fun client(
+        fake: HttpTransport,
+        password: String = "secret",
+        session: Session? = null,
+        startRegions: List<String> = ruFirst,
+    ) = LibreClient("me@example.com", password, http = fake, session = session, startRegions = startRegions)
 
     // --- шаг 3: вход ---
 
@@ -31,24 +39,25 @@ class LibreClientTest {
 
     @Test
     fun loginFollowsRegionRedirect() {
+        // телефон не из России: мировой сервер сам говорит, в каком регионе аккаунт
         val fake = FakeLibreView(home = "api-eu.libreview.io")
-        val c = client(fake)
+        val c = client(fake, startRegions = worldFirst)
         c.login()
         assertEquals("https://api-eu.libreview.io", c.base)
         assertEquals("eu", c.session?.region)
-        assertEquals(2, fake.logins)   // первый вход — в ru, второй — уже в eu
+        assertEquals(listOf("api.libreview.io", "api-eu.libreview.io"), fake.loginHosts)
     }
 
     @Test
     fun wrongPasswordGivesLoginFailed() {
         val e = assertThrows(LoginFailed::class.java) { client(FakeLibreView(), password = "wrong").login() }
-        assertTrue(e.message!!.contains("notAuthenticated"))
+        assertTrue(e.message, e.message!!.contains("неверный email или пароль"))
     }
 
     @Test
     fun newSessionIsReportedToApp() {
         val saved = mutableListOf<Session>()
-        val c = LibreClient("me@example.com", "secret", http = FakeLibreView(), onLogin = { saved.add(it) })
+        val c = LibreClient("me@example.com", "secret", http = FakeLibreView(), onLogin = { saved.add(it) }, startRegions = ruFirst)
         c.login()
         assertEquals(listOf(c.session), saved)
     }
@@ -85,7 +94,7 @@ class LibreClientTest {
     fun expiredTokenLeadsToOneNewLogin() {
         val fake = FakeLibreView()
         val saved = mutableListOf<Session>()
-        val c = LibreClient("me@example.com", "secret", http = fake, onLogin = { saved.add(it) })
+        val c = LibreClient("me@example.com", "secret", http = fake, onLogin = { saved.add(it) }, startRegions = ruFirst)
         c.readings()
         fake.expireNext = true
         fake.values.add(118.0)   // пришёл новый замер
@@ -138,7 +147,7 @@ class LibreClientTest {
         val fake = FakeLibreView()
         fake.minVersion = "4.17.0"
         val remembered = mutableListOf<String>()
-        val c = LibreClient("me@example.com", "secret", http = fake, onVersion = { remembered.add(it) })
+        val c = LibreClient("me@example.com", "secret", http = fake, onVersion = { remembered.add(it) }, startRegions = ruFirst)
         c.login()
         assertEquals("4.17.0", c.version)
         assertEquals(listOf("4.17.0"), remembered)   // приложение запомнит и в следующий раз начнёт с неё
@@ -171,5 +180,70 @@ class LibreClientTest {
         assertTrue(compareVersions("4.16.0", "4.9.9") > 0)
         assertTrue(compareVersions("4.16", "4.16.1") < 0)
         assertEquals(0, compareVersions("4.16.0", "4.16"))
+    }
+
+    // --- российский и мировой серверы Abbott ---
+
+    @Test
+    fun foreignAccountOnRussianPhone() {
+        // российский сервер аккаунт не знает → мировой → переадресация в регион аккаунта
+        val fake = FakeLibreView(home = "api-de.libreview.io")
+        val c = client(fake, startRegions = ruFirst)
+        c.login()
+        assertEquals("de", c.session?.region)
+        assertEquals(listOf("api.libreview.ru", "api.libreview.io", "api-de.libreview.io"), fake.loginHosts)
+        assertEquals(listOf(110.0, 112.0, 115.0), c.readings().map { it.mgDl })
+    }
+
+    @Test
+    fun russianAccountOnForeignPhone() {
+        val fake = FakeLibreView(home = "api.libreview.ru")
+        val c = client(fake, startRegions = worldFirst)
+        c.login()
+        assertEquals("ru", c.session?.region)
+        assertEquals("https://api.libreview.ru", c.base)
+        assertEquals(listOf("api.libreview.io", "api.libreview.ru"), fake.loginHosts)
+    }
+
+    @Test
+    fun wrongPasswordIsTriedOnceOnEachServer() {
+        val fake = FakeLibreView(home = "api-eu.libreview.io")
+        val e = assertThrows(LoginFailed::class.java) { client(fake, password = "wrong").login() }
+        assertTrue(e.message, e.message!!.contains("неверный email или пароль"))
+        assertEquals(listOf("api.libreview.ru", "api.libreview.io", "api-eu.libreview.io"), fake.loginHosts)
+    }
+
+    @Test
+    fun termsStepStopsAtTheRightServer() {
+        // аккаунт нашёлся, но надо принять условия: другой сервер не поможет, второй раз не входим
+        val fake = FakeLibreView(home = "api.libreview.ru").apply { step = "tou" }
+        val e = assertThrows(LoginStepRequired::class.java) { client(fake).login() }
+        assertEquals("tou", e.step)
+        assertTrue(e.message!!.contains("«tou»"))
+        assertEquals(1, fake.logins)
+    }
+
+    @Test
+    fun unreachableServerIsSkipped() {
+        val fake = FakeLibreView(home = "api-eu.libreview.io").apply { unreachable = setOf("api.libreview.ru") }
+        val c = client(fake, startRegions = ruFirst)
+        c.login()
+        assertEquals("eu", c.session?.region)
+    }
+
+    @Test
+    fun knownRegionIsNotGuessedAgain() {
+        // регион известен по прошлому входу: при повторном входе (сменили пароль) другие серверы не трогаем
+        val fake = FakeLibreView(home = "api-eu.libreview.io")
+        val c = client(fake, password = "changed", session = Session("eu", "OLD", sha256("user-42")))
+        assertThrows(LoginFailed::class.java) { c.login() }
+        assertEquals(listOf("api-eu.libreview.io"), fake.loginHosts)
+    }
+
+    @Test
+    fun startServerDependsOnPhoneCountry() {
+        assertEquals(listOf("ru", "us"), startRegionsFor("RU"))
+        assertEquals(listOf("us", "ru"), startRegionsFor("DE"))
+        assertEquals(listOf("us", "ru"), startRegionsFor(""))
     }
 }

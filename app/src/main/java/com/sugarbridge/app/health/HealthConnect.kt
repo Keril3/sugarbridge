@@ -62,7 +62,8 @@ fun isInstalled(context: Context, packageName: String): Boolean = try {
 suspend fun hasGlucosePermission(context: Context): Boolean =
     WRITE_GLUCOSE in HealthConnectClient.getOrCreate(context).permissionController.getGrantedPermissions()
 
-private val LIBRE_DEVICE = Device(type = Device.TYPE_UNKNOWN, manufacturer = "Abbott", model = "FreeStyle Libre 2")
+// какой именно датчик (Libre 1, 2 или 3), LibreLinkUp не сообщает — пишем общее название
+private val LIBRE_DEVICE = Device(type = Device.TYPE_UNKNOWN, manufacturer = "Abbott", model = "FreeStyle Libre")
 
 fun Reading.toRecord() = BloodGlucoseRecord(
     time = time,
