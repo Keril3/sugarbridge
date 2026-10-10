@@ -74,4 +74,28 @@ class ReadingTest {
         val r = parseReading(item("10/8/2026 6:00:00 PM", 115))
         assertEquals("6,4 ммоль/л в 20:00", r.text(ZoneId.of("Europe/Kaliningrad"), Locale.forLanguageTag("ru")))
     }
+
+    // --- единицы и целевой диапазон ---
+
+    @Test
+    fun glucoseIsFormattedInChosenUnit() {
+        val ru = Locale.forLanguageTag("ru")
+        assertEquals("6,4", formatGlucose(115.0, GlucoseUnit.MMOL, ru))
+        assertEquals("115", formatGlucose(115.3, GlucoseUnit.MGDL, ru))
+        assertEquals("10,0", formatGlucose(180.0, GlucoseUnit.MMOL, ru))
+    }
+
+    @Test
+    fun textInMgDl() {
+        val r = parseReading(item("10/8/2026 6:00:00 PM", 115, trend = 4))
+        assertEquals("115 мг/дл ↗ в 20:00", r.text(ZoneId.of("Europe/Kaliningrad"), Locale.forLanguageTag("ru"), GlucoseUnit.MGDL))
+    }
+
+    @Test
+    fun rangeBoundsBelongToTarget() {
+        assertEquals(GlucoseLevel.LOW, levelOf(69.9, 70.0, 180.0))
+        assertEquals(GlucoseLevel.IN_RANGE, levelOf(70.0, 70.0, 180.0))
+        assertEquals(GlucoseLevel.IN_RANGE, levelOf(180.0, 70.0, 180.0))
+        assertEquals(GlucoseLevel.HIGH, levelOf(180.1, 70.0, 180.0))
+    }
 }

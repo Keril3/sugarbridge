@@ -1,5 +1,6 @@
 package com.sugarbridge.app
 
+import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -55,9 +56,21 @@ fun regionUrl(region: String): String = SPECIAL_REGIONS[region] ?: "https://api-
 fun sha256(text: String): String =
     MessageDigest.getInstance("SHA-256").digest(text.toByteArray()).joinToString("") { "%02x".format(it) }
 
+/** Сравнение версий вида "4.16.0": отрицательное — a старше b. */
+fun compareVersions(a: String, b: String): Int {
+    val x = a.split('.').map { it.trim().toIntOrNull() ?: 0 }
+    val y = b.split('.').map { it.trim().toIntOrNull() ?: 0 }
+    for (i in 0 until maxOf(x.size, y.size)) {
+        val d = x.getOrElse(i) { 0 }.compareTo(y.getOrElse(i) { 0 })
+        if (d != 0) return d
+    }
+    return 0
+}
+
+const val DEFAULT_LLU_VERSION = "4.16.0"
+
 private val BASE_HEADERS = mapOf(
     "product" to "llu.android",   // представляемся приложением LibreLinkUp для Android
-    "version" to "4.16.0",
     "content-type" to "application/json",
 )
 
@@ -66,24 +79,38 @@ class LibreClient(
     private val password: String,
     private val http: HttpTransport = UrlConnectionTransport(),
     var session: Session? = null,
-    private val onLogin: (Session) -> Unit = {},   // чтобы приложение сохранило новую сессию
+    private val onLogin: (Session) -> Unit = {},     // чтобы приложение сохранило новую сессию
+    version: String = DEFAULT_LLU_VERSION,
+    private val onVersion: (String) -> Unit = {},    // Abbott поднял минимальную версию — приложение её запомнит
 ) {
     var region: String = session?.region ?: "ru"
+        private set
+    var version: String = version
         private set
     private var patientId: String? = null
 
     val base: String get() = regionUrl(region)
 
+    private fun headers() = BASE_HEADERS + ("version" to version)
+
     @Synchronized
     fun login() {
-        for (attempt in 1..2) {   // не больше одного перехода в другой регион
+        var redirects = 0
+        var upgrades = 0
+        while (true) {
             val body = JSONObject().put("email", email).put("password", password).toString()
-            val resp = http.send("POST", "$base/llu/auth/login", BASE_HEADERS, body)
+            val resp = http.send("POST", "$base/llu/auth/login", headers(), body)
             if (resp.code == 429) throw RateLimited(retryAfter(resp))
-            if (resp.code != 200) throw IOException("Вход: LibreLinkUp ответил кодом ${resp.code}")
-            val json = JSONObject(resp.body)
+            val json = jsonOrNull(resp.body)
+            if (json != null && upgradeIfAsked(json)) {   // сервер просит версию новее — повторяем с ней
+                if (++upgrades > 2) throw LibreError("LibreLinkUp снова и снова просит новую версию приложения")
+                continue
+            }
+            if (resp.code != 200 || json == null) throw IOException("Вход: LibreLinkUp ответил кодом ${resp.code}")
+            minimumVersionOf(json)?.let { throw tooOld(it) }
             val data = json.optJSONObject("data")
             if (data != null && data.optBoolean("redirect")) {   // аккаунт живёт в другом регионе
+                if (++redirects > 1) throw LoginFailed("Сервер перенаправляет по кругу")
                 region = data.getString("region")
                 continue
             }
@@ -95,7 +122,6 @@ class LibreClient(
             onLogin(newSession)
             return
         }
-        throw LoginFailed("Сервер перенаправляет по кругу")
     }
 
     private fun loginError(json: JSONObject): String {
@@ -107,16 +133,32 @@ class LibreClient(
         return "Вход не удался: ${message ?: json.toString()}"
     }
 
-    private fun get(path: String): JSONObject {
+    /** Если сервер требует версию новее нашей — запоминаем её и говорим, что запрос стоит повторить. */
+    private fun upgradeIfAsked(json: JSONObject): Boolean {
+        val minimum = minimumVersionOf(json) ?: return false
+        if (compareVersions(minimum, version) <= 0) return false
+        version = minimum
+        onVersion(minimum)
+        return true
+    }
+
+    private fun minimumVersionOf(json: JSONObject): String? =
+        json.optJSONObject("data")?.optString("minimumVersion")?.takeIf { it.isNotBlank() }
+
+    private fun tooOld(minimum: String) =
+        LibreError("LibreLinkUp требует версию приложения $minimum, а она уже указана — API, похоже, изменился")
+
+    private fun get(path: String, retried: Boolean = false): JSONObject {
         val s = session ?: run { login(); session!! }
-        val headers = BASE_HEADERS + mapOf("authorization" to "Bearer ${s.token}", "account-id" to s.accountId)
+        val headers = headers() + mapOf("authorization" to "Bearer ${s.token}", "account-id" to s.accountId)
         val resp = http.send("GET", base + path, headers, null)
-        return when (resp.code) {
-            200 -> JSONObject(resp.body)
-            401 -> throw AuthExpired()
-            429 -> throw RateLimited(retryAfter(resp))
-            else -> throw IOException("LibreLinkUp ответил кодом ${resp.code}")
-        }
+        if (resp.code == 401) throw AuthExpired()
+        if (resp.code == 429) throw RateLimited(retryAfter(resp))
+        val json = jsonOrNull(resp.body)
+        if (json != null && !retried && upgradeIfAsked(json)) return get(path, retried = true)
+        if (resp.code != 200 || json == null) throw IOException("LibreLinkUp ответил кодом ${resp.code}")
+        minimumVersionOf(json)?.let { throw tooOld(it) }
+        return json
     }
 
     private fun findPatient(): String {
@@ -139,6 +181,12 @@ class LibreClient(
         login()
         fetchGraph()
     }
+}
+
+private fun jsonOrNull(body: String): JSONObject? = try {
+    if (body.isBlank()) null else JSONObject(body)
+} catch (e: JSONException) {
+    null
 }
 
 private fun retryAfter(resp: HttpResponse): Int = resp.headers["retry-after"]?.toIntOrNull() ?: 60

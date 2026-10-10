@@ -18,6 +18,8 @@ class FakeLibreView(
     var expireNext = false     // следующий запрос с токеном получит 401
     var limitNext = false      // следующий запрос получит 429
     var connections = JSONArray().put(JSONObject().put("patientId", PATIENT).put("firstName", "Я"))
+    var minVersion: String? = null    // сервер требует версию приложения не ниже этой
+    var alwaysAskVersion = false      // …и просит её, даже если она уже такая (API сломался)
     var logins = 0
     val requests = mutableListOf<String>()   // журнал запросов, чтобы проверять их в тестах
 
@@ -25,6 +27,12 @@ class FakeLibreView(
         check(headers["product"] == "llu.android") { "Клиент не прислал заголовок product" }
         val uri = URI(url)
         requests.add("$method ${uri.host}${uri.path}")
+        val min = minVersion
+        if (min != null && (alwaysAskVersion || compareVersions(headers["version"] ?: "0", min) < 0)) {
+            // так отвечает LibreLinkUp, когда Abbott поднял минимальную версию приложения
+            val data = JSONObject().put("minimumVersion", min)
+            return HttpResponse(200, JSONObject().put("status", 920).put("data", data).toString())
+        }
         if (uri.path == "/llu/auth/login") return login(uri.host, JSONObject(body!!))
         if (headers["authorization"] != "Bearer $token") return HttpResponse(401, """{"status":2}""")
         if (limitNext) {

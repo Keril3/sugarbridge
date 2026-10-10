@@ -2,6 +2,7 @@ package com.sugarbridge.app
 
 import org.json.JSONArray
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -128,5 +129,47 @@ class LibreClientTest {
         val c = client(flaky, session = Session("ru", "T0KEN-1", sha256("user-42")))
         assertThrows(IOException::class.java) { c.readings() }
         assertEquals(115.0, c.readings().last().mgDl, 0.0)   // следующий запрос уже проходит
+    }
+
+    // --- Abbott поднял минимальную версию приложения ---
+
+    @Test
+    fun loginUpgradesVersionWhenServerAsks() {
+        val fake = FakeLibreView()
+        fake.minVersion = "4.17.0"
+        val remembered = mutableListOf<String>()
+        val c = LibreClient("me@example.com", "secret", http = fake, onVersion = { remembered.add(it) })
+        c.login()
+        assertEquals("4.17.0", c.version)
+        assertEquals(listOf("4.17.0"), remembered)   // приложение запомнит и в следующий раз начнёт с неё
+        assertEquals(Session("ru", "T0KEN-1", sha256("user-42")), c.session)
+    }
+
+    @Test
+    fun readingsSurviveVersionBumpWithSavedSession() {
+        val fake = FakeLibreView()
+        val c = client(fake, session = Session("ru", "T0KEN-1", sha256("user-42")))
+        fake.minVersion = "5.0.0"
+        assertEquals(115.0, c.readings().last().mgDl, 0.0)
+        assertEquals("5.0.0", c.version)
+        assertEquals(0, fake.logins)
+    }
+
+    @Test
+    fun brokenVersionCheckIsNotTreatedAsWrongPassword() {
+        // если сервер просит ту же версию снова и снова, это не «неверный пароль»:
+        // фоновая задача не должна выкидывать из аккаунта
+        val fake = FakeLibreView()
+        fake.minVersion = DEFAULT_LLU_VERSION
+        fake.alwaysAskVersion = true
+        val e = assertThrows(LibreError::class.java) { client(fake).login() }
+        assertFalse(e is LoginFailed)
+    }
+
+    @Test
+    fun versionsAreComparedNumerically() {
+        assertTrue(compareVersions("4.16.0", "4.9.9") > 0)
+        assertTrue(compareVersions("4.16", "4.16.1") < 0)
+        assertEquals(0, compareVersions("4.16.0", "4.16"))
     }
 }
