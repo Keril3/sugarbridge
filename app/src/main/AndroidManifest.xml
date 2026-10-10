@@ -69,13 +69,13 @@
         </activity-alias>
 
         <activity
-            android:name=".LibreViewActivity"
+            android:name=".libreview.LibreViewActivity"
             android:exported="false"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode"
             android:theme="@style/Theme.SugarBridge" />
 
         <service
-            android:name=".LiveSyncService"
+            android:name=".sync.LiveSyncService"
             android:exported="false"
             android:foregroundServiceType="specialUse">
             <property
@@ -84,7 +84,7 @@
         </service>
 
         <receiver
-            android:name=".BootReceiver"
+            android:name=".sync.BootReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />

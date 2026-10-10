@@ -15,9 +15,19 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.net.toUri
 import androidx.health.connect.client.PermissionController
+import com.sugarbridge.app.health.HealthConnectState
+import com.sugarbridge.app.health.SAMSUNG_HEALTH_PACKAGE
+import com.sugarbridge.app.health.WRITE_GLUCOSE
+import com.sugarbridge.app.health.healthConnectSettingsIntent
+import com.sugarbridge.app.health.healthConnectState
+import com.sugarbridge.app.health.healthConnectStoreIntent
+import com.sugarbridge.app.libreview.LibreViewActivity
+import com.sugarbridge.app.sync.LiveSyncService
+import com.sugarbridge.app.sync.createNotificationChannels
+import com.sugarbridge.app.sync.scheduleSync
 import com.sugarbridge.app.ui.AppActions
 import com.sugarbridge.app.ui.SugarApp
-import com.sugarbridge.app.ui.SugarTheme
+import com.sugarbridge.app.ui.theme.SugarTheme
 
 class MainActivity : ComponentActivity(), AppActions {
 

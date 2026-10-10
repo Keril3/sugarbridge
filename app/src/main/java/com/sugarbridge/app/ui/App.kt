@@ -27,10 +27,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import com.sugarbridge.app.HealthConnectState
 import com.sugarbridge.app.MainViewModel
 import com.sugarbridge.app.R
 import com.sugarbridge.app.Tab
+import com.sugarbridge.app.health.HealthConnectState
+import com.sugarbridge.app.ui.components.AngelBackground
+import com.sugarbridge.app.ui.components.Mascot
+import com.sugarbridge.app.ui.components.Mood
+import com.sugarbridge.app.ui.screens.HistoryScreen
+import com.sugarbridge.app.ui.screens.HomeScreen
+import com.sugarbridge.app.ui.screens.LoginScreen
+import com.sugarbridge.app.ui.screens.SettingsScreen
 
 /** То, что умеет только Activity: окна разрешений, другие приложения и системные настройки. */
 interface AppActions {
