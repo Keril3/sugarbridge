@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit
 class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result = try {
-        val result = syncOnce(applicationContext)
+        val result = syncAndRecord(applicationContext)
         Log.i(TAG, "записано: ${result.written}")
         Result.success()
     } catch (e: CancellationException) {   // WorkManager сам остановил задачу — это не ошибка
@@ -37,18 +37,28 @@ class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
     } catch (e: IllegalStateException) {    // нет разрешения Health Connect или не выполнен вход
         Log.e(TAG, e.message ?: "ошибка")
         Result.failure()
+    } catch (e: Exception) {                // что-то неожиданное, например отказ Health Connect
+        Log.e(TAG, "синхронизация упала", e)
+        Result.failure()
     }
 
     companion object {
         const val TAG = "SugarSync"
+        const val WORK_NAME = "sugar-sync"
     }
 }
 
-fun scheduleSync(context: Context) {
-    val request = PeriodicWorkRequestBuilder<SyncWorker>(15, TimeUnit.MINUTES)   // 15 минут — минимум для WorkManager
+/** Планирует фоновую синхронизацию по настройкам. Безопасно вызывать сколько угодно раз. */
+fun scheduleSync(context: Context, settings: AppSettings = SettingsStore(context).load()) {
+    val workManager = WorkManager.getInstance(context)
+    if (settings.backgroundMinutes <= 0) {
+        workManager.cancelUniqueWork(SyncWorker.WORK_NAME)
+        return
+    }
+    // 15 минут — минимум для WorkManager
+    val request = PeriodicWorkRequestBuilder<SyncWorker>(settings.backgroundMinutes.toLong(), TimeUnit.MINUTES)
         .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
         .build()
-    // KEEP: если задача уже запланирована, вторую не создавать
-    WorkManager.getInstance(context)
-        .enqueueUniquePeriodicWork("sugar-sync", ExistingPeriodicWorkPolicy.KEEP, request)
+    // UPDATE: уже запланированная задача получает новый интервал, отсчёт времени не сбрасывается
+    workManager.enqueueUniquePeriodicWork(SyncWorker.WORK_NAME, ExistingPeriodicWorkPolicy.UPDATE, request)
 }

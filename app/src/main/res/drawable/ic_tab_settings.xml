@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Вкладка «Настройки»: три ползунка -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M4.8,6.2H19.2A0.8,0.8 0,0 1,19.2 7.8H4.8A0.8,0.8 0,0 1,4.8 6.2Z M4.8,11.2H19.2A0.8,0.8 0,0 1,19.2 12.8H4.8A0.8,0.8 0,0 1,4.8 11.2Z M4.8,16.2H19.2A0.8,0.8 0,0 1,19.2 17.8H4.8A0.8,0.8 0,0 1,4.8 16.2Z" />
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M9,4.4A2.6,2.6 0,1 1,9 9.6A2.6,2.6 0,1 1,9 4.4Z M15.5,9.4A2.6,2.6 0,1 1,15.5 14.6A2.6,2.6 0,1 1,15.5 9.4Z M8,14.4A2.6,2.6 0,1 1,8 19.6A2.6,2.6 0,1 1,8 14.4Z" />
+</vector>

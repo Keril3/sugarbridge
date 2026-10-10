@@ -1,30 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Тэнси-тян: капелька-ангелочек с нимбом и крылышками. Те же контуры рисует Mascot.kt -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path android:pathData="M31,63.928c0,0 6.4,-11 12.1,-13.1c7.2,-2.6 26,-1.4 26,-1.4l38.1,38.1L107,108.928l-32,-1L31,63.928z">
+    <!-- крылья -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#C3ABFF"
+        android:strokeWidth="1.2"
+        android:strokeLineJoin="round"
+        android:pathData="M39,56C35,48 27,43.5 20.5,45C21.5,48.5 23,50.5 25.5,52C22,53.5 21.5,57 24,59.5C21.5,61.5 22.5,65.5 26.5,66C27.5,70 32.5,71.5 37,68.5Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#C3ABFF"
+        android:strokeWidth="1.2"
+        android:strokeLineJoin="round"
+        android:pathData="M69,56C73,48 81,43.5 87.5,45C86.5,48.5 85,50.5 82.5,52C86,53.5 86.5,57 84,59.5C86.5,61.5 85.5,65.5 81.5,66C80.5,70 75.5,71.5 71,68.5Z" />
+    <path
+        android:strokeColor="#D9CAFF"
+        android:strokeWidth="0.9"
+        android:strokeLineCap="round"
+        android:pathData="M36.5,56.5C32,53 28,52 25.5,52.2M36.5,61.5C31.5,59.5 27.5,59.5 24.5,59.6M37,66C33,65.6 29.5,66 26.8,66M71.5,56.5C76,53 80,52 82.5,52.2M71.5,61.5C76.5,59.5 80.5,59.5 83.5,59.6M71,66C75,65.6 78.5,66 81.2,66" />
+    <!-- нимб: свечение, золото, блик -->
+    <path
+        android:strokeColor="#FFE7A3"
+        android:strokeAlpha="0.5"
+        android:strokeWidth="5"
+        android:pathData="M42,26a12,3.8 0,1 0,24 0a12,3.8 0,1 0,-24 0z" />
+    <path
+        android:strokeColor="#FFC23D"
+        android:strokeWidth="2.8"
+        android:pathData="M42,26a12,3.8 0,1 0,24 0a12,3.8 0,1 0,-24 0z" />
+    <path
+        android:strokeColor="#FFF4CC"
+        android:strokeWidth="0.9"
+        android:pathData="M42,26a12,3.8 0,1 0,24 0a12,3.8 0,1 0,-24 0z" />
+    <!-- капелька -->
+    <path
+        android:strokeColor="#EC5795"
+        android:strokeWidth="1.2"
+        android:pathData="M54,33C57.5,40 73,50 73,66A19,19 0,1 1,35 66C35,50 50.5,40 54,33Z">
         <aapt:attr name="android:fillColor">
             <gradient
-                android:endX="85.84757"
-                android:endY="92.4963"
-                android:startX="42.9492"
-                android:startY="49.59793"
-                android:type="linear">
-                <item
-                    android:color="#44000000"
-                    android:offset="0.0" />
-                <item
-                    android:color="#00000000"
-                    android:offset="1.0" />
+                android:type="linear"
+                android:startX="54"
+                android:startY="33"
+                android:endX="54"
+                android:endY="85">
+                <item android:offset="0" android:color="#FFFFC6DD" />
+                <item android:offset="1" android:color="#FFFF6BA1" />
             </gradient>
         </aapt:attr>
     </path>
+    <group
+        android:pivotX="45.5"
+        android:pivotY="55"
+        android:rotation="30">
+        <path
+            android:fillColor="#FFFFFF"
+            android:fillAlpha="0.75"
+            android:pathData="M42.7,55a2.8,5.6 0,1 0,5.6 0a2.8,5.6 0,1 0,-5.6 0z" />
+    </group>
     <path
         android:fillColor="#FFFFFF"
-        android:fillType="nonZero"
-        android:pathData="M65.3,45.828l3.8,-6.6c0.2,-0.4 0.1,-0.9 -0.3,-1.1c-0.4,-0.2 -0.9,-0.1 -1.1,0.3l-3.9,6.7c-6.3,-2.8 -13.4,-2.8 -19.7,0l-3.9,-6.7c-0.2,-0.4 -0.7,-0.5 -1.1,-0.3C38.8,38.328 38.7,38.828 38.9,39.228l3.8,6.6C36.2,49.428 31.7,56.028 31,63.928h46C76.3,56.028 71.8,49.428 65.3,45.828zM43.4,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2c-0.3,-0.7 -0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C45.3,56.528 44.5,57.328 43.4,57.328L43.4,57.328zM64.6,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2s-0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C66.5,56.528 65.6,57.328 64.6,57.328L64.6,57.328z"
-        android:strokeWidth="1"
-        android:strokeColor="#00000000" />
+        android:fillAlpha="0.85"
+        android:pathData="M48.2,47.5a1.3,1.3 0,1 0,2.6 0a1.3,1.3 0,1 0,-2.6 0z" />
+    <!-- мордочка -->
+    <path
+        android:fillColor="#4A2B4F"
+        android:pathData="M45.2,66a2.3,3.1 0,1 0,4.6 0a2.3,3.1 0,1 0,-4.6 0z M58.2,66a2.3,3.1 0,1 0,4.6 0a2.3,3.1 0,1 0,-4.6 0z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M47.4,64.8a0.9,0.9 0,1 0,1.8 0a0.9,0.9 0,1 0,-1.8 0z M60.4,64.8a0.9,0.9 0,1 0,1.8 0a0.9,0.9 0,1 0,-1.8 0z" />
+    <path
+        android:fillColor="#FF5E9E"
+        android:fillAlpha="0.45"
+        android:pathData="M39.4,71a3.2,1.8 0,1 0,6.4 0a3.2,1.8 0,1 0,-6.4 0z M62.2,71a3.2,1.8 0,1 0,6.4 0a3.2,1.8 0,1 0,-6.4 0z" />
+    <path
+        android:strokeColor="#4A2B4F"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:pathData="M51.5,71Q54,73.6 56.5,71" />
+    <!-- звёздочки и сердечко -->
+    <path
+        android:fillColor="#FFD25E"
+        android:pathData="M80,26Q80,31.5 85.5,31.5Q80,31.5 80,37Q80,31.5 74.5,31.5Q80,31.5 80,26Z" />
+    <path
+        android:fillColor="#FF8DBA"
+        android:pathData="M78.5,80.5C78.5,78.6 76.2,77.6 75,79.2C73.8,77.6 71.5,78.6 71.5,80.5C71.5,82.6 75,84.8 75,84.8C75,84.8 78.5,82.6 78.5,80.5Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M30,75Q30,78 33,78Q30,78 30,81Q30,78 27,78Q30,78 30,75Z" />
 </vector>

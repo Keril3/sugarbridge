@@ -1,155 +1,126 @@
 package com.sugarbridge.app
 
 import android.Manifest
+import android.annotation.SuppressLint
+import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.unit.dp
+import androidx.activity.viewModels
+import androidx.core.net.toUri
 import androidx.health.connect.client.PermissionController
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.sugarbridge.app.ui.AppActions
+import com.sugarbridge.app.ui.SugarApp
+import com.sugarbridge.app.ui.SugarTheme
 
-class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity(), AppActions {
 
-    private var signedIn by mutableStateOf(false)
-    private var email by mutableStateOf("")
-    private var password by mutableStateOf("")
-    private var status by mutableStateOf("")
+    private val vm: MainViewModel by viewModels()
 
-    private val requestPermissions =
+    private val healthPermission =
         registerForActivityResult(PermissionController.createRequestPermissionResultContract()) { granted ->
-            status = if (WRITE_GLUCOSE in granted) "Доступ к Health Connect есть" else "Без доступа к Health Connect записывать некуда"
+            vm.refreshStatus()
+            if (WRITE_GLUCOSE !in granted) vm.notify("Без разрешения Health Connect сахар записывать некуда")
         }
 
-    private val askNotifications =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
-            // сервис запускаем в любом случае: без разрешения его уведомление просто не видно в шторке
-            startForegroundService(Intent(this, LiveSyncService::class.java))
-            status = if (ok) "Сахар обновляется раз в минуту" else "Сахар обновляется раз в минуту, уведомление скрыто"
+    // минутный режим включаем в любом случае: без разрешения его уведомление просто не видно в шторке
+    private val notificationPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+            vm.updateSettings { it.copy(liveEnabled = true) }
         }
+
+    private val libreView =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            result.data?.getStringExtra(LibreViewActivity.EXTRA_PATH)?.let(vm::importFile)
+        }
+
+    private val csvPicker =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> uri?.let(vm::importUri) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        scheduleSync(this)   // безопасно вызывать при каждом запуске благодаря KEEP
-        signedIn = Libre.client(this) != null
+        enableEdgeToEdge()
+        createNotificationChannels(this)
+        scheduleSync(this)   // безопасно вызывать при каждом запуске
+        if (savedInstanceState == null) handleIntent(intent)
         setContent {
-            MaterialTheme {
-                Column(
-                    Modifier.safeDrawingPadding().padding(24.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    if (signedIn) MainScreen() else LoginScreen()
-                    Text(status)
-                }
-            }
+            SugarTheme { SugarApp(vm, this) }
         }
     }
 
-    @Composable
-    private fun LoginScreen() {
-        Text("Вход в LibreLinkUp", style = MaterialTheme.typography.titleLarge)
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email") },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            modifier = Modifier.fillMaxWidth(),
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleIntent(intent)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        vm.refreshStatus()
+    }
+
+    /** CSV, открытый через SugarBridge из браузера, файлового менеджера или «Поделиться». */
+    private fun handleIntent(intent: Intent?) {
+        val uri = when (intent?.action) {
+            Intent.ACTION_VIEW -> intent.data
+            Intent.ACTION_SEND -> intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
+            else -> null
+        }
+        if (uri != null) vm.importUri(uri)
+    }
+
+    override fun requestHealthPermission() {
+        if (healthConnectState(this) == HealthConnectState.AVAILABLE) healthPermission.launch(setOf(WRITE_GLUCOSE))
+    }
+
+    override fun installHealthConnect() = open(healthConnectStoreIntent(this))
+
+    override fun openHealthConnect() = open(healthConnectSettingsIntent())
+
+    override fun setLive(enabled: Boolean) {
+        val needsPermission = checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        when {
+            !enabled -> vm.updateSettings { it.copy(liveEnabled = false) }
+            needsPermission && vm.ui.settings.liveShowValue -> notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+            else -> vm.updateSettings { it.copy(liveEnabled = true) }
+        }
+    }
+
+    override fun openLibreView() = libreView.launch(Intent(this, LibreViewActivity::class.java))
+
+    override fun pickCsv() =
+        csvPicker.launch(arrayOf("text/*", "application/csv", "application/vnd.ms-excel", "application/octet-stream"))
+
+    /** Настройки канала уведомления: там его можно выключить, минутный режим продолжит работать. */
+    override fun hideNotification() {
+        val channel = if (vm.ui.settings.liveShowValue) LiveSyncService.CHANNEL_LIVE else LiveSyncService.CHANNEL_QUIET
+        open(
+            Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
+                .putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                .putExtra(Settings.EXTRA_CHANNEL_ID, channel)
         )
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Пароль") },
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Button(onClick = { signIn() }, enabled = email.isNotBlank() && password.isNotEmpty()) {
-            Text("Войти")
-        }
     }
 
-    @Composable
-    private fun MainScreen() {
-        Button(onClick = { requestPermissions.launch(setOf(WRITE_GLUCOSE)) }) { Text("Доступ к Health Connect") }
-        Button(onClick = { syncNow() }) { Text("Синхронизировать сейчас") }
-        Button(onClick = { askNotifications.launch(Manifest.permission.POST_NOTIFICATIONS) }) {
-            Text("Обновлять раз в минуту")
-        }
-        OutlinedButton(onClick = { stopService(Intent(this@MainActivity, LiveSyncService::class.java)) }) {
-            Text("Остановить обновление")
-        }
-        OutlinedButton(onClick = { check() }) { Text("Проверить LibreLinkUp") }
-        OutlinedButton(onClick = { signOut() }) { Text("Выйти") }
+    @SuppressLint("BatteryLife")   // приложение не для Google Play, а минутному режиму сон мешает
+    override fun requestBatteryUnrestricted() =
+        open(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, "package:$packageName".toUri()))
+
+    override fun openSamsungHealth() {
+        packageManager.getLaunchIntentForPackage(SAMSUNG_HEALTH_PACKAGE)?.let(::open)
     }
 
-    private fun signIn() {
-        val e = email.trim()
-        val p = password
-        status = "Вхожу…"
-        lifecycleScope.launch {
-            status = try {
-                withContext(Dispatchers.IO) { Libre.signIn(this@MainActivity, e, p) }
-                signedIn = true
-                password = ""
-                "Вход выполнен"
-            } catch (ex: Exception) {
-                "Не получилось: ${ex.message}"
-            }
+    private fun open(intent: Intent) {
+        try {
+            startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            vm.notify("Не нашлось приложения, чтобы это открыть")
+        } catch (e: SecurityException) {
+            vm.notify("Android не дал это открыть")
         }
-    }
-
-    private fun check() {
-        status = "Запрашиваю LibreLinkUp…"
-        lifecycleScope.launch {
-            status = try {
-                val readings = withContext(Dispatchers.IO) { Libre.client(this@MainActivity)!!.readings() }
-                "Замеров за 12 часов: ${readings.size}\nПоследний: ${readings.lastOrNull()?.text() ?: "—"}"
-            } catch (ex: Exception) {
-                "Ошибка: ${ex.message}"
-            }
-        }
-    }
-
-    private fun syncNow() {
-        status = "Синхронизация…"
-        lifecycleScope.launch {
-            status = try {
-                val result = syncOnce(this@MainActivity)
-                "Записано в Health Connect: ${result.written}\nПоследний: ${result.latest?.text() ?: "—"}"
-            } catch (ex: Exception) {
-                "Ошибка: ${ex.message}"
-            }
-        }
-    }
-
-    private fun signOut() {
-        stopService(Intent(this, LiveSyncService::class.java))
-        Libre.signOut(this)
-        signedIn = false
-        status = ""
     }
 }

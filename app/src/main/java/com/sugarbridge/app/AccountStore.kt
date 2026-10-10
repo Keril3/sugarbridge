@@ -4,12 +4,13 @@ import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
-import org.json.JSONObject
+import androidx.core.content.edit
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
+import org.json.JSONObject
 
 /** Логин, пароль и сохранённая сессия LibreLinkUp. */
 data class Account(val email: String, val password: String, val session: Session? = null)
@@ -26,10 +27,10 @@ class AccountStore(context: Context) {
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, key())   // вектор инициализации (IV) шифр создаёт сам
         val encrypted = cipher.doFinal(json.toString().toByteArray())
-        prefs.edit()
-            .putString("iv", Base64.encodeToString(cipher.iv, Base64.NO_WRAP))
-            .putString("data", Base64.encodeToString(encrypted, Base64.NO_WRAP))
-            .apply()
+        prefs.edit {
+            putString("iv", Base64.encodeToString(cipher.iv, Base64.NO_WRAP))
+            putString("data", Base64.encodeToString(encrypted, Base64.NO_WRAP))
+        }
     }
 
     fun load(): Account? {
@@ -51,7 +52,7 @@ class AccountStore(context: Context) {
     }
 
     fun clear() {
-        prefs.edit().clear().apply()
+        prefs.edit { clear() }
     }
 
     /** Ключ AES живёт внутри Android Keystore и никогда не покидает телефон. */
