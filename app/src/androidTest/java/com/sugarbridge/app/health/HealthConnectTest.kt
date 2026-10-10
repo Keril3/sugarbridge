@@ -7,6 +7,7 @@ import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.sugarbridge.app.glucose.GlucoseBins
 import com.sugarbridge.app.glucose.Reading
 import com.sugarbridge.app.sync.minuteKey
 import com.sugarbridge.app.sync.recordIdFor
@@ -17,6 +18,7 @@ import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.time.Duration
 import java.time.Instant
 import kotlinx.coroutines.runBlocking
 
@@ -85,5 +87,23 @@ class HealthConnectTest {
         assertEquals("Abbott", record.metadata.device?.manufacturer)
         assertEquals(115.3, record.level.inMilligramsPerDeciliter, 0.01)
         assertEquals(BloodGlucoseRecord.SPECIMEN_SOURCE_INTERSTITIAL_FLUID, record.specimenSource)
+    }
+
+    @Test
+    fun gmiIsCalculatedFromOwnRecords() = runBlocking {
+        // две недели точек раз в 15 минут по 150 мг/дл — далеко в прошлом, чтобы не мешать другим тестам
+        val start = Instant.parse("2025-01-01T00:00:00Z")
+        val end = start.plus(Duration.ofDays(14))
+        try {
+            insertReadings(context, (0 until 14 * 96).map { Reading(start.plusSeconds(it * 900L), 150.0, 0) })
+            val bins = GlucoseBins(start, end)
+            forEachOwnGlucose(context, start, end) { time, mgDl -> bins.add(time, mgDl) }
+            val gmi = bins.result()!!
+            assertEquals(1.0, gmi.coverage, 1e-9)
+            assertEquals(150.0, gmi.meanMgDl, 0.01)
+            assertEquals(6.9, gmi.percent, 0.05)
+        } finally {
+            deleteOwnGlucose(context, start, end)
+        }
     }
 }

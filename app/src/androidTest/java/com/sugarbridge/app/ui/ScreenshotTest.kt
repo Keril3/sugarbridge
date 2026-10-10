@@ -97,8 +97,9 @@ class ScreenshotTest {
         SyncStore(context).saveSuccess(recent, 3)   // «последняя синхронизация только что» — автосинхронизации не будет
         if (healthConnectState(context) == HealthConnectState.AVAILABLE) {
             instrumentation.uiAutomation.grantRuntimePermission(context.packageName, WRITE_GLUCOSE)
-            // последние три дня уже «в Health Connect» — на экране истории у них будет отметка
-            runBlocking { insertReadings(context, (0L..2L).flatMap { day(today.minusDays(it)) }) }
+            // две недели уже «в Health Connect»: на экране истории у этих дней будет отметка,
+            // а на главном — расчётный HbA1c за 14 дней
+            runBlocking { insertReadings(context, (0L..13L).flatMap { day(today.minusDays(it)) }) }
         }
     }
 
@@ -128,6 +129,9 @@ class ScreenshotTest {
 
         compose.waitUntil(10_000) { vm.ui.signedIn && vm.ui.canWrite != null }
         shot("home")
+        compose.waitUntil(20_000) { vm.ui.gmi14 != null }
+        compose.onNodeWithText("Оценка по средней глюкозе", substring = true).performScrollTo()
+        shot("home_gmi")
 
         compose.onNodeWithText("История").performClick()
         shot("history_empty")

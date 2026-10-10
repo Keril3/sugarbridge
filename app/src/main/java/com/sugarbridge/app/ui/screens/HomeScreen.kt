@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.sugarbridge.app.MainViewModel
 import com.sugarbridge.app.UiState
 import com.sugarbridge.app.glucose.GlucoseLevel
+import com.sugarbridge.app.glucose.GmiResult
 import com.sugarbridge.app.glucose.Reading
 import com.sugarbridge.app.glucose.formatGlucose
 import com.sugarbridge.app.glucose.levelOf
@@ -94,6 +95,7 @@ fun HomeScreen(vm: MainViewModel, actions: AppActions) {
                 DayStats(ui.sync.recent, s)
             }
         }
+        if (ui.gmi90 != null) GmiCard(ui.gmi14, ui.gmi90)
         SyncCard(ui, now, vm, actions)
         BottomSpace()
     }
@@ -179,6 +181,47 @@ private fun Stat(label: String, value: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(value, style = MaterialTheme.typography.titleMedium)
         Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+/** Расчётный HbA1c (GMI) за 14 и 90 дней — по всем замерам SugarBridge в Health Connect. */
+@Composable
+private fun GmiCard(days14: GmiResult?, days90: GmiResult?) {
+    TenshiCard {
+        CardTitle("Расчётный HbA1c (GMI)")
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+            GmiStat("14 дней", days14)
+            GmiStat("90 дней", days90)
+        }
+        Hint(
+            "Оценка по средней глюкозе с датчика, а не анализ крови: лабораторный HbA1c может отличаться. " +
+                "Надёжна, когда данных хотя бы 70 % за 14 дней. В Samsung Health HbA1c вносится только вручную — " +
+                "Health Connect этот показатель не передаёт."
+        )
+    }
+}
+
+@Composable
+private fun GmiStat(label: String, gmi: GmiResult?) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            if (gmi == null) "—" else String.format(Locale.getDefault(), "%.1f %%", gmi.percent),
+            style = MaterialTheme.typography.headlineSmall,
+            color = if (gmi?.enough == true) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        if (gmi != null) {
+            Text("${gmi.mmolPerMol} ммоль/моль", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        val coverage = gmi?.let { (it.coverage * 100).roundToInt() }
+        Text(
+            when {
+                gmi == null -> "$label · нет данных"
+                gmi.enough -> "$label · данных $coverage %"
+                else -> "$label · мало данных: $coverage %"
+            },
+            style = MaterialTheme.typography.labelSmall,
+            color = if (gmi?.enough == true) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error,
+        )
     }
 }
 

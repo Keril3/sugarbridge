@@ -79,8 +79,14 @@ fun Reading.toRecord() = BloodGlucoseRecord(
  * без разрешения на чтение и без ограничения в 30 дней (Android 14+).
  */
 suspend fun ownMinuteKeys(context: Context, from: Instant, to: Instant): Set<Long> {
-    val hc = HealthConnectClient.getOrCreate(context)
     val keys = HashSet<Long>()
+    forEachOwnGlucose(context, from, to) { time, _ -> keys += minuteKey(time) }
+    return keys
+}
+
+/** Все замеры, которые SugarBridge записал в Health Connect за промежуток: время и мг/дл. */
+suspend fun forEachOwnGlucose(context: Context, from: Instant, to: Instant, action: (Instant, Double) -> Unit) {
+    val hc = HealthConnectClient.getOrCreate(context)
     var page: String? = null
     do {
         val response = hc.readRecords(
@@ -92,10 +98,9 @@ suspend fun ownMinuteKeys(context: Context, from: Instant, to: Instant): Set<Lon
                 pageToken = page,
             )
         )
-        response.records.mapTo(keys) { minuteKey(it.time) }
+        response.records.forEach { action(it.time, it.level.inMilligramsPerDeciliter) }
         page = response.pageToken
     } while (page != null)
-    return keys
 }
 
 /** Запись пачками: Health Connect принимает не больше 1000 записей за раз. */

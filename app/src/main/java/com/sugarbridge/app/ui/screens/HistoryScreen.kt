@@ -42,8 +42,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sugarbridge.app.ImportUi
 import com.sugarbridge.app.MainViewModel
+import com.sugarbridge.app.glucose.estimateGmi
 import com.sugarbridge.app.glucose.formatGlucose
 import com.sugarbridge.app.libreview.DaySummary
+import com.sugarbridge.app.libreview.dayBounds
 import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.ui.AppActions
 import com.sugarbridge.app.ui.components.ButtonRow
@@ -58,9 +60,11 @@ import com.sugarbridge.app.ui.components.TenshiCard
 import com.sugarbridge.app.ui.theme.Tenshi
 import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.math.roundToInt
 
 private val SHORT = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 private const val ALL_DAYS = 0L
@@ -193,6 +197,16 @@ private fun PeriodCard(h: ImportUi, s: AppSettings, onPick: () -> Unit, onQuick:
             val avg = visible.sumOf { it.avgMgDl * it.count } / count
             val inRange = visible.sumOf { it.inRangePercent * it.count } / count
             Hint("В периоде: ${visible.size} дн., $count замеров · среднее ${formatGlucose(avg, s.unit)} ${s.unit.label} · в диапазоне $inRange%")
+            val gmi = remember(h.readings, h.from, h.to) {
+                val zone = ZoneId.systemDefault()
+                estimateGmi(h.readings, dayBounds(visible.first().date, zone).first, dayBounds(visible.last().date, zone).second)
+            }
+            if (gmi != null) {
+                Hint(
+                    String.format(Locale.getDefault(), "Расчётный HbA1c (GMI) за период: %.1f %% · %d ммоль/моль", gmi.percent, gmi.mmolPerMol) +
+                        if (gmi.enough) "" else " · мало данных (${(gmi.coverage * 100).roundToInt()} %)"
+                )
+            }
         }
     }
 }

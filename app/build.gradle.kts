@@ -5,7 +5,7 @@ plugins {
 
 // Версия: при выпуске берётся из git-тега (./gradlew -Psugarbridge.version=1.2.0), иначе — эта.
 // versionCode растёт вместе с ней: 1.2.3 → 10203.
-val appVersion = providers.gradleProperty("sugarbridge.version").getOrElse("1.1.0")
+val appVersion = providers.gradleProperty("sugarbridge.version").getOrElse("1.2.0")
 val appVersionCode = (appVersion.substringBefore('-').split('.').map { it.toIntOrNull() ?: 0 } + listOf(0, 0, 0))
     .take(3)
     .let { (major, minor, patch) -> major * 10_000 + minor * 100 + patch }

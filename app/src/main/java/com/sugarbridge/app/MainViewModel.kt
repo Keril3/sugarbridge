@@ -11,12 +11,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.sugarbridge.app.glucose.GlucoseBins
 import com.sugarbridge.app.glucose.GlucoseUnit
+import com.sugarbridge.app.glucose.GmiResult
 import com.sugarbridge.app.glucose.Reading
 import com.sugarbridge.app.glucose.text
 import com.sugarbridge.app.health.HealthConnectState
 import com.sugarbridge.app.health.SAMSUNG_HEALTH_PACKAGE
 import com.sugarbridge.app.health.deleteOwnGlucose
+import com.sugarbridge.app.health.forEachOwnGlucose
 import com.sugarbridge.app.health.hasGlucosePermission
 import com.sugarbridge.app.health.healthConnectState
 import com.sugarbridge.app.health.insertReadings
@@ -45,6 +48,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
@@ -65,6 +69,8 @@ data class UiState(
     val syncing: Boolean = false,
     val signingIn: Boolean = false,
     val checking: Boolean = false,
+    val gmi14: GmiResult? = null,   // расчётный HbA1c за 14 и 90 дней по своим записям в Health Connect
+    val gmi90: GmiResult? = null,
 )
 
 /** Импорт истории из LibreView: загруженные замеры, выбранный период и дни. */
@@ -99,6 +105,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     var history by mutableStateOf(ImportUi())
         private set
     var tab by mutableStateOf(Tab.NOW)
+
+    private var gmiJob: Job? = null
+    private var gmiAt: Instant? = null
 
     private val _messages = MutableSharedFlow<String>(extraBufferCapacity = 8)
     val messages: SharedFlow<String> = _messages
@@ -151,6 +160,34 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             ui = ui.copy(canWrite = canWrite)
             if (ui.settings.liveEnabled && ui.signedIn && canWrite) LiveSyncService.start(context)
             autoSync()
+            if (hc == HealthConnectState.AVAILABLE) refreshGmi()
+        }
+    }
+
+    /**
+     * Расчётный HbA1c (GMI) за 14 и 90 дней по всем замерам SugarBridge в Health Connect — один проход
+     * по записям за 90 дней. Пересчитываем не чаще раза в 10 минут: за это время он почти не меняется.
+     */
+    private fun refreshGmi(force: Boolean = false) {
+        if (gmiJob?.isActive == true) return
+        val last = gmiAt
+        if (!force && last != null && Duration.between(last, Instant.now()) < Duration.ofMinutes(10)) return
+        gmiJob = viewModelScope.launch {
+            val now = Instant.now()
+            val days14 = GlucoseBins(now.minus(Duration.ofDays(14)), now)
+            val days90 = GlucoseBins(now.minus(Duration.ofDays(90)), now)
+            val ok = withContext(Dispatchers.IO) {
+                runCatching {
+                    forEachOwnGlucose(context, now.minus(Duration.ofDays(90)), now) { time, mgDl ->
+                        days14.add(time, mgDl)
+                        days90.add(time, mgDl)
+                    }
+                }.isSuccess
+            }
+            if (ok) {
+                ui = ui.copy(gmi14 = days14.result(), gmi90 = days90.result())
+                gmiAt = now
+            }
         }
     }
 
@@ -375,6 +412,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 }
                 val allExisting = existingKeys(h.readings)
                 history = history.copy(existing = allExisting, days = summarize(h.readings, allExisting, ui.settings), selected = emptySet())
+                refreshGmi(force = true)   // история за прошлые дни меняет расчётный HbA1c
                 val already = chosen.size - toWrite.size - future
                 say(
                     "Записано в Health Connect: ${toWrite.size} ✧" +
@@ -406,6 +444,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 }
                 val allExisting = existingKeys(h.readings)
                 history = history.copy(existing = allExisting, days = summarize(h.readings, allExisting, ui.settings), selected = emptySet())
+                refreshGmi(force = true)
                 say("Удалено из Health Connect: ${h.selected.size} дн.")
             } catch (e: CancellationException) {
                 throw e
