@@ -39,15 +39,13 @@ jobs:
           SUGARBRIDGE_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew testDebugUnitTest assembleRelease -Psugarbridge.version="${GITHUB_REF_NAME#v}"
 
-      - name: Release files
-        run: |
-          cp app/build/outputs/apk/release/app-release.apk SugarBridge.apk
-          sha256sum SugarBridge.apk > SugarBridge.apk.sha256
+      - name: Release file
+        run: cp app/build/outputs/apk/release/app-release.apk SugarBridge.apk
 
       - name: GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" SugarBridge.apk SugarBridge.apk.sha256 \
+          gh release create "$GITHUB_REF_NAME" SugarBridge.apk \
             --title "SugarBridge ${GITHUB_REF_NAME#v}" --notes-file <(sed -n "/^## ${GITHUB_REF_NAME#v}/,/^## /p" CHANGELOG.md | sed '1d;$d') \
-            || gh release upload "$GITHUB_REF_NAME" SugarBridge.apk SugarBridge.apk.sha256 --clobber
+            || gh release upload "$GITHUB_REF_NAME" SugarBridge.apk --clobber

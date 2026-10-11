@@ -43,5 +43,5 @@ Newest version first. A version's section becomes the release notes on GitHub.
 
 ## 1.0.0 — 2026-10-08
 
-- The first version following the guide: LibreLinkUp sign-in, the password under the Android Keystore,
+- The first version: LibreLinkUp sign-in, the password under the Android Keystore,
   sync to Health Connect every 15 minutes, a minute service with a notification.

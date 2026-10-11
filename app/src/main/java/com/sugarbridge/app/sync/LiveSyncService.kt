@@ -272,7 +272,7 @@ class LiveSyncService : Service() {
     }
 
     companion object {
-        // "live" was used by the version from the guide with LOW importance: such notifications get no status bar icon,
+        // "live" was used by version 1.0.0 with LOW importance: such notifications get no status bar icon,
         // and an app can't change the importance of an existing channel, hence the new id
         const val CHANNEL_LIVE = "glucose"
         internal const val LEGACY_CHANNEL = "live"

@@ -69,7 +69,7 @@ class SyncStore(context: Context) {
 
     fun state(): SyncState = SyncState(
         written = decodeKeys(prefs.getString("written", null)),
-        // last_synced is left from the version in the guide: everything not newer than it was written with the old ids
+        // last_synced is left from version 1.0.0: everything not newer than it was written with the old ids
         floor = prefs.getLong("floor", prefs.getLong("last_synced", 0)),
     )
 
