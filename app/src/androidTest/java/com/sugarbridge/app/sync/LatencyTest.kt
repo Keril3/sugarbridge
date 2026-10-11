@@ -9,6 +9,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
 import com.sugarbridge.app.MainActivity
+import com.sugarbridge.app.debug.DebugLog
 import com.sugarbridge.app.health.HealthConnectState
 import com.sugarbridge.app.health.WRITE_GLUCOSE
 import com.sugarbridge.app.health.deleteOwnGlucose
@@ -108,6 +109,9 @@ class LatencyTest {
     private fun shell(command: String) = instrumentation.uiAutomation.executeShellCommand(command).close()
 
     private fun measure(doze: Boolean) {
+        // a lock screen left by an earlier test would keep MainActivity from coming to the front and starting the service
+        shell("input keyevent KEYCODE_WAKEUP")
+        shell("wm dismiss-keyguard")
         SettingsStore(context).save(AppSettings(backgroundMinutes = 0, liveEnabled = true, liveMinutes = 1, liveKeepAwake = true))
         context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         Thread.sleep(3000)   // MainActivity starts the service
@@ -118,6 +122,7 @@ class LatencyTest {
             shell("dumpsys deviceidle force-idle")
         }
         val seen = LinkedHashMap<Instant, Instant>()   // reading time → when it appeared in Health Connect
+        val watchEnd: Instant
         try {
             val end = SystemClock.uptimeMillis() + RUN.toMillis()
             while (SystemClock.uptimeMillis() < end) {
@@ -130,10 +135,12 @@ class LatencyTest {
                 Thread.sleep(2000)
             }
         } finally {
+            watchEnd = Instant.now()
             if (doze) {
                 shell("dumpsys deviceidle unforce")
                 shell("dumpsys battery reset")
                 shell("input keyevent KEYCODE_WAKEUP")
+                shell("wm dismiss-keyguard")
             }
         }
 
@@ -145,18 +152,26 @@ class LatencyTest {
                 appendLine("reading $time → in Health Connect at $appeared (+${Duration.between(time.plus(CLOUD_LAG), appeared).seconds} s after the cloud had it)")
             }
             appendLine("values: ${seen.size}, SugarBridge delay s: min ${delays.minOrNull()} median ${delays.sorted().getOrNull(delays.size / 2)} max ${delays.maxOrNull()}")
+            appendLine("event log:")
+            DebugLog.read(context).filter { it.at.isAfter(started) }.forEach { appendLine("  ${it.at} ${it.kind} ${it.text}") }
         }
         report.lines().forEach { Log.i("Latency", it) }
         File(context.filesDir, if (doze) "latency_doze.txt" else "latency.txt").writeText(report)
 
-        // RUN minutes bring at least RUN - 1 new values, and none may wait longer than a poll interval plus slack
-        assertTrue(report, seen.size >= RUN.toMinutes() - 1)
-        assertTrue(report, delays.all { it <= 75 })
+        // every value the cloud published early enough to be due before the watch ended must be there,
+        // and none may wait longer than a poll interval plus slack
+        val due = generateSequence(Instant.ofEpochSecond(started.epochSecond / 60 * 60 + 60)) { it.plusSeconds(60) }
+            .takeWhile { !it.plus(CLOUD_LAG).plusSeconds(MAX_DELAY_S).isAfter(watchEnd) }
+            .toList()
+        assertTrue(report, due.size >= 3)
+        assertTrue("missing: ${due - seen.keys} | $report", seen.keys.containsAll(due))
+        assertTrue(report, delays.all { it <= MAX_DELAY_S })
     }
 
     companion object {
         private val CLOUD_LAG: Duration = Duration.ofSeconds(20)
         private val RUN: Duration = Duration.ofMinutes(5)
+        private const val MAX_DELAY_S = 75L   // a poll interval of 60 s plus slack
 
         /** The newest value the cloud has at [now]: sensor values every whole minute, visible [CLOUD_LAG] later. */
         fun latestPublished(now: Instant): Instant = Instant.ofEpochSecond(now.minus(CLOUD_LAG).epochSecond / 60 * 60)

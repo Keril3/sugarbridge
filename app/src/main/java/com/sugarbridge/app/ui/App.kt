@@ -52,6 +52,7 @@ import com.sugarbridge.app.ui.components.SecondaryButton
 import com.sugarbridge.app.ui.components.SkyBackground
 import com.sugarbridge.app.ui.components.XpDialog
 import com.sugarbridge.app.ui.components.XpWindow
+import com.sugarbridge.app.ui.components.pinkWindow
 import com.sugarbridge.app.ui.screens.HistoryScreen
 import com.sugarbridge.app.ui.screens.HomeScreen
 import com.sugarbridge.app.ui.screens.LanguageScreen
@@ -164,16 +165,19 @@ private fun Dock(current: Tab, onSelect: (Tab) -> Unit) {
     }
 }
 
-/** Messages pop up as a small window of their own, like every other window; a tap closes one early. */
+/**
+ * Messages pop up as a small pink window: shaped like the others but in Tenshi-chan's pink, so it doesn't melt
+ * into the screen behind it. A tap closes it early.
+ */
 @Composable
 private fun TenshiSnackbarHost(state: SnackbarHostState, modifier: Modifier = Modifier) {
     SnackbarHost(state, modifier) { data ->
         XpWindow(
-            "SugarBridge",
+            "SugarBridge ♡",
             Modifier.padding(horizontal = 14.dp, vertical = 8.dp).testTag("popup"),
             bodyPadding = PaddingValues(start = 14.dp, top = 16.dp, end = 14.dp, bottom = 14.dp),
             onBodyClick = data::dismiss,
-            framed = false,
+            colors = pinkWindow(),
         ) {
             Text(data.visuals.message, style = MaterialTheme.typography.bodyMedium)
         }

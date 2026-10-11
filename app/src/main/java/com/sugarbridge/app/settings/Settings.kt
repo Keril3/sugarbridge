@@ -17,6 +17,9 @@ data class AppSettings(
     val livePinned: Boolean = false,     // the notification comes straight back if swiped away
     val liveStatusValue: Boolean = true, // the number itself as the status bar icon, instead of Tenshi-chan
     val liveArrow: Boolean = true,       // the trend arrow next to the value in the notification and the status bar
+    val statusArrowAbove: Boolean = true, // in the status bar icon: the arrow above the number, or beside it
+    val statusNumberSize: Int = 3,       // steps of StatusIcon.NUMBER_SIZES, the largest by default
+    val statusArrowSize: Int = 1,        // steps of StatusIcon.ARROW_SIZES
     val unit: GlucoseUnit = GlucoseUnit.MMOL,
     val lowMgDl: Double = 70.0,          // 3.9 mmol/L
     val highMgDl: Double = 180.0,        // 10.0 mmol/L
@@ -46,6 +49,9 @@ class SettingsStore(context: Context) {
             livePinned = prefs.getBoolean("live_pinned", d.livePinned),
             liveStatusValue = prefs.getBoolean("live_status_value", d.liveStatusValue),
             liveArrow = prefs.getBoolean("live_arrow", d.liveArrow),
+            statusArrowAbove = prefs.getBoolean("status_arrow_above", d.statusArrowAbove),
+            statusNumberSize = prefs.getInt("status_number_size", d.statusNumberSize),
+            statusArrowSize = prefs.getInt("status_arrow_size", d.statusArrowSize),
             unit = GlucoseUnit.entries.getOrElse(prefs.getInt("unit", d.unit.ordinal)) { d.unit },
             lowMgDl = prefs.getFloat("low_mgdl", d.lowMgDl.toFloat()).toDouble(),
             highMgDl = prefs.getFloat("high_mgdl", d.highMgDl.toFloat()).toDouble(),
@@ -66,6 +72,9 @@ class SettingsStore(context: Context) {
             putBoolean("live_pinned", s.livePinned)
             putBoolean("live_status_value", s.liveStatusValue)
             putBoolean("live_arrow", s.liveArrow)
+            putBoolean("status_arrow_above", s.statusArrowAbove)
+            putInt("status_number_size", s.statusNumberSize)
+            putInt("status_arrow_size", s.statusArrowSize)
             putInt("unit", s.unit.ordinal)
             putFloat("low_mgdl", s.lowMgDl.toFloat())
             putFloat("high_mgdl", s.highMgDl.toFloat())

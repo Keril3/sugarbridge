@@ -1,8 +1,11 @@
 package com.sugarbridge.app.ui.screens
 
+import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
+import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -32,14 +35,17 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.net.toUri
 import com.sugarbridge.app.MainViewModel
 import com.sugarbridge.app.R
 import com.sugarbridge.app.debug.DebugLog
+import com.sugarbridge.app.debug.DevFix
 import com.sugarbridge.app.debug.LogEntry
 import com.sugarbridge.app.debug.StatusLine
 import com.sugarbridge.app.debug.collectStatus
 import com.sugarbridge.app.debug.hasUsageAccess
 import com.sugarbridge.app.debug.samsungHealthEvents
+import com.sugarbridge.app.health.SAMSUNG_HEALTH_PACKAGE
 import com.sugarbridge.app.sync.LiveSyncService
 import com.sugarbridge.app.sync.scheduleSync
 import com.sugarbridge.app.ui.AppActions
@@ -102,7 +108,10 @@ fun DeveloperDialog(vm: MainViewModel, actions: AppActions, onDismiss: () -> Uni
                 }
                 item {
                     XpWindow(stringResource(R.string.dev_status)) {
-                        status.forEach { StatusRow(it) }
+                        status.forEach { line ->
+                            StatusRow(line)
+                            line.fix?.let { FixButton(it, actions) { round++ } }
+                        }
                         SecondaryButton(stringResource(R.string.dev_refresh), onClick = { round++ }, modifier = Modifier.fillMaxWidth())
                     }
                 }
@@ -116,6 +125,9 @@ fun DeveloperDialog(vm: MainViewModel, actions: AppActions, onDismiss: () -> Uni
                         if (!usage) {
                             Hint(stringResource(R.string.dev_usage_hint))
                             PrimaryButton(stringResource(R.string.dev_usage_grant), onClick = actions::openUsageAccess, modifier = Modifier.fillMaxWidth())
+                            // an app installed from an APK gets this switch greyed out until "restricted settings" are allowed
+                            Hint(stringResource(R.string.dev_usage_restricted))
+                            SecondaryButton(stringResource(R.string.dev_app_info), onClick = { openSafely(context, appInfo(context)) }, modifier = Modifier.fillMaxWidth())
                         }
                     }
                 }
@@ -149,8 +161,7 @@ fun DeveloperDialog(vm: MainViewModel, actions: AppActions, onDismiss: () -> Uni
                         ButtonRow {
                             SecondaryButton(stringResource(R.string.dev_copy), onClick = {
                                 val clip = ClipData.newPlainText("SugarBridge", report(status, log))
-                                context.getSystemService(ClipboardManager::class.java).setPrimaryClip(clip)
-                                vm.notify(R.string.dev_copied)
+                                context.getSystemService(ClipboardManager::class.java).setPrimaryClip(clip)   // Android confirms it itself
                             })
                             SecondaryButton(stringResource(R.string.dev_share), onClick = {
                                 val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, report(status, log))
@@ -176,6 +187,46 @@ private fun StatusRow(line: StatusLine) {
     Column(Modifier.fillMaxWidth()) {
         Text(line.label, style = MaterialTheme.typography.labelMedium, color = xp.textMuted)
         Text(line.value, style = MaterialTheme.typography.bodyMedium, color = if (line.warn) Tenshi.Low else xp.text)
+    }
+}
+
+/** The button under a red line: what helps against it. */
+@Composable
+private fun FixButton(fix: DevFix, actions: AppActions, refresh: () -> Unit) {
+    val context = LocalContext.current
+    val label = stringResource(
+        when (fix) {
+            DevFix.MINUTE -> R.string.dev_restart_minute
+            DevFix.BATTERY -> R.string.settings_battery
+            DevFix.SAVER -> R.string.dev_fix_saver
+            DevFix.HEALTH_PERMISSION -> R.string.settings_permissions
+            DevFix.INSTALL_SAMSUNG -> R.string.dev_fix_install_samsung
+        }
+    )
+    SecondaryButton(label, onClick = {
+        when (fix) {
+            DevFix.MINUTE -> {
+                DebugLog.add(context, "service", "restarted by hand")
+                LiveSyncService.reload(context)
+            }
+            DevFix.BATTERY -> actions.requestBatteryUnrestricted()
+            DevFix.SAVER -> openSafely(context, Intent(Settings.ACTION_BATTERY_SAVER_SETTINGS))
+            DevFix.HEALTH_PERMISSION -> actions.requestHealthPermission()
+            DevFix.INSTALL_SAMSUNG -> openSafely(context, Intent(Intent.ACTION_VIEW, "market://details?id=$SAMSUNG_HEALTH_PACKAGE".toUri()))
+        }
+        refresh()
+    }, modifier = Modifier.fillMaxWidth())
+}
+
+/** SugarBridge's page in Android's settings: there "⋮ → Allow restricted settings" unlocks usage access. */
+private fun appInfo(context: Context) =
+    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, "package:${context.packageName}".toUri())
+
+private fun openSafely(context: Context, intent: Intent) {
+    try {
+        context.startActivity(intent)
+    } catch (e: ActivityNotFoundException) {
+        // no screen for it on this phone: nothing to open
     }
 }
 

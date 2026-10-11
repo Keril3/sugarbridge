@@ -9,7 +9,6 @@ import android.provider.OpenableColumns
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.sugarbridge.app.glucose.GlucoseBins
@@ -29,9 +28,15 @@ import com.sugarbridge.app.health.ownMinuteKeys
 import com.sugarbridge.app.libre.Libre
 import com.sugarbridge.app.libre.LoginFailed
 import com.sugarbridge.app.libreview.DaySummary
+import com.sugarbridge.app.libreview.HistoryStore
 import com.sugarbridge.app.libreview.LibreViewCsv
+import com.sugarbridge.app.libreview.MergeMode
+import com.sugarbridge.app.libreview.MergePlan
+import com.sugarbridge.app.libreview.SavedHistory
 import com.sugarbridge.app.libreview.contiguousRanges
 import com.sugarbridge.app.libreview.dayBounds
+import com.sugarbridge.app.libreview.merge
+import com.sugarbridge.app.libreview.planMerge
 import com.sugarbridge.app.libreview.readingsOnDays
 import com.sugarbridge.app.libreview.summarizeDays
 import com.sugarbridge.app.settings.AppSettings
@@ -79,6 +84,7 @@ data class UiState(
     val syncing: Boolean = false,
     val signingIn: Boolean = false,
     val checking: Boolean = false,
+    val checkResult: CheckResult? = null,
     val gmi14: GmiResult? = null,   // estimated HbA1c for 14 and 90 days from our own records in Health Connect
     val gmi90: GmiResult? = null,
 )
@@ -104,6 +110,7 @@ data class ImportUi(
     val selected: Set<LocalDate> = emptySet(),
     val busy: Boolean = false,
     val progress: Float? = null,
+    val updatedAt: Instant? = null,         // when the history was last imported or updated
 ) {
     val loaded: Boolean get() = readings.isNotEmpty()
     val visibleDays: List<DaySummary> get() = days.filter { inRange(it.date) }
@@ -112,10 +119,17 @@ data class ImportUi(
     fun inRange(date: LocalDate) = (from == null || date >= from) && (to == null || date <= to)
 }
 
-/** The last imported history, kept until it is closed. */
-fun savedHistoryFile(context: Context) = File(context.filesDir, "history.csv")
+/** A new export read while a history is loaded: it waits for the choice how to merge it. */
+class PendingMerge(
+    val readings: List<Reading>,
+    val unit: GlucoseUnit,
+    val skipped: Int,
+    val source: String,
+    val plan: MergePlan,
+)
 
-private const val HISTORY_PREFS = "history"
+/** The result of "Check connection", shown under the button: what LibreLinkUp answered, or why it didn't. */
+class CheckResult(val ok: Boolean, val text: UiText)
 
 class MainViewModel(app: Application) : AndroidViewModel(app) {
 
@@ -126,6 +140,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     var ui by mutableStateOf(UiState())
         private set
     var history by mutableStateOf(ImportUi())
+        private set
+    private var importRun = 0   // the latest change of the history; an older one still running is dropped
+    var historyOpen by mutableStateOf(false)   // the loaded history is shown, not the History start page
+    var readingFile by mutableStateOf(false)   // a file is being read
+        private set
+    var pendingMerge by mutableStateOf<PendingMerge?>(null)
         private set
     var update by mutableStateOf(UpdateUi())
         private set
@@ -342,6 +362,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         LiveSyncService.stop(context)   // the mode stays on in the settings and comes back after signing in
         Libre.signOut(context)
         SyncStore(context).clearDisplay()
+        ui = ui.copy(checkResult = null)
         refreshAccount()
         refreshLocal()
     }
@@ -357,16 +378,18 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 val last = readings.lastOrNull()
                 val unit = ui.settings.unit
                 val region = client.region
-                say { res ->
+                val text = UiText { res ->
                     val locale = res.configuration.locales[0]
                     val value = last?.text(res.getString(unit.label), unit, locale) ?: "—"
                     val time = last?.time?.atZone(zone)?.format(clockFormat(context, locale)) ?: "—"
                     res.getString(R.string.msg_check_ok, readings.size, value, time, region)
                 }
+                ui = ui.copy(checkResult = CheckResult(true, text))
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                sayError(R.string.msg_error, e)
+                val problem = Problem.of(e)
+                ui = ui.copy(checkResult = CheckResult(false, UiText { res -> res.getString(R.string.msg_error, problem.text(res)) }))
             } finally {
                 ui = ui.copy(checking = false)
             }
@@ -415,49 +438,86 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /** The history imported last time is kept until "Close", so it can be looked through again later. */
+    /** The kept history comes back on every start, until it is deleted. */
     private fun restoreHistory() {
+        val run = ++importRun
         viewModelScope.launch {
-            val file = savedHistoryFile(context)
-            val bytes = withContext(Dispatchers.IO) { runCatching { file.takeIf { it.exists() }?.readBytes() }.getOrNull() } ?: return@launch
-            val source = context.getSharedPreferences(HISTORY_PREFS, Context.MODE_PRIVATE).getString("source", null) ?: "CSV"
-            importBytes(bytes, source, open = false, keep = false)
+            readingFile = true
+            val saved = withContext(Dispatchers.IO) { runCatching { HistoryStore.load(context, zone) }.getOrNull() }
+            readingFile = false
+            if (saved != null) showHistory(run, saved, skipped = 0, save = false, open = false)
         }
     }
 
-    private suspend fun importBytes(bytes: ByteArray, source: String, open: Boolean = true, keep: Boolean = true) {
-        if (open) tab = Tab.HISTORY
-        history = ImportUi(source = source, busy = true)
+    /**
+     * Reads an export. Without a loaded history it becomes the history and opens; with one, the two are
+     * compared and the choice how to merge them waits in [pendingMerge].
+     */
+    private suspend fun importBytes(bytes: ByteArray, source: String) {
+        val run = ++importRun
+        tab = Tab.HISTORY
+        readingFile = true
         try {
             val parsed = withContext(Dispatchers.Default) { LibreViewCsv.parse(LibreViewCsv.decode(bytes), zone) }
-            if (parsed.readings.isEmpty()) {
-                history = ImportUi()
-                say(R.string.msg_no_glucose)
-                return
-            }
-            val existing = existingKeys(parsed.readings)
-            val days = summarize(parsed.readings, existing, ui.settings)
-            history = ImportUi(
-                source = source,
-                readings = parsed.readings,
-                unit = parsed.unit,
-                skipped = parsed.skippedRows,
-                existing = existing,
-                days = days,
-                from = days.first().date,
-                to = days.last().date,
-                selected = days.filterNot { it.complete }.map { it.date }.toSet(),
-            )
-            if (keep) {
-                withContext(Dispatchers.IO) { runCatching { savedHistoryFile(context).writeBytes(bytes) } }
-                context.getSharedPreferences(HISTORY_PREFS, Context.MODE_PRIVATE).edit { putString("source", source) }
+            if (run != importRun) return
+            when {
+                parsed.readings.isEmpty() -> say(R.string.msg_no_glucose)
+                history.loaded -> {
+                    val plan = withContext(Dispatchers.Default) { planMerge(history.readings, parsed.readings) }
+                    if (run == importRun) pendingMerge = PendingMerge(parsed.readings, parsed.unit, parsed.skippedRows, source, plan)
+                }
+                else -> showHistory(run, SavedHistory(parsed.readings, parsed.unit, source, Instant.now()), parsed.skippedRows, save = true, open = true)
             }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            history = ImportUi()
-            sayError(R.string.msg_parse_failed, e)
+            if (run == importRun) sayError(R.string.msg_parse_failed, e)
+        } finally {
+            if (run == importRun) readingFile = false
         }
+    }
+
+    /** The choice for a new export: add it, add it over the differing readings, or let it replace the history. */
+    fun applyMerge(mode: MergeMode) {
+        val p = pendingMerge ?: return
+        pendingMerge = null
+        val run = ++importRun
+        val old = history.readings
+        viewModelScope.launch {
+            val merged = withContext(Dispatchers.Default) { merge(old, p.readings, mode) }
+            showHistory(run, SavedHistory(merged, p.unit, p.source, Instant.now()), p.skipped, save = true, open = true)
+        }
+    }
+
+    fun cancelMerge() {
+        pendingMerge = null
+    }
+
+    /** Shows a history in the History tab, marks what Health Connect already has and keeps it for the next start. */
+    private suspend fun showHistory(run: Int, saved: SavedHistory, skipped: Int, save: Boolean, open: Boolean) {
+        val existing = existingKeys(saved.readings)
+        val days = withContext(Dispatchers.Default) { summarize(saved.readings, existing, ui.settings) }
+        if (run != importRun) return
+        history = ImportUi(
+            source = saved.source,
+            readings = saved.readings,
+            unit = saved.unit,
+            skipped = skipped,
+            existing = existing,
+            days = days,
+            from = days.first().date,
+            to = days.last().date,
+            selected = days.filterNot { it.complete }.map { it.date }.toSet(),
+            updatedAt = saved.updatedAt,
+        )
+        if (open) historyOpen = true
+        if (save) withContext(Dispatchers.IO) { runCatching { HistoryStore.save(context, saved) } }
+    }
+
+    /** "All-time history" on the home screen: the History tab, with the loaded history open if there is one. */
+    fun openHistory() {
+        tab = Tab.HISTORY
+        historyOpen = history.loaded
     }
 
     private fun summarize(readings: List<Reading>, existing: Set<Long>, s: AppSettings) =
@@ -508,9 +568,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         history = history.copy(selected = history.visibleDays.filterNot { it.complete }.map { it.date }.toSet())
     }
 
-    fun closeHistory() {
+    /** Deletes the loaded history from SugarBridge; what is in Health Connect stays. */
+    fun deleteHistory() {
+        importRun++   // an import still running must not bring the history back
         history = ImportUi()
-        savedHistoryFile(context).delete()
+        historyOpen = false
+        pendingMerge = null
+        // right away, not in the background: a new import saved a moment later must not be deleted with it
+        HistoryStore.clear(context)
     }
 
     fun writeSelected() {

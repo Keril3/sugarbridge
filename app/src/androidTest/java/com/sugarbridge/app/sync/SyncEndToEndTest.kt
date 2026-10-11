@@ -12,6 +12,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.sugarbridge.app.MainActivity
 import com.sugarbridge.app.R
+import com.sugarbridge.app.debug.DebugLog
 import com.sugarbridge.app.glucose.GlucoseUnit
 import com.sugarbridge.app.glucose.formatGlucose
 import com.sugarbridge.app.health.HealthConnectState
@@ -173,6 +174,28 @@ class SyncEndToEndTest {
         while (smallIcon().type != Icon.TYPE_RESOURCE && SystemClock.uptimeMillis() < deadline) Thread.sleep(250)
         assertEquals(Icon.TYPE_RESOURCE, smallIcon().type)   // Tenshi-chan's icon again, the value still in the shade
         assertTrue(waitForNotification { it.contains(LiveSyncService.CHANNEL_LIVE) }.contains(formatGlucose(115.0, GlucoseUnit.MMOL)))
+    }
+
+    /** The developer log gets every sync with its trigger, and the screen going off and on while minute mode runs. */
+    @Test
+    fun theLogRecordsSyncsAndTheScreen() {
+        DebugLog.clear(context)
+        useAppLanguage(context, "en")
+        SettingsStore(context).save(AppSettings(backgroundMinutes = 0, liveEnabled = true, liveMinutes = 10, liveShowValue = true, liveKeepAwake = false))
+        context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        waitForNotification { it.contains(LiveSyncService.CHANNEL_LIVE) && it.contains(formatGlucose(115.0, GlucoseUnit.MMOL)) }
+        instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_SLEEP").close()
+        Thread.sleep(2000)
+        instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_WAKEUP").close()
+        instrumentation.uiAutomation.executeShellCommand("wm dismiss-keyguard").close()
+        val deadline = SystemClock.uptimeMillis() + 10_000
+        fun texts() = DebugLog.read(context).map { "${it.kind} ${it.text}" }
+        while (texts().none { it == "phone screen on" } && SystemClock.uptimeMillis() < deadline) Thread.sleep(250)
+        val log = texts()
+        val all = log.joinToString(" | ")
+        assertTrue(all, log.any { it.startsWith("service minute mode on") })
+        assertTrue(all, log.any { it.startsWith("sync minute, first:") && it.contains("wrote") })
+        assertTrue(all, "phone screen off" in log && "phone screen on" in log)
     }
 
     private fun smallIcon(): Icon =

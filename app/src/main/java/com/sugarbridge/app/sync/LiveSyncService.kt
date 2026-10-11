@@ -12,18 +12,11 @@ import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.pm.ServiceInfo
 import android.content.res.Configuration
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Rect
-import android.graphics.Typeface
 import android.graphics.drawable.Icon
 import android.os.IBinder
 import android.os.PowerManager
 import android.os.SystemClock
 import android.util.Log
-import androidx.core.graphics.createBitmap
-import androidx.core.graphics.withRotation
 import com.sugarbridge.app.MainActivity
 import com.sugarbridge.app.R
 import com.sugarbridge.app.debug.DebugLog
@@ -32,7 +25,6 @@ import com.sugarbridge.app.glucose.Reading
 import com.sugarbridge.app.glucose.formatGlucose
 import com.sugarbridge.app.glucose.levelOf
 import com.sugarbridge.app.glucose.text
-import com.sugarbridge.app.glucose.trendAngle
 import com.sugarbridge.app.libre.Libre
 import com.sugarbridge.app.libre.LoginFailed
 import com.sugarbridge.app.libre.RateLimited
@@ -263,8 +255,14 @@ class LiveSyncService : Service() {
                 GlucoseLevel.HIGH -> R.string.level_high
             }
             val text = getString(R.string.notif_value_text, time, getString(level))
-            val icon = if (s.liveStatusValue) valueIcon(value, trend) else null
-            return "value|$title|$text|${s.liveStatusValue}" to builder(channel, title, text, icon).build()
+            // the number itself as the status bar icon, drawn the way Settings show it
+            val icon = if (s.liveStatusValue) {
+                Icon.createWithBitmap(StatusIcon.draw(value, trend, s.statusArrowAbove, s.statusNumberSize, s.statusArrowSize))
+            } else {
+                null
+            }
+            val look = "${s.liveStatusValue}|${s.statusArrowAbove}|${s.statusNumberSize}|${s.statusArrowSize}"
+            return "value|$title|$text|$look" to builder(channel, title, text, icon).build()
         }
         val every = if (s.liveMinutes == 1) getString(R.string.notif_every_minute) else getString(R.string.notif_every, s.liveMinutes)
         return "quiet|$channel|$every" to builder(channel, getString(R.string.notif_watching), every).build()
@@ -300,49 +298,6 @@ class LiveSyncService : Service() {
     }
 
     private fun action(name: String) = Intent(this, LiveSyncService::class.java).setAction(name)
-
-    /**
-     * The glucose value right in the status bar: the icon is drawn from text, the system tints it.
-     * With a [trend], a small arrow stands to the right of the number, turned the way the app draws it.
-     */
-    private fun valueIcon(value: String, trend: Int): Icon {
-        val size = 96
-        val bitmap = createBitmap(size, size)
-        val canvas = Canvas(bitmap)
-        val angle = trendAngle(trend)
-        val arrowWidth = if (angle != null) size * 0.34f else 0f
-        val room = size * 0.98f - arrowWidth
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.WHITE
-            textAlign = Paint.Align.CENTER
-            typeface = Typeface.create("sans-serif-condensed", Typeface.BOLD)
-            textSize = size * 0.78f
-        }
-        val width = paint.measureText(value)
-        if (width > room) paint.textSize *= room / width
-        val bounds = Rect()
-        paint.getTextBounds(value, 0, value.length, bounds)
-        val textCenter = (size - arrowWidth) / 2f
-        canvas.drawText(value, textCenter, size / 2f - bounds.exactCenterY(), paint)
-        if (angle != null) {
-            val cx = size - arrowWidth / 2f
-            val cy = size / 2f
-            val half = arrowWidth * 0.42f
-            val stroke = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                color = Color.WHITE
-                style = Paint.Style.STROKE
-                strokeWidth = size * 0.1f
-                strokeCap = Paint.Cap.ROUND
-                strokeJoin = Paint.Join.ROUND
-            }
-            canvas.withRotation(angle, cx, cy) {   // drawn pointing right, then turned like the arrow in the app
-                drawLine(cx - half, cy, cx + half, cy, stroke)
-                drawLine(cx + half * 0.15f, cy - half * 0.75f, cx + half, cy, stroke)
-                drawLine(cx + half * 0.15f, cy + half * 0.75f, cx + half, cy, stroke)
-            }
-        }
-        return Icon.createWithBitmap(bitmap)
-    }
 
     /** "Keep the phone awake": the CPU doesn't sleep, so the pause between polls doesn't stretch. */
     private fun holdWakeLock(s: AppSettings) {

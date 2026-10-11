@@ -37,8 +37,8 @@ import com.sugarbridge.app.libre.AccountStore
 import com.sugarbridge.app.libre.Libre
 import com.sugarbridge.app.libre.Session
 import com.sugarbridge.app.libre.sha256
+import com.sugarbridge.app.libreview.HistoryStore
 import com.sugarbridge.app.resourcesIn
-import com.sugarbridge.app.savedHistoryFile
 import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.settings.SettingsStore
 import com.sugarbridge.app.settings.ThemeMode
@@ -110,7 +110,7 @@ class ScreenshotTest {
     fun seed() {
         // background sync is off: with the demo account LibreLinkUp would answer "wrong password"
         SettingsStore(context).save(AppSettings(backgroundMinutes = 0, liveEnabled = false))
-        savedHistoryFile(context).delete()   // a history kept from another run would replace the empty History tab
+        HistoryStore.clear(context)   // a history kept from another run would replace the empty History tab
         SettingsStore(context).languageChosen = true
         AccountStore(context).save(Account("tenshi@example.com", "demo", Session("ru", "demo-token", sha256("demo"))))
         val now = Instant.now()
@@ -208,6 +208,18 @@ class ScreenshotTest {
         shot(language, "calendar_months")
         compose.onNodeWithText(text(R.string.cancel)).performClick()
 
+        // "Back" leads to the History start page, where the loaded history is one tap away
+        Espresso.pressBack()
+        compose.onNodeWithTag("view-loaded").assertExists()
+        shot(language, "history_start")
+        // a new export over the loaded history asks how to combine them
+        scenario.onActivity { vm.importFile(File(context.cacheDir, "demo.csv").apply { writeText(demoCsv()) }.absolutePath) }
+        compose.waitUntil(20_000) { vm.pendingMerge != null }
+        compose.onNodeWithTag("merge-add").assertExists()
+        shot(language, "merge")
+        compose.onNodeWithTag("merge-add").performClick()
+        compose.waitUntil(20_000) { vm.pendingMerge == null && vm.historyOpen }
+
         compose.onNodeWithText(text(R.string.tab_settings)).performClick()
         shot(language, "settings")
         compose.onNodeWithText(text(R.string.settings_background_intro)).performScrollTo()
@@ -245,6 +257,12 @@ class ScreenshotTest {
         compose.onNodeWithText(text(R.string.tab_settings)).performClick()
         shot(language, "settings_low_vision")
         scenario.onActivity { vm.updateSettings { it.copy(lowVision = false, textScale = 1f) } }
+        compose.onNodeWithText(text(R.string.tab_now)).performClick()
+
+        // from the 12-hour chart straight to the loaded history
+        compose.onNodeWithTag("all-history").performScrollTo().performSemanticsAction(SemanticsActions.OnClick)
+        compose.waitUntil(5_000) { vm.historyOpen }
+        compose.onNodeWithTag("history-chart").assertExists()
         compose.onNodeWithText(text(R.string.tab_now)).performClick()
 
         scenario.onActivity { ViewModelProvider(it)[MainViewModel::class.java].signOut() }

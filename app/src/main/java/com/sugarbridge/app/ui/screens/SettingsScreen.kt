@@ -22,6 +22,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -72,6 +74,15 @@ fun SettingsScreen(vm: MainViewModel, actions: AppActions) {
                 PrimaryButton(stringResource(R.string.settings_check), onClick = vm::checkLibre, loading = ui.checking)
                 SecondaryButton(stringResource(R.string.settings_sign_out), onClick = vm::signOut, danger = true)
             }
+            // what LibreLinkUp answered stays here, in its own window, instead of a message that slips away
+            ui.checkResult?.let { result ->
+                Text(
+                    result.text.resolve(LocalResources.current),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (result.ok) Tenshi.InRange else MaterialTheme.colorScheme.error,
+                    modifier = Modifier.testTag("check-result"),
+                )
+            }
         }
 
         XpWindow(stringResource(R.string.settings_hc_title)) {
@@ -120,20 +131,6 @@ fun SettingsScreen(vm: MainViewModel, actions: AppActions) {
                 enabled = s.liveEnabled,
             )
             SwitchRow(
-                stringResource(R.string.settings_status_value),
-                stringResource(R.string.settings_status_value_hint),
-                checked = s.liveStatusValue,
-                onChange = { on -> vm.updateSettings { it.copy(liveStatusValue = on) } },
-                enabled = s.liveEnabled && s.liveShowValue,
-            )
-            SwitchRow(
-                stringResource(R.string.settings_arrow),
-                stringResource(R.string.settings_arrow_hint),
-                checked = s.liveArrow,
-                onChange = { on -> vm.updateSettings { it.copy(liveArrow = on) } },
-                enabled = s.liveEnabled && s.liveShowValue,
-            )
-            SwitchRow(
                 stringResource(R.string.settings_pinned),
                 stringResource(R.string.settings_pinned_hint),
                 checked = s.livePinned,
@@ -153,6 +150,8 @@ fun SettingsScreen(vm: MainViewModel, actions: AppActions) {
             }
             Hint(stringResource(R.string.settings_live_hint))
         }
+
+        StatusBarCard(s, ui.sync.recent.lastOrNull(), vm::updateSettings)
 
         XpWindow(stringResource(R.string.settings_background_title)) {
             // first the answer to "do I need this for the minute mode?"

@@ -2,6 +2,34 @@
 
 Newest version first. A version's section becomes the release notes on GitHub.
 
+## 1.7.0 — 2026-10-12
+
+- The glucose in the status bar is much larger: the number fills the icon and the trend arrow stands above it
+  with a clear gap, instead of a small number squeezed next to a small arrow. A new "Status bar" window in
+  Settings turns the number and the arrow on or off, sets the size of each (S, M, L, XL) and puts the arrow
+  above the number or beside it, with a preview drawn by the same code as the real icon.
+- History always at hand: the History tab has a start page, and the loaded history opens from it with "View the
+  loaded history", also after a restart; "Back" returns to the start page. "All-time history" under the home
+  chart leads straight there.
+- Updating the history: a newer export is compared with the loaded one (new, the same, different, only in the
+  loaded history), and you choose to add the new readings, add them and replace the differing ones, or replace
+  the whole history. "Delete the loaded history" removes it from SugarBridge after a confirmation; Health Connect
+  keeps what was written. The history is kept in a file of its own; the raw file kept by 1.6 is converted.
+- Messages pop up in pink windows that stand out from the screen. "Check connection" shows its answer right
+  under the button.
+- Developer tools: every red line has a button that fixes it (minute mode, battery limits, battery saver, the
+  Health Connect permission, installing Samsung Health), and there is a way to give usage access when Android
+  greys it out for an app installed from an APK, with a button to the app's page. Copying the log no longer
+  shows a message of its own: Android confirms it.
+- Corrected: the developer tools and Settings said that opening Samsung Health makes it take new values at once.
+  Samsung only says it syncs when its home screen is opened or pulled down; the texts now say so.
+- Fixed: a kept history that could no longer be read showed an error on every start; it is dropped quietly. An
+  import still being read when another file came could bring the older history back.
+- Tests: the status bar icon is measured by its pixels; the Status bar window; the history kept across restarts
+  (also from 1.6's file), merged in each of the three ways and deleted; the developer log recording syncs and the
+  screen going off and on; the latency test checks every value that was due and unlocks the screen first.
+  Tidier code: the status bar icon, the Status bar window and the history chart have files of their own.
+
 ## 1.6.0 — 2026-10-11
 
 - History chart: after importing a LibreView export, look through it as a chart, a day, a week, a month, three

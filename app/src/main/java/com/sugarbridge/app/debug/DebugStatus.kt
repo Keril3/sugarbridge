@@ -24,8 +24,11 @@ import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-/** One line of the status in the developer tools; [warn] marks what can hold the glucose back. */
-class StatusLine(val label: String, val value: String, val warn: Boolean = false)
+/** What can be done about a red line: each has a button under it in the developer tools. */
+enum class DevFix { MINUTE, BATTERY, SAVER, HEALTH_PERMISSION, INSTALL_SAMSUNG }
+
+/** One line of the status in the developer tools; [warn] marks what can hold the glucose back, [fix] what helps. */
+class StatusLine(val label: String, val value: String, val warn: Boolean = false, val fix: DevFix? = null)
 
 /** Everything that decides how fast a reading travels, in the words of the app language. */
 suspend fun collectStatus(context: Context): List<StatusLine> = withContext(Dispatchers.IO) {
@@ -41,11 +44,13 @@ suspend fun collectStatus(context: Context): List<StatusLine> = withContext(Disp
     // minute mode: is the service alive, and when did it last ask LibreLinkUp
     if (settings.liveEnabled) {
         val service = s(if (LiveSyncService.running) R.string.dev_service_running else R.string.dev_service_stopped)
-        lines += StatusLine(s(R.string.settings_live_title), s(R.string.dev_minute_on, settings.liveMinutes) + " · " + service, warn = !LiveSyncService.running)
+        val stopped = !LiveSyncService.running
+        lines += StatusLine(s(R.string.settings_live_title), s(R.string.dev_minute_on, settings.liveMinutes) + " · " + service, warn = stopped, fix = DevFix.MINUTE.takeIf { stopped })
         val tick = LiveSyncService.lastTick
         if (tick > 0) {
             val ago = (System.currentTimeMillis() - tick) / 1000
-            lines += StatusLine(s(R.string.dev_last_poll), s(R.string.dev_seconds_ago, Instant.ofEpochMilli(tick).atZone(zone).format(clock), ago), warn = ago > settings.liveMinutes * 60 + 90)
+            val late = ago > settings.liveMinutes * 60 + 90
+            lines += StatusLine(s(R.string.dev_last_poll), s(R.string.dev_seconds_ago, Instant.ofEpochMilli(tick).atZone(zone).format(clock), ago), warn = late, fix = DevFix.MINUTE.takeIf { late })
         }
     } else {
         lines += StatusLine(s(R.string.settings_live_title), s(R.string.dev_off))
@@ -64,19 +69,21 @@ suspend fun collectStatus(context: Context): List<StatusLine> = withContext(Disp
     // what Android does to background work
     val power = context.getSystemService(PowerManager::class.java)
     val unrestricted = power.isIgnoringBatteryOptimizations(context.packageName)
-    lines += StatusLine(s(R.string.dev_battery), s(if (unrestricted) R.string.dev_battery_none else R.string.dev_battery_limited), warn = !unrestricted)
+    lines += StatusLine(s(R.string.dev_battery), s(if (unrestricted) R.string.dev_battery_none else R.string.dev_battery_limited), warn = !unrestricted, fix = DevFix.BATTERY.takeIf { !unrestricted })
     val bucket = context.getSystemService(UsageStatsManager::class.java).appStandbyBucket
-    lines += StatusLine(s(R.string.dev_bucket), bucketName(bucket), warn = bucket >= UsageStatsManager.STANDBY_BUCKET_RARE)
+    // without battery limits Android keeps the app out of the rare and restricted groups
+    val held = bucket >= UsageStatsManager.STANDBY_BUCKET_RARE
+    lines += StatusLine(s(R.string.dev_bucket), bucketName(bucket), warn = held, fix = DevFix.BATTERY.takeIf { held && !unrestricted })
     val yes = s(R.string.dev_yes)
     val no = s(R.string.dev_no)
-    lines += StatusLine(s(R.string.dev_doze), (if (power.isDeviceIdleMode) yes else no) + " / " + (if (power.isPowerSaveMode) yes else no), warn = power.isPowerSaveMode)
+    lines += StatusLine(s(R.string.dev_doze), (if (power.isDeviceIdleMode) yes else no) + " / " + (if (power.isPowerSaveMode) yes else no), warn = power.isPowerSaveMode, fix = DevFix.SAVER.takeIf { power.isPowerSaveMode })
 
     // where the readings go
     val hc = healthConnectState(context) == HealthConnectState.AVAILABLE
     val canWrite = hc && runCatching { WRITE_GLUCOSE in HealthConnectClient.getOrCreate(context).permissionController.getGrantedPermissions() }.getOrDefault(false)
-    lines += StatusLine(s(R.string.dev_hc), s(if (canWrite) R.string.dev_allowed else R.string.dev_denied), warn = !canWrite)
+    lines += StatusLine(s(R.string.dev_hc), s(if (canWrite) R.string.dev_allowed else R.string.dev_denied), warn = !canWrite, fix = DevFix.HEALTH_PERMISSION.takeIf { !canWrite && hc })
     val samsung = runCatching { context.packageManager.getPackageInfo(SAMSUNG_HEALTH_PACKAGE, 0).versionName }.getOrNull()
-    lines += StatusLine("Samsung Health", samsung ?: s(R.string.dev_not_installed), warn = samsung == null)
+    lines += StatusLine("Samsung Health", samsung ?: s(R.string.dev_not_installed), warn = samsung == null, fix = DevFix.INSTALL_SAMSUNG.takeIf { samsung == null })
 
     // how fresh the values are when they arrive
     val snapshot = SyncStore(context).snapshot()

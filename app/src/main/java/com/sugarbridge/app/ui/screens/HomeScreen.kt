@@ -47,6 +47,7 @@ import com.sugarbridge.app.ui.components.OutlinedTitle
 import com.sugarbridge.app.ui.components.Pill
 import com.sugarbridge.app.ui.components.PrimaryButton
 import com.sugarbridge.app.ui.components.ScreenColumn
+import com.sugarbridge.app.ui.components.SecondaryButton
 import com.sugarbridge.app.ui.components.SwitchRow
 import com.sugarbridge.app.ui.components.TrendArrow
 import com.sugarbridge.app.ui.components.XpMeter
@@ -108,6 +109,8 @@ fun HomeScreen(vm: MainViewModel, actions: AppActions) {
                 GlucoseChart(ui.sync.recent, s.lowMgDl, s.highMgDl, s.unit)
                 DayStats(ui.sync.recent, s)
                 Hint(stringResource(R.string.chart_hint))
+                // further back than 12 hours: the history from LibreView, or the way to load it
+                SecondaryButton(stringResource(R.string.home_all_history), onClick = vm::openHistory, modifier = Modifier.fillMaxWidth().testTag("all-history"))
             }
         }
         if (ui.gmi90 != null) GmiCard(ui.gmi14, ui.gmi90)

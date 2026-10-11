@@ -133,9 +133,19 @@ fun XpDialog(onDismissRequest: () -> Unit, properties: DialogProperties = Dialog
 
 private val WindowShape = RoundedCornerShape(10.dp)
 
+/** Colors of a window that stands out from the others, such as the pink message windows. */
+class WindowColors(val bar: List<Color>, val border: Color, val body: Color)
+
+/** The pink of the message windows: a pink frame and title bar, a pale pink (by night, plum) body. */
+@Composable
+fun pinkWindow(): WindowColors =
+    if (LocalNight.current) WindowColors(listOf(Color(0xFFD45A9A), Color(0xFF8E2B66)), Color(0xFFFF8FC8), Color(0xFF2B1230))
+    else WindowColors(listOf(Color(0xFFFFD3EA), Color(0xFFEE6FA8)), Color(0xFFE0559A), Color(0xFFFFF2F8))
+
 /**
  * A Windows XP style window, as on keril.art: a gradient title bar with an outlined title above the content.
- * The content starts a little further from the title than its lines are from each other.
+ * The content starts a little further from the title than its lines are from each other. [colors] dress it
+ * differently from the theme's windows.
  */
 @Composable
 fun XpWindow(
@@ -144,6 +154,7 @@ fun XpWindow(
     bodyPadding: PaddingValues = PaddingValues(start = 16.dp, top = 20.dp, end = 16.dp, bottom = 16.dp),
     onBodyClick: (() -> Unit)? = null,
     framed: Boolean = true,
+    colors: WindowColors? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val xp = LocalXp.current
@@ -152,13 +163,13 @@ fun XpWindow(
             .fillMaxWidth()
             .shadow(10.dp, WindowShape, ambientColor = xp.shadow, spotColor = xp.shadow)
             .clip(WindowShape)
-            .then(if (framed) Modifier.border(2.dp, xp.windowBorder, WindowShape) else Modifier)
-            .background(xp.windowBody),
+            .then(if (framed) Modifier.border(2.dp, colors?.border ?: xp.windowBorder, WindowShape) else Modifier)
+            .background(colors?.body ?: xp.windowBody),
     ) {
         Row(
             Modifier
                 .fillMaxWidth()
-                .background(Brush.verticalGradient(xp.bar))
+                .background(Brush.verticalGradient(colors?.bar ?: xp.bar))
                 .padding(horizontal = 12.dp, vertical = 7.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
