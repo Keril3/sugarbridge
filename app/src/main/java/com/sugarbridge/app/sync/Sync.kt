@@ -84,7 +84,7 @@ class SyncStore(context: Context) {
         val seen = (seen() + listOfNotNull(readings.lastOrNull()?.time?.epochSecond)).distinct().takeLast(16)
         prefs.edit {
             putString("recent", encodeReadings(readings))
-            putLong("ok_at", System.currentTimeMillis())
+            putLong(KEY_OK_AT, System.currentTimeMillis())
             putInt("ok_written", written)
             putString("seen", seen.joinToString(","))
             remove("error")
@@ -105,7 +105,7 @@ class SyncStore(context: Context) {
 
     fun snapshot() = SyncSnapshot(
         recent = decodeReadings(prefs.getString("recent", null)),
-        lastOkAt = prefs.getLong("ok_at", 0).takeIf { it > 0 }?.let(Instant::ofEpochMilli),
+        lastOkAt = prefs.getLong(KEY_OK_AT, 0).takeIf { it > 0 }?.let(Instant::ofEpochMilli),
         lastWritten = prefs.getInt("ok_written", 0),
         error = prefs.getString("error", null)?.let(Problem::decode),
         errorAt = prefs.getLong("error_at", 0).takeIf { it > 0 }?.let(Instant::ofEpochMilli),
@@ -116,5 +116,7 @@ class SyncStore(context: Context) {
 
     companion object {
         const val NAME = "sync"
+        /** Changes on every successful sync, whoever made it. */
+        const val KEY_OK_AT = "ok_at"
     }
 }

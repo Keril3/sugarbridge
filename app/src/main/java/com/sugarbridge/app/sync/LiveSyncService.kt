@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.ServiceInfo
 import android.content.res.Configuration
 import android.graphics.Canvas
@@ -61,6 +62,25 @@ class LiveSyncService : Service() {
     @Volatile private var latest: Reading? = null
     @Volatile private var problem: Problem? = null  // the last failure, until a sync succeeds
 
+    /**
+     * The app syncs outside this service too: when it is opened, with "Sync now" and in the background job.
+     * Every saved sync redraws the notification at once, so it never lags behind the app.
+     */
+    private val syncListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key == SyncStore.KEY_OK_AT) {
+            SyncStore(this).snapshot().recent.lastOrNull()?.let { newest ->
+                if (latest == null || !newest.time.isBefore(latest!!.time)) latest = newest
+            }
+            problem = null
+            safePost(SettingsStore(this).load())
+        }
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        getSharedPreferences(SyncStore.NAME, MODE_PRIVATE).registerOnSharedPreferenceChangeListener(syncListener)
+    }
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -72,7 +92,13 @@ class LiveSyncService : Service() {
                 return START_NOT_STICKY
             }
             ACTION_DISMISSED -> {   // the notification was swiped away (Android 14+ allows it); the service keeps working
-                hidden = true
+                if (SettingsStore(this).load().livePinned) {
+                    // pinned: put it straight back, so it can't be lost by an accidental swipe
+                    lastPosted = null
+                    safePost(SettingsStore(this).load())
+                } else {
+                    hidden = true
+                }
                 return START_STICKY
             }
         }
@@ -109,10 +135,11 @@ class LiveSyncService : Service() {
         super.onConfigurationChanged(newConfig)
         createNotificationChannels(this)
         lastPosted = null
-        post(SettingsStore(this).load())
+        safePost(SettingsStore(this).load())
     }
 
     override fun onDestroy() {
+        getSharedPreferences(SyncStore.NAME, MODE_PRIVATE).unregisterOnSharedPreferenceChangeListener(syncListener)
         scope.cancel()
         keepAwake?.let { if (it.isHeld) it.release() }
         super.onDestroy()
@@ -152,7 +179,7 @@ class LiveSyncService : Service() {
             }
             problem?.let { Log.w(SyncWorker.TAG, "minute mode: ${it.code} ${it.detail.orEmpty()}") }
             settings = SettingsStore(this).load()   // settings may have changed during the request
-            post(settings)
+            safePost(settings)
             delay(pause)
         }
     }
@@ -165,6 +192,16 @@ class LiveSyncService : Service() {
         stopSelf()
     }
 
+    /** Posting must never break the loop: a failure here would freeze the notification for good. */
+    private fun safePost(settings: AppSettings) {
+        try {
+            post(settings)
+        } catch (e: Exception) {
+            Log.e(SyncWorker.TAG, "couldn't update the notification", e)
+        }
+    }
+
+    @Synchronized
     private fun post(settings: AppSettings) {
         if (hidden) return
         val (key, notification) = render(settings)
@@ -279,7 +316,7 @@ class LiveSyncService : Service() {
         const val CHANNEL_QUIET = "quiet"
         private const val NOTIFICATION_ID = 1
         private const val ACTION_STOP = "stop"
-        private const val ACTION_DISMISSED = "dismissed"
+        internal const val ACTION_DISMISSED = "dismissed"
         private const val ACTION_RELOAD = "reload"
         private const val MIN_GAP_MS = 55_000L
 

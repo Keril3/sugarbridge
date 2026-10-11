@@ -130,10 +130,70 @@ class SyncEndToEndTest {
         instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_HOME").close()
     }
 
-    /** Waits for the service notification and returns "channel | title | text". */
-    private fun waitForNotification(matches: (String) -> Boolean): String {
+    /**
+     * The app syncs by itself too: when opened, by "Sync now" and in the background. The notification must
+     * show that newer value at once, not only on the service's own next round, which may be minutes away.
+     */
+    @Test
+    fun notificationFollowsSyncsMadeOutsideTheService() {
+        useAppLanguage(context, "en")
+        SettingsStore(context).save(AppSettings(backgroundMinutes = 0, liveEnabled = true, liveMinutes = 10, liveShowValue = true, liveKeepAwake = false))
+        context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        val before = waitForNotification { it.contains(LiveSyncService.CHANNEL_LIVE) && it.contains(formatGlucose(115.0, GlucoseUnit.MMOL)) }
+        instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_HOME").close()
+
+        cloud.tick(60, 160.0)
+        runBlocking { syncAndRecord(context) }   // what the app, the background job or "Sync now" do
+        val after = waitForNotification(timeoutMs = 10_000) { it.contains(formatGlucose(160.0, GlucoseUnit.MMOL)) }
+        assertTrue("$before → $after", after.contains(LiveSyncService.CHANNEL_LIVE))
+    }
+
+    /** A swipe on Android 14+ removes the notification and sends the service "dismissed"; pinned brings it right back. */
+    @Test
+    fun pinnedNotificationComesBackAfterASwipe() {
+        useAppLanguage(context, "en")
+        SettingsStore(context).save(
+            AppSettings(backgroundMinutes = 0, liveEnabled = true, liveMinutes = 10, liveShowValue = true, liveKeepAwake = false, livePinned = true)
+        )
+        context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        waitForNotification { it.contains(LiveSyncService.CHANNEL_LIVE) && it.contains(formatGlucose(115.0, GlucoseUnit.MMOL)) }
+        instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_HOME").close()
+
+        swipe()
+        cloud.tick(60, 150.0)
+        runBlocking { syncAndRecord(context) }
+        waitForNotification(timeoutMs = 10_000) { it.contains(formatGlucose(150.0, GlucoseUnit.MMOL)) }
+    }
+
+    @Test
+    fun unpinnedNotificationStaysHiddenAfterASwipe() {
+        useAppLanguage(context, "en")
+        SettingsStore(context).save(
+            AppSettings(backgroundMinutes = 0, liveEnabled = true, liveMinutes = 10, liveShowValue = true, liveKeepAwake = false, livePinned = false)
+        )
+        context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        waitForNotification { it.contains(LiveSyncService.CHANNEL_LIVE) && it.contains(formatGlucose(115.0, GlucoseUnit.MMOL)) }
+        instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_HOME").close()
+
+        swipe()
+        cloud.tick(60, 150.0)
+        runBlocking { syncAndRecord(context) }
+        Thread.sleep(5000)
         val manager = context.getSystemService(NotificationManager::class.java)
-        val deadline = SystemClock.uptimeMillis() + 30_000
+        val texts = manager.activeNotifications.map { "${it.notification.extras.getCharSequence(Notification.EXTRA_TITLE)}" }
+        assertTrue(texts.toString(), texts.none { it.contains(formatGlucose(150.0, GlucoseUnit.MMOL)) })
+    }
+
+    /** What the system sends to the service when the user swipes the notification away. */
+    private fun swipe() {
+        context.startService(Intent(context, LiveSyncService::class.java).setAction(LiveSyncService.ACTION_DISMISSED))
+        Thread.sleep(1000)
+    }
+
+    /** Waits for the service notification and returns "channel | title | text". */
+    private fun waitForNotification(timeoutMs: Long = 30_000, matches: (String) -> Boolean): String {
+        val manager = context.getSystemService(NotificationManager::class.java)
+        val deadline = SystemClock.uptimeMillis() + timeoutMs
         var last: String? = null
         while (SystemClock.uptimeMillis() < deadline) {
             last = manager.activeNotifications.map {

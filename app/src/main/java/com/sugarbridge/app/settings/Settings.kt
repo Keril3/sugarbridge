@@ -4,6 +4,9 @@ import android.content.Context
 import androidx.core.content.edit
 import com.sugarbridge.app.glucose.GlucoseUnit
 
+/** Light or dark look; SYSTEM follows the phone. */
+enum class ThemeMode { SYSTEM, LIGHT, DARK }
+
 /** App settings. The range bounds are stored in mg/dL and shown in the chosen unit. */
 data class AppSettings(
     val backgroundMinutes: Int = 15,     // background sync through WorkManager; 0 = off
@@ -11,9 +14,11 @@ data class AppSettings(
     val liveMinutes: Int = 1,            // how often the service asks LibreLinkUp
     val liveShowValue: Boolean = true,   // glucose in the notification and the status bar
     val liveKeepAwake: Boolean = true,   // keep the CPU from sleeping between polls
+    val livePinned: Boolean = false,     // the notification comes straight back if swiped away
     val unit: GlucoseUnit = GlucoseUnit.MMOL,
     val lowMgDl: Double = 70.0,          // 3.9 mmol/L
     val highMgDl: Double = 180.0,        // 10.0 mmol/L
+    val theme: ThemeMode = ThemeMode.SYSTEM,
 ) {
     companion object {
         val BACKGROUND_CHOICES = listOf(15, 30, 60, 180, 0)   // 15 minutes is the WorkManager minimum
@@ -32,9 +37,11 @@ class SettingsStore(context: Context) {
             liveMinutes = prefs.getInt("live_minutes", d.liveMinutes),
             liveShowValue = prefs.getBoolean("live_show_value", d.liveShowValue),
             liveKeepAwake = prefs.getBoolean("live_keep_awake", d.liveKeepAwake),
+            livePinned = prefs.getBoolean("live_pinned", d.livePinned),
             unit = GlucoseUnit.entries.getOrElse(prefs.getInt("unit", d.unit.ordinal)) { d.unit },
             lowMgDl = prefs.getFloat("low_mgdl", d.lowMgDl.toFloat()).toDouble(),
             highMgDl = prefs.getFloat("high_mgdl", d.highMgDl.toFloat()).toDouble(),
+            theme = ThemeMode.entries.firstOrNull { it.name == prefs.getString("theme", null) } ?: d.theme,
         )
     }
 
@@ -45,9 +52,11 @@ class SettingsStore(context: Context) {
             putInt("live_minutes", s.liveMinutes)
             putBoolean("live_show_value", s.liveShowValue)
             putBoolean("live_keep_awake", s.liveKeepAwake)
+            putBoolean("live_pinned", s.livePinned)
             putInt("unit", s.unit.ordinal)
             putFloat("low_mgdl", s.lowMgDl.toFloat())
             putFloat("high_mgdl", s.highMgDl.toFloat())
+            putString("theme", s.theme.name)
         }
     }
 
