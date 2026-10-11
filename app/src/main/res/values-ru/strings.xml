@@ -222,4 +222,33 @@
     <string name="libreview_bad_data">Файл пришёл в непонятном виде</string>
     <string name="libreview_no_glucose">Файл получен, но замеров глюкозы в нём нет. Нужна выгрузка «Данные о глюкозе»</string>
     <string name="libreview_read_failed">Не удалось забрать файл: %1$s</string>
+
+    <!-- Added in 1.4.0 -->
+    <string name="continue_button">Продолжить</string>
+    <string name="theme_card">Тема</string>
+    <string name="theme_system">Тема телефона</string>
+    <string name="theme_light">Светлая</string>
+    <string name="theme_dark">Тёмная</string>
+    <string name="theme_toggle">Переключить светлую и тёмную тему</string>
+    <string name="window_collapse">Свернуть</string>
+    <string name="window_expand">Развернуть</string>
+    <string name="settings_pinned">Закрепить уведомление</string>
+    <string name="settings_pinned_hint">Если его случайно смахнуть, оно сразу вернётся</string>
+    <string name="battery_title">Синхронизация может опаздывать</string>
+    <string name="battery_text">Пока телефон лежит без дела, Android откладывает фоновую синхронизацию на часы, если SugarBridge не разрешено работать без ограничений батареи. Телефоны Samsung особенно строги.</string>
+    <string name="sync_delivery">Новые значения приходят в SugarBridge примерно через %1$s мин после замера датчиком</string>
+    <string name="chart_hint">Нажмите на график, чтобы открыть его на весь экран</string>
+    <string name="chart_drag_hint">Ведите пальцем по графику, чтобы увидеть каждое значение и его время</string>
+    <string name="update_title">Обновление</string>
+    <string name="update_available">Вышел SugarBridge %1$s</string>
+    <string name="update_install">Скачать и установить</string>
+    <string name="update_downloading">Загрузка: %1$d%%</string>
+    <string name="update_failed">Не удалось обновить: %1$s</string>
+    <string name="update_other_key">файл подписан другим ключом и не может заменить эту версию</string>
+    <string name="update_not_newer">файл не новее этой версии</string>
+    <string name="update_not_sugarbridge">это не файл SugarBridge</string>
+    <string name="update_allow_unknown">Разрешите SugarBridge устанавливать приложения и нажмите кнопку ещё раз</string>
+    <string name="update_check">Проверить обновления</string>
+    <string name="update_checking">Проверяю…</string>
+    <string name="update_latest">У вас последняя версия</string>
 </resources>

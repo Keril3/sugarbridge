@@ -222,4 +222,33 @@
     <string name="libreview_bad_data">El archivo llegó en un formato desconocido</string>
     <string name="libreview_no_glucose">El archivo llegó, pero no tiene lecturas de glucosa. Hace falta la exportación «Datos de glucosa»</string>
     <string name="libreview_read_failed">No se pudo recoger el archivo: %1$s</string>
+
+    <!-- Added in 1.4.0 -->
+    <string name="continue_button">Continuar</string>
+    <string name="theme_card">Tema</string>
+    <string name="theme_system">Tema del teléfono</string>
+    <string name="theme_light">Claro</string>
+    <string name="theme_dark">Oscuro</string>
+    <string name="theme_toggle">Cambiar entre claro y oscuro</string>
+    <string name="window_collapse">Recoger</string>
+    <string name="window_expand">Desplegar</string>
+    <string name="settings_pinned">Fijar la notificación</string>
+    <string name="settings_pinned_hint">Si se desliza por error, vuelve enseguida</string>
+    <string name="battery_title">La sincronización puede retrasarse</string>
+    <string name="battery_text">Mientras el teléfono está inactivo, Android retrasa la sincronización en segundo plano durante horas, salvo que SugarBridge pueda funcionar sin restricciones de batería. Los teléfonos Samsung son especialmente estrictos.</string>
+    <string name="sync_delivery">Los valores nuevos llegan a SugarBridge unos %1$s min después de la lectura del sensor</string>
+    <string name="chart_hint">Toca la gráfica para abrirla a pantalla completa</string>
+    <string name="chart_drag_hint">Desliza el dedo por la gráfica para ver cada valor y su hora</string>
+    <string name="update_title">Actualización</string>
+    <string name="update_available">Ya está disponible SugarBridge %1$s</string>
+    <string name="update_install">Descargar e instalar</string>
+    <string name="update_downloading">Descargando: %1$d %%</string>
+    <string name="update_failed">No se pudo actualizar: %1$s</string>
+    <string name="update_other_key">el archivo está firmado con otra clave y no puede sustituir esta versión</string>
+    <string name="update_not_newer">el archivo no es más reciente que esta versión</string>
+    <string name="update_not_sugarbridge">el archivo no es SugarBridge</string>
+    <string name="update_allow_unknown">Permite que SugarBridge instale apps y vuelve a tocar el botón</string>
+    <string name="update_check">Buscar actualizaciones</string>
+    <string name="update_checking">Buscando…</string>
+    <string name="update_latest">Tienes la última versión</string>
 </resources>

@@ -9,6 +9,7 @@ import com.sugarbridge.app.health.WRITE_GLUCOSE
 import com.sugarbridge.app.health.healthConnectState
 import com.sugarbridge.app.health.toRecord
 import com.sugarbridge.app.libre.Libre
+import java.time.Duration
 import java.time.Instant
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -62,6 +63,7 @@ data class SyncSnapshot(
     val error: Problem? = null,
     val errorAt: Instant? = null,
     val updateMinutes: Double? = null,   // how often LibreLinkUp actually delivers a new value
+    val deliveryMinutes: Double? = null, // how long after the sensor reading a new value reaches SugarBridge
 )
 
 class SyncStore(context: Context) {
@@ -80,9 +82,18 @@ class SyncStore(context: Context) {
     /** After deleting from Health Connect these minutes can be written again. */
     fun forget(from: Instant, to: Instant) = saveState(state().forget(from, to))
 
-    fun saveSuccess(readings: List<Reading>, written: Int) {
-        val seen = (seen() + listOfNotNull(readings.lastOrNull()?.time?.epochSecond)).distinct().takeLast(16)
+    fun saveSuccess(readings: List<Reading>, written: Int, now: Instant = Instant.now()) {
+        val before = seen()
+        val newest = readings.lastOrNull()
+        val seen = (before + listOfNotNull(newest?.time?.epochSecond)).distinct().takeLast(16)
+        // the first time a value shows up: how old it already was (LibreLink upload, the cloud, our polling)
+        val lags = lags().toMutableList()
+        if (newest != null && newest.time.epochSecond !in before) {
+            val lag = Duration.between(newest.time, now).seconds
+            if (lag in 0..MAX_LAG_SECONDS) lags += lag
+        }
         prefs.edit {
+            putString("lags", lags.takeLast(16).joinToString(","))
             putString("recent", encodeReadings(readings))
             putLong(KEY_OK_AT, System.currentTimeMillis())
             putInt("ok_written", written)
@@ -99,7 +110,7 @@ class SyncStore(context: Context) {
     /** On sign-out: the readings and errors on screen are no longer needed, the written minutes are kept. */
     fun clearDisplay() {
         prefs.edit {
-            listOf("recent", "ok_at", "ok_written", "seen", "error", "error_at").forEach { remove(it) }
+            listOf("recent", "ok_at", "ok_written", "seen", "lags", "error", "error_at").forEach { remove(it) }
         }
     }
 
@@ -110,13 +121,17 @@ class SyncStore(context: Context) {
         error = prefs.getString("error", null)?.let(Problem::decode),
         errorAt = prefs.getLong("error_at", 0).takeIf { it > 0 }?.let(Instant::ofEpochMilli),
         updateMinutes = typicalUpdateMinutes(seen().map(Instant::ofEpochSecond)),
+        deliveryMinutes = medianMinutes(lags()),
     )
 
     private fun seen(): List<Long> = prefs.getString("seen", null).orEmpty().split(',').mapNotNull { it.toLongOrNull() }
+
+    private fun lags(): List<Long> = prefs.getString("lags", null).orEmpty().split(',').mapNotNull { it.toLongOrNull() }
 
     companion object {
         const val NAME = "sync"
         /** Changes on every successful sync, whoever made it. */
         const val KEY_OK_AT = "ok_at"
+        private const val MAX_LAG_SECONDS = 30 * 60L   // older values come from catching up, not from a delay
     }
 }

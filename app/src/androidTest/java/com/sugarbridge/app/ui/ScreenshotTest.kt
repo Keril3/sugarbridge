@@ -3,7 +3,11 @@ package com.sugarbridge.app.ui
 import android.graphics.Bitmap
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
+import androidx.test.espresso.Espresso
 import androidx.compose.ui.test.performScrollTo
 import androidx.lifecycle.ViewModelProvider
 import androidx.test.core.app.ActivityScenario
@@ -26,6 +30,7 @@ import com.sugarbridge.app.libre.sha256
 import com.sugarbridge.app.resourcesIn
 import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.settings.SettingsStore
+import com.sugarbridge.app.settings.ThemeMode
 import com.sugarbridge.app.sync.SyncStore
 import com.sugarbridge.app.useAppLanguage
 import org.junit.After
@@ -148,6 +153,16 @@ class ScreenshotTest {
         compose.onNodeWithText(res.getString(R.string.gmi_hint, 70)).performScrollTo()
         shot(language, "home_gmi")
 
+        // the chart opens full screen; a finger dragged along it picks a point
+        compose.onNodeWithText(text(R.string.chart_hint)).performScrollTo().performClick()
+        compose.onNodeWithTag("chart-full").performTouchInput {
+            down(Offset(width * 0.3f, height * 0.5f))
+            moveTo(Offset(width * 0.55f, height * 0.5f))
+            up()
+        }
+        shot(language, "chart")
+        Espresso.pressBack()
+
         compose.onNodeWithText(text(R.string.tab_history)).performClick()
         shot(language, "history_empty")
 
@@ -162,11 +177,12 @@ class ScreenshotTest {
         shot(language, "settings_bottom")
 
         compose.onNodeWithText(text(R.string.tab_now)).performClick()
-        instrumentation.uiAutomation.executeShellCommand("cmd uimode night yes").close()
-        Thread.sleep(2500)   // the theme changes and the Activity is recreated
+        scenario.onActivity { vm.updateSettings { it.copy(theme = ThemeMode.DARK) } }   // the sun/moon switch
         shot(language, "home_night")
-        instrumentation.uiAutomation.executeShellCommand("cmd uimode night no").close()
-        Thread.sleep(2500)
+        compose.onNodeWithText(text(R.string.tab_settings)).performClick()
+        shot(language, "settings_night")
+        scenario.onActivity { vm.updateSettings { it.copy(theme = ThemeMode.LIGHT) } }
+        compose.onNodeWithText(text(R.string.tab_now)).performClick()
 
         scenario.onActivity { ViewModelProvider(it)[MainViewModel::class.java].signOut() }
         SettingsStore(context).languageChosen = false   // the very first start: the language screen

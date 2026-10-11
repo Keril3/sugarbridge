@@ -16,20 +16,17 @@ import androidx.activity.addCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -38,9 +35,12 @@ import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
 import com.sugarbridge.app.R
 import com.sugarbridge.app.libre.Libre
-import com.sugarbridge.app.ui.components.AngelBackground
+import com.sugarbridge.app.settings.SettingsStore
 import com.sugarbridge.app.ui.components.Hint
-import com.sugarbridge.app.ui.components.TenshiCard
+import com.sugarbridge.app.ui.components.SkyBackground
+import com.sugarbridge.app.ui.components.XpMeter
+import com.sugarbridge.app.ui.components.XpWindow
+import com.sugarbridge.app.ui.theme.LocalXp
 import com.sugarbridge.app.ui.theme.SugarTheme
 import java.io.File
 import java.net.HttpURLConnection
@@ -105,21 +105,18 @@ class LibreViewActivity : ComponentActivity() {
         onBackPressedDispatcher.addCallback(this) { if (web.canGoBack()) web.goBack() else finish() }
 
         setContent {
-            SugarTheme {
-                AngelBackground(halo = false) {   // the halo in the corner would get in the way of the Close button
-                    Column(Modifier.fillMaxSize().safeDrawingPadding()) {
-                        Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Text("LibreView", style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f).padding(start = 8.dp))
-                            TextButton(onClick = ::finish) { Text(stringResource(R.string.close)) }
+            SugarTheme(SettingsStore(this).load().theme) {
+                SkyBackground {
+                    Column(Modifier.fillMaxSize().safeDrawingPadding().padding(horizontal = 10.dp, vertical = 8.dp)) {
+                        // the site sits in a window of its own; its "×" closes it
+                        XpWindow("LibreView", Modifier.fillMaxSize(), onClose = ::finish, bodyPadding = PaddingValues(0.dp)) {
+                            Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+                                Hint(stringResource(R.string.libreview_hint))
+                                status?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = LocalXp.current.accent) }
+                            }
+                            if (pageProgress in 1..99) XpMeter(pageProgress / 100f, Modifier.fillMaxWidth().padding(horizontal = 12.dp))
+                            AndroidView(factory = { web }, modifier = Modifier.fillMaxSize())
                         }
-                        TenshiCard(Modifier.padding(horizontal = 12.dp)) {
-                            Hint(stringResource(R.string.libreview_hint))
-                            status?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary) }
-                        }
-                        if (pageProgress in 1..99) {
-                            LinearProgressIndicator(progress = { pageProgress / 100f }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
-                        }
-                        AndroidView(factory = { web }, modifier = Modifier.fillMaxSize().padding(top = 8.dp))
                     }
                 }
             }

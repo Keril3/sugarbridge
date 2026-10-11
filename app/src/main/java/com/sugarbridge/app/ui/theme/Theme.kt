@@ -11,33 +11,85 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.sugarbridge.app.glucose.GlucoseLevel
+import androidx.compose.ui.unit.sp
 import com.sugarbridge.app.R
+import com.sugarbridge.app.glucose.GlucoseLevel
+import com.sugarbridge.app.settings.ThemeMode
 
-/** The "tenshi kawaii" palette: sakura, sky, lavender and halo gold. */
+/**
+ * The look of keril.art: a sky from pale to deep blue (navy and violet at night), Windows XP style windows
+ * with a gradient title bar, glossy blue buttons and the Monocraft pixel font.
+ */
+class XpColors(
+    val sky: List<Color>,             // top, middle, bottom of the background
+    val windowBody: Color,
+    val windowBorder: Color,
+    val bar: List<Color>,             // window title bar, top to bottom
+    val text: Color,
+    val textMuted: Color,
+    val statusBar: List<Color>,       // the address bar at the top
+    val statusBorder: Color,
+    val accent: Color,                // links, selected items
+    val dots: Color,                  // dotted lines between rows
+    val floaterStar: Color,
+    val shadow: Color,
+)
+
+val LightXp = XpColors(
+    sky = listOf(Color(0xFFEAF6FF), Color(0xFF7FCDFB), Color(0xFF2E7FE0)),
+    windowBody = Color.White,
+    windowBorder = Color.White,
+    bar = listOf(Color(0xFFCFEBFF), Color(0xFF4FA8E8)),
+    text = Color(0xFF0B1630),
+    textMuted = Color(0xFF4A6182),
+    statusBar = listOf(Color(0xE6FFFFFF), Color(0x66FFFFFF)),
+    statusBorder = Color.White,
+    accent = Color(0xFF1C5FC4),
+    dots = Color(0xFF4FA8E8),
+    floaterStar = Color(0xFF3C82D6),
+    shadow = Color(0x4D14468C),
+)
+
+val DarkXp = XpColors(
+    sky = listOf(Color(0xFF0A1030), Color(0xFF18225E), Color(0xFF352C7E)),
+    windowBody = Color(0xFF10183E),
+    windowBorder = Color(0x8CAAD2FF),
+    bar = listOf(Color(0xFF6F8FEA), Color(0xFF2A3C9A)),
+    text = Color(0xFFE3EEFF),
+    textMuted = Color(0xFFA9BEE8),
+    statusBar = listOf(Color(0xE634468C), Color(0xA6162052)),
+    statusBorder = Color(0x80AAD2FF),
+    accent = Color(0xFF9DC3FF),
+    dots = Color(0xFF6F8FEA),
+    floaterStar = Color(0xFFE3EEFF),
+    shadow = Color(0x73000000),
+)
+
+/** Colors that are the same in both themes. */
 object Tenshi {
-    val Sakura = Color(0xFFF58BB8)
-    val SakuraDeep = Color(0xFFE5609A)
-    val Sky = Color(0xFF8EC8FF)
-    val Lavender = Color(0xFFC59BFF)
-    val Halo = Color(0xFFFFC94A)
-    val HaloLight = Color(0xFFFFF1BF)
-    val Ink = Color(0xFF4A2B4F)
+    val Pink = Color(0xFFFFC9E8)
+    val PinkDeep = Color(0xFFE0559A)
+    val ButtonText = Color(0xFF0A2A52)          // glossy buttons stay light at night too, like on the site
+    val ButtonBorder = Color(0xFF2A5FA8)
+    val ButtonGloss = listOf(Color(0xFFF4FAFF), Color(0xFFBFE0FB), Color(0xFF6FAEE8), Color(0xFF3C82D6))
+    val SecondaryBorder = Color(0xFF7FA7D4)
+    val SecondaryGloss = listOf(Color.White, Color(0xFFDCEBF7))
+    val DangerBorder = Color(0xFFA82020)
+    val DangerGloss = listOf(Color(0xFFFFE3E0), Color(0xFFFF9A90))
+    val DangerText = Color(0xFF6E0F0F)
+    val CloseGloss = listOf(Color(0xFFFF9A90), Color(0xFFD32F2F))
+    val SmallButtonBorder = Color(0xFF5A86B8)
+    val SmallButtonGloss = listOf(Color(0xFFF2F8FF), Color(0xFF9FC3E8))
 
-    /** The gradient of buttons and accents: sakura → lavender → sky. */
-    val Rainbow = listOf(Sakura, Lavender, Sky)
-
-    // Glucose level colors: below is a cool periwinkle, in range is mint, above is peach
-    val Low = Color(0xFF7C83F0)
-    val InRange = Color(0xFF3FBF94)
-    val High = Color(0xFFFF8A5C)
+    // Glucose levels: below is pink-red, in range is green, above is orange; readable on white and on navy
+    val Low = Color(0xFFE8508F)
+    val InRange = Color(0xFF25A974)
+    val High = Color(0xFFF08A24)
 }
 
 fun GlucoseLevel.color(): Color = when (this) {
@@ -47,117 +99,120 @@ fun GlucoseLevel.color(): Color = when (this) {
 }
 
 private val LightColors = lightColorScheme(
-    primary = Color(0xFFE5609A),
+    primary = Color(0xFF2E7FE0),
     onPrimary = Color.White,
-    primaryContainer = Color(0xFFFFD9E8),
-    onPrimaryContainer = Color(0xFF5A1033),
-    secondary = Color(0xFF5B9FE0),
+    primaryContainer = Color(0xFFCFEBFF),
+    onPrimaryContainer = Color(0xFF0A2A52),
+    secondary = Color(0xFFE0559A),
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFFDCEEFF),
-    onSecondaryContainer = Color(0xFF0E3558),
-    tertiary = Color(0xFF9B76F0),
+    secondaryContainer = Color(0xFFFFE6F4),
+    onSecondaryContainer = Color(0xFF5A1033),
+    tertiary = Color(0xFF6F8FEA),
     onTertiary = Color.White,
-    tertiaryContainer = Color(0xFFEEE3FF),
-    onTertiaryContainer = Color(0xFF34176B),
-    background = Color(0xFFFFF5FA),
-    onBackground = Color(0xFF3B2A3F),
-    surface = Color(0xFFFFFBFD),
-    onSurface = Color(0xFF3B2A3F),
-    surfaceVariant = Color(0xFFF7EAF2),
-    onSurfaceVariant = Color(0xFF7A6580),
-    surfaceContainerLowest = Color(0xFFFFFFFF),
-    surfaceContainerLow = Color(0xFFFFF6FA),
-    surfaceContainer = Color(0xFFFCEFF6),
-    surfaceContainerHigh = Color(0xFFF8E8F1),
-    surfaceContainerHighest = Color(0xFFF3E1EC),
-    outline = Color(0xFFDDBFD3),
-    outlineVariant = Color(0xFFF0DDE8),
-    error = Color(0xFFD9466F),
+    background = Color(0xFFEAF6FF),
+    onBackground = LightXp.text,
+    surface = Color.White,
+    onSurface = LightXp.text,
+    surfaceVariant = Color(0xFFEAF6FF),
+    onSurfaceVariant = LightXp.textMuted,
+    surfaceContainerLowest = Color.White,
+    surfaceContainerLow = Color(0xFFF4FAFF),
+    surfaceContainer = Color(0xFFEAF6FF),
+    surfaceContainerHigh = Color(0xFFE3F1FD),
+    surfaceContainerHighest = Color(0xFFD8ECFC),
+    outline = Color(0xFF8EBDE8),
+    outlineVariant = Color(0xFFCFE6FB),
+    error = Color(0xFFD32F2F),
     onError = Color.White,
-    errorContainer = Color(0xFFFFDDE5),
-    onErrorContainer = Color(0xFF5C0A24),
 )
 
 private val DarkColors = darkColorScheme(
-    primary = Color(0xFFFF9CC6),
-    onPrimary = Color(0xFF4A0F2D),
-    primaryContainer = Color(0xFF6B2549),
-    onPrimaryContainer = Color(0xFFFFD9E8),
-    secondary = Color(0xFF9CCBFF),
-    onSecondary = Color(0xFF0E3558),
-    secondaryContainer = Color(0xFF234A73),
-    onSecondaryContainer = Color(0xFFDCEEFF),
-    tertiary = Color(0xFFCDB4FF),
-    onTertiary = Color(0xFF34176B),
-    tertiaryContainer = Color(0xFF4A3380),
-    onTertiaryContainer = Color(0xFFEEE3FF),
-    background = Color(0xFF1B1528),
-    onBackground = Color(0xFFF3E9F5),
-    surface = Color(0xFF241C33),
-    onSurface = Color(0xFFF3E9F5),
-    surfaceVariant = Color(0xFF33294A),
-    onSurfaceVariant = Color(0xFFCDBCD6),
-    surfaceContainerLowest = Color(0xFF16111F),
-    surfaceContainerLow = Color(0xFF211A2E),
-    surfaceContainer = Color(0xFF2A2139),
-    surfaceContainerHigh = Color(0xFF332942),
-    surfaceContainerHighest = Color(0xFF3D3250),
-    outline = Color(0xFF6A5878),
-    outlineVariant = Color(0xFF3F3352),
-    error = Color(0xFFFF8FAE),
-    onError = Color(0xFF5C0A24),
-    errorContainer = Color(0xFF7A1E3C),
-    onErrorContainer = Color(0xFFFFDDE5),
+    primary = Color(0xFF8FB4FF),
+    onPrimary = Color(0xFF0A1030),
+    primaryContainer = Color(0xFF2A3C9A),
+    onPrimaryContainer = Color(0xFFE3EEFF),
+    secondary = Color(0xFFFF8FC8),
+    onSecondary = Color(0xFF3A0A22),
+    secondaryContainer = Color(0xFF5A2A60),
+    onSecondaryContainer = Color(0xFFFFE6F4),
+    tertiary = Color(0xFF6F8FEA),
+    onTertiary = Color(0xFF0A1030),
+    background = Color(0xFF0A1030),
+    onBackground = DarkXp.text,
+    surface = Color(0xFF10183E),
+    onSurface = DarkXp.text,
+    surfaceVariant = Color(0xFF1B2558),
+    onSurfaceVariant = DarkXp.textMuted,
+    surfaceContainerLowest = Color(0xFF0A1030),
+    surfaceContainerLow = Color(0xFF10183E),
+    surfaceContainer = Color(0xFF162052),
+    surfaceContainerHigh = Color(0xFF1B2558),
+    surfaceContainerHighest = Color(0xFF243070),
+    outline = Color(0xFF6F8FEA),
+    outlineVariant = Color(0xFF2A3C9A),
+    error = Color(0xFFFF8A80),
+    onError = Color(0xFF3A0A0A),
 )
 
-/** Nunito: a rounded font with Cyrillic, in one variable-weight file. Other scripts fall back to the system font. */
-@OptIn(ExperimentalTextApi::class)
-private fun nunito(weight: Int) =
-    Font(R.font.nunito, FontWeight(weight), variationSettings = FontVariation.Settings(FontVariation.weight(weight)))
+/** Monocraft: the pixel font of keril.art, with Latin and Cyrillic. Other scripts fall back to the system font. */
+val Monocraft = FontFamily(Font(R.font.monocraft, FontWeight.Normal))
 
-val Nunito = FontFamily(nunito(400), nunito(500), nunito(600), nunito(700), nunito(800), nunito(900))
-
-private fun TextStyle.nunito(weight: FontWeight) = copy(fontFamily = Nunito, fontWeight = weight)
-
-private val Base = Typography()
-
-private val TenshiTypography = Typography(
-    displayLarge = Base.displayLarge.nunito(FontWeight.Black),
-    displayMedium = Base.displayMedium.nunito(FontWeight.Black),
-    displaySmall = Base.displaySmall.nunito(FontWeight.ExtraBold),
-    headlineLarge = Base.headlineLarge.nunito(FontWeight.ExtraBold),
-    headlineMedium = Base.headlineMedium.nunito(FontWeight.ExtraBold),
-    headlineSmall = Base.headlineSmall.nunito(FontWeight.ExtraBold),
-    titleLarge = Base.titleLarge.nunito(FontWeight.ExtraBold),
-    titleMedium = Base.titleMedium.nunito(FontWeight.Bold),
-    titleSmall = Base.titleSmall.nunito(FontWeight.Bold),
-    bodyLarge = Base.bodyLarge.nunito(FontWeight.Medium),
-    bodyMedium = Base.bodyMedium.nunito(FontWeight.Medium),
-    bodySmall = Base.bodySmall.nunito(FontWeight.Medium),
-    labelLarge = Base.labelLarge.nunito(FontWeight.Bold),
-    labelMedium = Base.labelMedium.nunito(FontWeight.Bold),
-    labelSmall = Base.labelSmall.nunito(FontWeight.Bold),
+// Monocraft has a single weight; a synthetic bold would smear the pixels, so every style is Normal
+private fun style(size: Int, line: Int, spacing: Double = 0.0) = TextStyle(
+    fontFamily = Monocraft,
+    fontWeight = FontWeight.Normal,
+    fontSize = size.sp,
+    lineHeight = line.sp,
+    letterSpacing = spacing.sp,
 )
 
-private val TenshiShapes = Shapes(
-    extraSmall = RoundedCornerShape(10.dp),
-    small = RoundedCornerShape(14.dp),
-    medium = RoundedCornerShape(20.dp),
-    large = RoundedCornerShape(28.dp),
-    extraLarge = RoundedCornerShape(36.dp),
+private val XpTypography = Typography(
+    displayLarge = style(52, 60),
+    displayMedium = style(44, 52),
+    displaySmall = style(32, 40),
+    headlineLarge = style(28, 36),
+    headlineMedium = style(24, 32),
+    headlineSmall = style(20, 28, 0.5),
+    titleLarge = style(19, 26),
+    titleMedium = style(16, 22, 0.5),
+    titleSmall = style(14, 20),
+    bodyLarge = style(15, 23),
+    bodyMedium = style(13, 21),
+    bodySmall = style(12, 19),
+    labelLarge = style(14, 20),
+    labelMedium = style(12, 17),
+    labelSmall = style(11, 16),
 )
 
-/** true in the night theme: the background and decorations are drawn in dark tones. */
+private val XpShapes = Shapes(
+    extraSmall = RoundedCornerShape(4.dp),
+    small = RoundedCornerShape(6.dp),
+    medium = RoundedCornerShape(8.dp),
+    large = RoundedCornerShape(10.dp),
+    extraLarge = RoundedCornerShape(12.dp),
+)
+
+/** true in the night theme. */
 val LocalNight = staticCompositionLocalOf { false }
 
+/** The keril.art colors of the current theme. */
+val LocalXp = staticCompositionLocalOf { LightXp }
+
 @Composable
-fun SugarTheme(content: @Composable () -> Unit) {
-    val night = isSystemInDarkTheme()
-    CompositionLocalProvider(LocalNight provides night) {
+fun isNight(mode: ThemeMode): Boolean = when (mode) {
+    ThemeMode.SYSTEM -> isSystemInDarkTheme()
+    ThemeMode.LIGHT -> false
+    ThemeMode.DARK -> true
+}
+
+@Composable
+fun SugarTheme(mode: ThemeMode = ThemeMode.SYSTEM, content: @Composable () -> Unit) {
+    val night = isNight(mode)
+    CompositionLocalProvider(LocalNight provides night, LocalXp provides if (night) DarkXp else LightXp) {
         MaterialTheme(
             colorScheme = if (night) DarkColors else LightColors,
-            typography = TenshiTypography,
-            shapes = TenshiShapes,
+            typography = XpTypography,
+            shapes = XpShapes,
             content = content,
         )
     }

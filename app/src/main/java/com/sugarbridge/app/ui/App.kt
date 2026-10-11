@@ -1,48 +1,71 @@
 package com.sugarbridge.app.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.sugarbridge.app.MainViewModel
 import com.sugarbridge.app.R
 import com.sugarbridge.app.Tab
 import com.sugarbridge.app.health.HealthConnectState
-import com.sugarbridge.app.ui.components.AngelBackground
+import com.sugarbridge.app.settings.LANGUAGES
+import com.sugarbridge.app.settings.appLanguage
+import com.sugarbridge.app.ui.components.AddressBar
+import com.sugarbridge.app.ui.components.ButtonRow
+import com.sugarbridge.app.ui.components.Hint
+import com.sugarbridge.app.ui.components.LanguageItem
 import com.sugarbridge.app.ui.components.Mascot
 import com.sugarbridge.app.ui.components.Mood
+import com.sugarbridge.app.ui.components.PrimaryButton
+import com.sugarbridge.app.ui.components.SecondaryButton
+import com.sugarbridge.app.ui.components.SkyBackground
+import com.sugarbridge.app.ui.components.XpWindow
 import com.sugarbridge.app.ui.screens.HistoryScreen
 import com.sugarbridge.app.ui.screens.HomeScreen
 import com.sugarbridge.app.ui.screens.LanguageScreen
 import com.sugarbridge.app.ui.screens.LoginScreen
 import com.sugarbridge.app.ui.screens.SettingsScreen
+import com.sugarbridge.app.ui.theme.LocalNight
+import com.sugarbridge.app.ui.theme.LocalXp
+import com.sugarbridge.app.ui.theme.Tenshi
+import java.time.Duration
+import java.time.Instant
 
-/** What only the Activity can do: permission dialogs, other apps, system settings and the app language. */
+/** What only the Activity can do: permission dialogs, other apps, system settings, the app language and updates. */
 interface AppActions {
     fun requestHealthPermission()
     fun installHealthConnect()
@@ -54,6 +77,8 @@ interface AppActions {
     fun hideNotification()
     fun requestBatteryUnrestricted()
     fun openSamsungHealth()
+    fun openGitHub()
+    fun installUpdate()
 }
 
 @Composable
@@ -62,17 +87,21 @@ fun SugarApp(vm: MainViewModel, actions: AppActions) {
     val resources = LocalResources.current
     LaunchedEffect(vm, resources) { vm.messages.collect { snackbar.showSnackbar(it.resolve(resources)) } }
 
-    AngelBackground {
+    SkyBackground {
         when {
             // the very first start: the language comes before everything else
-            !vm.ui.signedIn && !vm.ui.languageChosen -> LanguageScreen(onPick = actions::setLanguage)
+            !vm.ui.signedIn && !vm.ui.languageChosen -> LanguageScreen(onContinue = actions::setLanguage)
             !vm.ui.signedIn -> {
-                LoginScreen(busy = vm.ui.signingIn, onSignIn = vm::signIn)
+                Column(Modifier.fillMaxSize()) {
+                    TopBar(vm, actions, "login", Modifier.statusBarsPadding())
+                    LoginScreen(busy = vm.ui.signingIn, onSignIn = vm::signIn)
+                }
                 TenshiSnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).navigationBarsPadding())
             }
             else -> Scaffold(
                 containerColor = Color.Transparent,
-                bottomBar = { TenshiNavBar(vm.tab) { vm.tab = it } },
+                topBar = { TopBar(vm, actions, vm.tab.name.lowercase(), Modifier.statusBarsPadding()) },
+                bottomBar = { Dock(vm.tab) { vm.tab = it } },
                 snackbarHost = { TenshiSnackbarHost(snackbar) },
             ) { padding ->
                 Box(Modifier.fillMaxSize().padding(padding)) {
@@ -88,68 +117,111 @@ fun SugarApp(vm: MainViewModel, actions: AppActions) {
     }
 }
 
+/** The keril.art address bar: where we are, whether LibreLinkUp answers, the theme switch and the language menu. */
 @Composable
-private fun TenshiNavBar(current: Tab, onSelect: (Tab) -> Unit) {
-    NavigationBar(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f), tonalElevation = 0.dp) {
-        val items = listOf(
+private fun TopBar(vm: MainViewModel, actions: AppActions, path: String, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val night = LocalNight.current
+    val locale = currentLocale()
+    val chosen = remember(locale) { appLanguage(context)?.tag }
+    val system = stringResource(R.string.language_system)
+    val last = vm.ui.sync.lastOkAt
+    val online = last != null && Duration.between(last, Instant.now()) < Duration.ofMinutes(20) &&
+        (vm.ui.sync.errorAt == null || !vm.ui.sync.errorAt!!.isAfter(last))
+    AddressBar(
+        path = path,
+        online = online,
+        onToggleTheme = { vm.toggleTheme(night) },
+        languageLabel = (chosen ?: locale.language).substringBefore('-').uppercase(),
+        languages = listOf(LanguageItem(null, system)) + LANGUAGES.map { LanguageItem(it.tag, it.name) },
+        currentLanguage = chosen,
+        onLanguage = actions::setLanguage,
+        modifier = modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+    )
+}
+
+/** The tab bar: a translucent bar like the address bar, the open tab is a pressed glossy button. */
+@Composable
+private fun Dock(current: Tab, onSelect: (Tab) -> Unit) {
+    val xp = LocalXp.current
+    val shape = RoundedCornerShape(14.dp)
+    Row(
+        Modifier
+            .navigationBarsPadding()
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .fillMaxWidth()
+            .shadow(6.dp, shape, spotColor = xp.shadow)
+            .clip(shape)
+            .border(1.dp, xp.statusBorder, shape)
+            .background(Brush.verticalGradient(xp.statusBar))
+            .padding(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        listOf(
             Triple(Tab.NOW, R.drawable.ic_stat_tenshi, R.string.tab_now),
             Triple(Tab.HISTORY, R.drawable.ic_tab_history, R.string.tab_history),
             Triple(Tab.SETTINGS, R.drawable.ic_tab_settings, R.string.tab_settings),
-        )
-        items.forEach { (tab, icon, label) ->
-            val text = stringResource(label)
-            NavigationBarItem(
-                selected = current == tab,
-                onClick = { onSelect(tab) },
-                icon = { Icon(painterResource(icon), contentDescription = text) },
-                label = { Text(text) },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.primary,
-                    selectedTextColor = MaterialTheme.colorScheme.primary,
-                    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
-                ),
-            )
+        ).forEach { (tab, icon, label) ->
+            val on = tab == current
+            val itemShape = RoundedCornerShape(9.dp)
+            Column(
+                Modifier
+                    .weight(1f)
+                    .clip(itemShape)
+                    .then(
+                        if (on) {
+                            Modifier
+                                .border(1.dp, Tenshi.ButtonBorder, itemShape)
+                                .background(Brush.verticalGradient(0f to Tenshi.ButtonGloss[0], 0.48f to Tenshi.ButtonGloss[1], 0.5f to Tenshi.ButtonGloss[2], 1f to Tenshi.ButtonGloss[3]))
+                        } else {
+                            Modifier
+                        }
+                    )
+                    .clickable(role = Role.Tab) { onSelect(tab) }
+                    .padding(vertical = 6.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                val color = if (on) Tenshi.ButtonText else xp.text
+                Icon(painterResource(icon), contentDescription = null, tint = color, modifier = Modifier.size(24.dp))
+                Text(stringResource(label), style = MaterialTheme.typography.labelMedium, color = color)
+            }
         }
     }
 }
 
 @Composable
 private fun TenshiSnackbarHost(state: SnackbarHostState, modifier: Modifier = Modifier) {
+    val xp = LocalXp.current
     SnackbarHost(state, modifier) { data ->
         Snackbar(
             data,
-            modifier = Modifier.padding(horizontal = 12.dp),
-            shape = CircleShape,
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            modifier = Modifier.padding(horizontal = 12.dp).border(2.dp, xp.windowBorder, RoundedCornerShape(10.dp)),
+            shape = RoundedCornerShape(10.dp),
+            containerColor = xp.windowBody,
+            contentColor = xp.text,
         )
     }
 }
 
 /**
- * Without Health Connect SugarBridge is useless: the data has nowhere to go. The dialog can't be dismissed
- * until Health Connect becomes available; after it is installed, the dialog disappears by itself.
+ * Without Health Connect SugarBridge is useless: the data has nowhere to go. The window can't be dismissed
+ * until Health Connect becomes available; after it is installed, the window disappears by itself.
  */
 @Composable
 private fun HealthConnectGate(state: HealthConnectState, actions: AppActions) {
     val update = state == HealthConnectState.UPDATE_REQUIRED
-    AlertDialog(
-        onDismissRequest = {},
-        properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
-        icon = { Mascot(Mood.SLEEPY, size = 88.dp) },
-        title = { Text(stringResource(if (update) R.string.hc_update_title else R.string.hc_missing_title)) },
-        text = {
-            Column {
-                Text(stringResource(R.string.hc_gate_text) + " " + stringResource(if (update) R.string.hc_gate_old else R.string.hc_gate_missing))
-                Text(stringResource(R.string.hc_gate_auto), Modifier.padding(top = 8.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Dialog(onDismissRequest = {}, properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)) {
+        XpWindow(stringResource(if (update) R.string.hc_update_title else R.string.hc_missing_title)) {
+            Mascot(Mood.SLEEPY, size = 96.dp, modifier = Modifier.align(Alignment.CenterHorizontally))
+            Text(
+                stringResource(R.string.hc_gate_text) + " " + stringResource(if (update) R.string.hc_gate_old else R.string.hc_gate_missing),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Hint(stringResource(R.string.hc_gate_auto))
+            ButtonRow {
+                PrimaryButton(stringResource(if (update) R.string.hc_update else R.string.hc_install), onClick = actions::installHealthConnect)
+                SecondaryButton(stringResource(R.string.hc_settings), onClick = actions::openHealthConnect)
             }
-        },
-        confirmButton = {
-            TextButton(onClick = actions::installHealthConnect) { Text(stringResource(if (update) R.string.hc_update else R.string.hc_install)) }
-        },
-        dismissButton = {
-            TextButton(onClick = actions::openHealthConnect) { Text(stringResource(R.string.hc_settings)) }
-        },
-        shape = MaterialTheme.shapes.extraLarge,
-    )
+        }
+    }
 }

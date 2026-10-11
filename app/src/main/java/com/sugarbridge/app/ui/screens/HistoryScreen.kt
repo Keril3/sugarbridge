@@ -1,6 +1,7 @@
 package com.sugarbridge.app.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,24 +11,19 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.CornerSize
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SelectableDates
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDateRangePickerState
@@ -39,9 +35,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import com.sugarbridge.app.ImportUi
 import com.sugarbridge.app.MainViewModel
 import com.sugarbridge.app.R
@@ -52,16 +49,17 @@ import com.sugarbridge.app.libreview.dayBounds
 import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.ui.AppActions
 import com.sugarbridge.app.ui.components.ButtonRow
-import com.sugarbridge.app.ui.components.CardTitle
 import com.sugarbridge.app.ui.components.ChoiceRow
-import com.sugarbridge.app.ui.components.GradientButton
+import com.sugarbridge.app.ui.components.DottedDivider
 import com.sugarbridge.app.ui.components.Hint
 import com.sugarbridge.app.ui.components.Pill
-import com.sugarbridge.app.ui.components.RibbonDivider
-import com.sugarbridge.app.ui.components.SoftButton
-import com.sugarbridge.app.ui.components.TenshiCard
+import com.sugarbridge.app.ui.components.PrimaryButton
+import com.sugarbridge.app.ui.components.SecondaryButton
+import com.sugarbridge.app.ui.components.XpMeter
+import com.sugarbridge.app.ui.components.XpWindow
 import com.sugarbridge.app.ui.currentLocale
 import com.sugarbridge.app.ui.rememberDateFormat
+import com.sugarbridge.app.ui.theme.LocalXp
 import com.sugarbridge.app.ui.theme.Tenshi
 import java.time.Instant
 import java.time.LocalDate
@@ -82,13 +80,13 @@ fun HistoryScreen(vm: MainViewModel, actions: AppActions) {
 
     Box(Modifier.fillMaxSize()) {
         LazyColumn(
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = if (h.loaded) 170.dp else 24.dp),
+            contentPadding = PaddingValues(start = 14.dp, end = 14.dp, top = 4.dp, bottom = if (h.loaded) 170.dp else 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item { SourceCard(h, actions, onClose = vm::closeHistory) }
             if (h.busy && !h.loaded) {
                 item {
-                    TenshiCard {
+                    XpWindow(stringResource(R.string.history_title)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             CircularProgressIndicator(Modifier.padding(end = 12.dp), strokeWidth = 3.dp)
                             Text(stringResource(R.string.history_reading_file), style = MaterialTheme.typography.bodyLarge)
@@ -123,28 +121,24 @@ fun HistoryScreen(vm: MainViewModel, actions: AppActions) {
         }
     }
     if (confirmDelete) {
-        AlertDialog(
-            onDismissRequest = { confirmDelete = false },
-            title = { Text(stringResource(R.string.history_delete_title)) },
-            text = { Text(stringResource(R.string.history_delete_text, h.selected.size)) },
-            confirmButton = {
-                TextButton(onClick = { confirmDelete = false; vm.deleteSelected() }) {
-                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
+        Dialog(onDismissRequest = { confirmDelete = false }) {
+            XpWindow(stringResource(R.string.history_delete_title), onClose = { confirmDelete = false }) {
+                Text(stringResource(R.string.history_delete_text, h.selected.size), style = MaterialTheme.typography.bodyMedium)
+                ButtonRow {
+                    SecondaryButton(stringResource(R.string.delete), onClick = { confirmDelete = false; vm.deleteSelected() }, danger = true)
+                    SecondaryButton(stringResource(R.string.cancel), onClick = { confirmDelete = false })
                 }
-            },
-            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(stringResource(R.string.cancel)) } },
-            shape = MaterialTheme.shapes.extraLarge,
-        )
+            }
+        }
     }
 }
 
 @Composable
 private fun SourceCard(h: ImportUi, actions: AppActions, onClose: () -> Unit) {
     val dateFormat = rememberDateFormat("dMMMyyyy")
-    TenshiCard {
-        CardTitle(stringResource(R.string.history_title))
+    XpWindow(stringResource(R.string.history_title)) {
         if (h.loaded) {
-            Text(stringResource(R.string.history_loaded, h.source, h.readings.size), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.history_loaded, h.source, h.readings.size), style = MaterialTheme.typography.bodyLarge)
             val first = h.days.first().date.format(dateFormat)
             val last = h.days.last().date.format(dateFormat)
             val unit = stringResource(h.unit.label)
@@ -153,15 +147,15 @@ private fun SourceCard(h: ImportUi, actions: AppActions, onClose: () -> Unit) {
                 else stringResource(R.string.history_loaded_range, first, last, unit)
             )
             ButtonRow {
-                SoftButton(stringResource(R.string.history_other_file), onClick = actions::pickCsv, enabled = !h.busy)
-                SoftButton(stringResource(R.string.close), onClick = onClose, enabled = !h.busy)
+                SecondaryButton(stringResource(R.string.history_other_file), onClick = actions::pickCsv, enabled = !h.busy)
+                SecondaryButton(stringResource(R.string.close), onClick = onClose, enabled = !h.busy)
             }
         } else {
             Text(stringResource(R.string.history_intro), style = MaterialTheme.typography.bodyMedium)
-            GradientButton(stringResource(R.string.history_open_libreview), onClick = actions::openLibreView, modifier = Modifier.fillMaxWidth())
-            SoftButton(stringResource(R.string.history_pick_csv), onClick = actions::pickCsv, modifier = Modifier.fillMaxWidth())
-            RibbonDivider()
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            PrimaryButton(stringResource(R.string.history_open_libreview), onClick = actions::openLibreView, modifier = Modifier.fillMaxWidth())
+            SecondaryButton(stringResource(R.string.history_pick_csv), onClick = actions::pickCsv, modifier = Modifier.fillMaxWidth())
+            DottedDivider()
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Hint(stringResource(R.string.history_step_1))
                 Hint(stringResource(R.string.history_step_2))
                 Hint(stringResource(R.string.history_step_3))
@@ -175,9 +169,8 @@ private fun SourceCard(h: ImportUi, actions: AppActions, onClose: () -> Unit) {
 private fun PeriodCard(h: ImportUi, s: AppSettings, onPick: () -> Unit, onQuick: (Long?) -> Unit) {
     val locale = currentLocale()
     val dateFormat = rememberDateFormat("dMMMyyyy")
-    TenshiCard {
-        CardTitle(stringResource(R.string.history_period))
-        SoftButton(
+    XpWindow(stringResource(R.string.history_period)) {
+        SecondaryButton(
             "${h.from?.format(dateFormat) ?: "…"} — ${h.to?.format(dateFormat) ?: "…"}",
             onClick = onPick,
             enabled = !h.busy,
@@ -221,86 +214,81 @@ private fun matchesQuick(h: ImportUi, days: Long?): Boolean {
 
 @Composable
 private fun DayRow(day: DaySummary, format: DateTimeFormatter, selected: Boolean, s: AppSettings, enabled: Boolean, onToggle: () -> Unit) {
+    val xp = LocalXp.current
     val locale = currentLocale()
-    Surface(
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surface.copy(alpha = if (selected) 0.95f else 0.7f),
-        contentColor = MaterialTheme.colorScheme.onSurface,
-        modifier = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium).clickable(enabled = enabled, onClick = onToggle),
+    val shape = RoundedCornerShape(8.dp)
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .border(if (selected) 2.dp else 1.dp, if (selected) Tenshi.ButtonBorder else xp.windowBorder, shape)
+            .background(xp.windowBody.copy(alpha = if (selected) 1f else 0.85f))
+            .clickable(enabled = enabled, onClick = onToggle)
+            .padding(horizontal = 6.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(Modifier.padding(horizontal = 8.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(
-                checked = selected,
-                onCheckedChange = { onToggle() },
-                enabled = enabled,
-                colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary),
+        Checkbox(
+            checked = selected,
+            onCheckedChange = { onToggle() },
+            enabled = enabled,
+            colors = CheckboxDefaults.colors(checkedColor = Tenshi.ButtonBorder, uncheckedColor = xp.dots),
+        )
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Text(day.date.format(format), style = MaterialTheme.typography.titleSmall)
+            Text(
+                stringResource(
+                    R.string.history_day_summary,
+                    day.count,
+                    formatGlucose(day.avgMgDl, s.unit, locale),
+                    formatGlucose(day.minMgDl, s.unit, locale),
+                    formatGlucose(day.maxMgDl, s.unit, locale),
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = xp.textMuted,
             )
-            Column(Modifier.weight(1f)) {
-                Text(day.date.format(format), style = MaterialTheme.typography.titleSmall)
-                Text(
-                    stringResource(
-                        R.string.history_day_summary,
-                        day.count,
-                        formatGlucose(day.avgMgDl, s.unit, locale),
-                        formatGlucose(day.minMgDl, s.unit, locale),
-                        formatGlucose(day.maxMgDl, s.unit, locale),
-                    ),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(Modifier.height(4.dp))
-                InRangeBar(day.inRangePercent)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                XpMeter(day.inRangePercent / 100f, Modifier.width(110.dp), color = Tenshi.InRange)
+                Spacer(Modifier.width(6.dp))
+                Text(stringResource(R.string.history_day_in_range, day.inRangePercent), style = MaterialTheme.typography.labelSmall, color = xp.textMuted)
             }
-            Spacer(Modifier.width(8.dp))
-            when {
-                day.complete -> Pill(stringResource(R.string.history_in_hc), Tenshi.InRange)
-                day.alreadyInHealthConnect > 0 -> Pill(stringResource(R.string.history_partly), Tenshi.Lavender)
-            }
-        }
-    }
-}
-
-/** A bar showing how much of the day was in range. */
-@Composable
-private fun InRangeBar(percent: Int) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.width(120.dp).height(6.dp).clip(CircleShape).background(MaterialTheme.colorScheme.outlineVariant)) {
-            Box(Modifier.fillMaxWidth(percent / 100f).height(6.dp).clip(CircleShape).background(Tenshi.InRange))
         }
         Spacer(Modifier.width(6.dp))
-        Text(stringResource(R.string.history_day_in_range, percent), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        when {
+            day.complete -> Pill(stringResource(R.string.history_in_hc), Tenshi.InRange)
+            day.alreadyInHealthConnect > 0 -> Pill(stringResource(R.string.history_partly), xp.accent)
+        }
     }
 }
 
 @Composable
 private fun ActionBar(h: ImportUi, onWrite: () -> Unit, onDelete: () -> Unit, modifier: Modifier = Modifier) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.extraLarge.copy(bottomStart = CornerSize(0.dp), bottomEnd = CornerSize(0.dp)),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.96f),
-        contentColor = MaterialTheme.colorScheme.onSurface,
-        shadowElevation = 12.dp,
+    val xp = LocalXp.current
+    val shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+    Column(
+        modifier
+            .fillMaxWidth()
+            .shadow(12.dp, shape, spotColor = xp.shadow)
+            .clip(shape)
+            .border(2.dp, xp.windowBorder, shape)
+            .background(xp.windowBody)
+            .padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(
-                if (h.selected.isEmpty()) stringResource(R.string.history_select_prompt)
-                else stringResource(R.string.history_selected, h.selected.size, h.selectedReadings),
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold,
+        Text(
+            if (h.selected.isEmpty()) stringResource(R.string.history_select_prompt)
+            else stringResource(R.string.history_selected, h.selected.size, h.selectedReadings),
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        h.progress?.let { p -> XpMeter(p, Modifier.fillMaxWidth()) }
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+            PrimaryButton(
+                stringResource(R.string.history_write),
+                onClick = onWrite,
+                enabled = h.selected.isNotEmpty(),
+                loading = h.busy,
+                modifier = Modifier.weight(1f),
             )
-            h.progress?.let { p ->
-                LinearProgressIndicator(progress = { p }, modifier = Modifier.fillMaxWidth().clip(CircleShape))
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                GradientButton(
-                    stringResource(R.string.history_write),
-                    onClick = onWrite,
-                    enabled = h.selected.isNotEmpty(),
-                    loading = h.busy,
-                    modifier = Modifier.weight(1f),
-                )
-                SoftButton(stringResource(R.string.delete), onClick = onDelete, enabled = h.selected.isNotEmpty() && !h.busy, danger = true)
-            }
+            SecondaryButton(stringResource(R.string.delete), onClick = onDelete, enabled = h.selected.isNotEmpty() && !h.busy, danger = true)
         }
     }
 }

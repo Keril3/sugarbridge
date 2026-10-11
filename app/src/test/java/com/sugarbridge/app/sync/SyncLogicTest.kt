@@ -97,4 +97,11 @@ class SyncLogicTest {
         assertEquals(15.0, typicalUpdateMinutes(listOf(at(0), at(15), at(30)))!!, 1e-9)
         assertNull(typicalUpdateMinutes(listOf(at(0), at(1))))
     }
+
+    @Test
+    fun deliveryDelayIsTheMedianInMinutes() {
+        assertEquals(null, medianMinutes(listOf(90)))                 // one value says too little
+        assertEquals(1.5, medianMinutes(listOf(60, 90, 600))!!, 1e-9)  // one late value doesn't move it
+        assertEquals(1.25, medianMinutes(listOf(60, 90))!!, 1e-9)
+    }
 }

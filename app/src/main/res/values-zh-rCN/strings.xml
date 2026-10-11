@@ -222,4 +222,33 @@
     <string name="libreview_bad_data">文件格式无法识别</string>
     <string name="libreview_no_glucose">已收到文件，但其中没有葡萄糖读数。需要“葡萄糖数据”导出</string>
     <string name="libreview_read_failed">无法获取文件：%1$s</string>
+
+    <!-- Added in 1.4.0 -->
+    <string name="continue_button">继续</string>
+    <string name="theme_card">主题</string>
+    <string name="theme_system">跟随手机</string>
+    <string name="theme_light">浅色</string>
+    <string name="theme_dark">深色</string>
+    <string name="theme_toggle">切换浅色和深色</string>
+    <string name="window_collapse">收起</string>
+    <string name="window_expand">展开</string>
+    <string name="settings_pinned">固定通知</string>
+    <string name="settings_pinned_hint">即使不小心划掉，它也会立刻回来</string>
+    <string name="battery_title">同步可能会延迟</string>
+    <string name="battery_text">手机闲置时，除非允许 SugarBridge 不受电池限制运行，否则 Android 会把后台同步推迟数小时。三星手机尤其严格。</string>
+    <string name="sync_delivery">新数值大约在传感器测量后 %1$s 分钟到达 SugarBridge</string>
+    <string name="chart_hint">点按图表可全屏打开</string>
+    <string name="chart_drag_hint">在图表上滑动手指，查看每个数值及其时间</string>
+    <string name="update_title">更新</string>
+    <string name="update_available">SugarBridge %1$s 已发布</string>
+    <string name="update_install">下载并安装</string>
+    <string name="update_downloading">正在下载：%1$d%%</string>
+    <string name="update_failed">无法更新：%1$s</string>
+    <string name="update_other_key">文件使用了其他密钥签名，无法替换此版本</string>
+    <string name="update_not_newer">文件并不比此版本新</string>
+    <string name="update_not_sugarbridge">文件不是 SugarBridge</string>
+    <string name="update_allow_unknown">请允许 SugarBridge 安装应用，然后再次点按按钮</string>
+    <string name="update_check">检查更新</string>
+    <string name="update_checking">正在检查…</string>
+    <string name="update_latest">已是最新版本</string>
 </resources>

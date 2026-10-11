@@ -4,15 +4,19 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.pm.PackageInstaller
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.runtime.LaunchedEffect
 import androidx.core.net.toUri
 import androidx.health.connect.client.PermissionController
 import com.sugarbridge.app.health.HealthConnectState
@@ -28,7 +32,10 @@ import com.sugarbridge.app.sync.createNotificationChannels
 import com.sugarbridge.app.sync.scheduleSync
 import com.sugarbridge.app.ui.AppActions
 import com.sugarbridge.app.ui.SugarApp
+import com.sugarbridge.app.ui.theme.LocalNight
 import com.sugarbridge.app.ui.theme.SugarTheme
+import com.sugarbridge.app.update.GITHUB_PAGE
+import com.sugarbridge.app.update.Updater
 
 class MainActivity : ComponentActivity(), AppActions {
 
@@ -61,7 +68,15 @@ class MainActivity : ComponentActivity(), AppActions {
         scheduleSync(this)   // safe to call on every start
         if (savedInstanceState == null) handleIntent(intent)
         setContent {
-            SugarTheme { SugarApp(vm, this) }
+            SugarTheme(vm.ui.settings.theme) {
+                // status bar icons follow the chosen theme, not only the phone's
+                val night = LocalNight.current
+                LaunchedEffect(night) {
+                    val bars = if (night) SystemBarStyle.dark(Color.TRANSPARENT) else SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
+                    enableEdgeToEdge(statusBarStyle = bars, navigationBarStyle = bars)
+                }
+                SugarApp(vm, this)
+            }
         }
     }
 
@@ -75,8 +90,12 @@ class MainActivity : ComponentActivity(), AppActions {
         vm.refreshStatus()
     }
 
-    /** A CSV opened with SugarBridge from a browser, a file manager or "Share". */
+    /** A CSV opened with SugarBridge from a browser, a file manager or "Share"; or the package installer answering. */
     private fun handleIntent(intent: Intent?) {
+        if (intent?.action == Updater.ACTION_INSTALL_STATUS) {
+            onInstallStatus(intent)
+            return
+        }
         val uri = when (intent?.action) {
             Intent.ACTION_VIEW -> intent.data
             Intent.ACTION_SEND -> intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
@@ -106,6 +125,29 @@ class MainActivity : ComponentActivity(), AppActions {
     override fun setLanguage(tag: String?) {
         vm.languageChosen()
         setAppLanguage(this, tag)
+    }
+
+    override fun openGitHub() = open(Intent(Intent.ACTION_VIEW, GITHUB_PAGE.toUri()))
+
+    /** Installing needs the "install unknown apps" permission once; Android's settings screen grants it. */
+    override fun installUpdate() {
+        if (Updater.canInstall(this)) {
+            vm.installUpdate()
+        } else {
+            vm.notify(R.string.update_allow_unknown)
+            open(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, "package:$packageName".toUri()))
+        }
+    }
+
+    /** First Android asks for the person's confirmation, then reports how the install went. */
+    private fun onInstallStatus(intent: Intent) {
+        when (intent.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE)) {
+            PackageInstaller.STATUS_PENDING_USER_ACTION ->
+                intent.getParcelableExtra(Intent.EXTRA_INTENT, Intent::class.java)?.let(::open)
+            PackageInstaller.STATUS_SUCCESS -> Unit   // Android restarts the app in its new version
+            PackageInstaller.STATUS_FAILURE_ABORTED -> Unit   // the person said no
+            else -> vm.updateFailed(intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE).orEmpty())
+        }
     }
 
     override fun openLibreView() = libreView.launch(Intent(this, LibreViewActivity::class.java))

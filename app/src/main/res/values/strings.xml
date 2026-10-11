@@ -225,4 +225,33 @@
     <string name="libreview_bad_data">The file came in an unknown form</string>
     <string name="libreview_no_glucose">The file arrived, but it has no glucose readings. You need the “Glucose data” export</string>
     <string name="libreview_read_failed">Couldn’t pick up the file: %1$s</string>
+
+    <!-- Added in 1.4.0 -->
+    <string name="continue_button">Continue</string>
+    <string name="theme_card">Theme</string>
+    <string name="theme_system">Phone theme</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_toggle">Switch between light and dark</string>
+    <string name="window_collapse">Roll up</string>
+    <string name="window_expand">Unroll</string>
+    <string name="settings_pinned">Pin the notification</string>
+    <string name="settings_pinned_hint">If it gets swiped away by accident, it comes right back</string>
+    <string name="battery_title">Sync may be late</string>
+    <string name="battery_text">While the phone lies idle, Android holds background sync back for hours unless SugarBridge may run without battery restrictions. Samsung phones are especially strict.</string>
+    <string name="sync_delivery">New values reach SugarBridge about %1$s min after the sensor reading</string>
+    <string name="chart_hint">Tap the chart to open it full screen</string>
+    <string name="chart_drag_hint">Move your finger along the chart to see each value and its time</string>
+    <string name="update_title">Update</string>
+    <string name="update_available">SugarBridge %1$s is out</string>
+    <string name="update_install">Download and install</string>
+    <string name="update_downloading">Downloading: %1$d%%</string>
+    <string name="update_failed">Couldn’t update: %1$s</string>
+    <string name="update_other_key">the file is signed with another key, so it can’t replace this version</string>
+    <string name="update_not_newer">the file is not newer than this version</string>
+    <string name="update_not_sugarbridge">the file is not SugarBridge</string>
+    <string name="update_allow_unknown">Allow SugarBridge to install apps, then tap the button again</string>
+    <string name="update_check">Check for updates</string>
+    <string name="update_checking">Checking…</string>
+    <string name="update_latest">You have the latest version</string>
 </resources>

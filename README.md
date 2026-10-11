@@ -7,7 +7,7 @@ from the LibreLinkUp cloud and writes them to Health Connect, where Samsung Heal
 
 <p>
   <img src="docs/screenshots/en/home.png" width="190" alt="Home screen">
-  <img src="docs/screenshots/en/home_gmi.png" width="190" alt="Estimated HbA1c">
+  <img src="docs/screenshots/en/chart.png" width="190" alt="The chart full screen">
   <img src="docs/screenshots/en/history.png" width="190" alt="History from LibreView">
   <img src="docs/screenshots/en/settings.png" width="190" alt="Settings">
   <img src="docs/screenshots/en/notification.png" width="190" alt="Glucose in the notification">
@@ -26,11 +26,15 @@ from the LibreLinkUp cloud and writes them to Health Connect, where Samsung Heal
 - **Full history from LibreView**: download the export right in the app, then choose the period and the days
   you want in Samsung Health. Nothing is written twice, and anything unwanted can be deleted.
 - **Estimated HbA1c (GMI)** for 14 and 90 days, from all the history SugarBridge has written to Health Connect.
-- **Its own chart and statistics** for 12 hours, mmol/L or mg/dL, your own target range, a night theme.
+- **Its own chart and statistics** for 12 hours, mmol/L or mg/dL, your own target range. Tap the chart to open it
+  full screen and move a finger along it to read every value and its time.
+- **Light and dark theme** in the style of [keril.art](https://keril.art/): a blue sky with bubbles and stars,
+  Windows XP style windows and a pixel font. The phone's theme by default; the sun/moon button switches it.
 - **12 languages**: English, Русский, Українська, Deutsch, Français, Español, Português, Italiano, Türkçe,
   简体中文, 日本語, 한국어. Chosen on the first start, changeable in Settings or in Android's per-app language settings.
 - **The password is protected by the Android Keystore** and stays on the phone.
-- **Tenshi-chan**, a chibi angel mascot who is happy, worried, flustered or sleepy depending on your glucose.
+- **Updates in the app**: SugarBridge finds a new version on GitHub, downloads it and hands it to Android to install.
+- **Tenshi-chan**, an ice-fairy chibi mascot who is happy, worried, flustered or sleepy depending on your glucose.
 
 Data path: sensor → LibreLink on the phone → LibreLinkUp cloud → SugarBridge → Health Connect → Samsung Health.
 
@@ -67,8 +71,10 @@ You need:
 1. Open the link above on the phone and download `SugarBridge.apk`.
 2. Open the downloaded file. Android asks to allow installing from the browser or My Files: allow it.
 3. If Play Protect warns about an unknown app, choose "Install anyway".
-4. **Updating:** download the new version from the same link and install it over the old one. Your sign-in
-   and settings are kept.
+4. **Updating:** from version 1.4.0 SugarBridge looks for updates itself: a window on the home screen (or
+   Settings → About SugarBridge → "Check for updates") downloads the new version, and Android asks you to confirm
+   the install. The first time Android asks to allow SugarBridge to install apps. Older versions are updated by
+   installing the new APK from the link above over them. Your sign-in and settings are kept either way.
 
 > If you installed a SugarBridge built in Android Studio before, uninstall it first: the versions from
 > Releases have a different signature, and Android won't install them over it.
@@ -82,8 +88,10 @@ You need:
 3. **Sign in.** Open SugarBridge and sign in with that LibreLinkUp email and password.
 4. **Health Connect.** On the home screen tap "Allow" and turn on writing blood glucose.
 5. **Samsung Health.** Settings → Health Connect → let Samsung Health **read** blood glucose.
-6. Optional: **Settings → Minute mode** and "Remove battery restrictions", otherwise Samsung may put the app
-   to sleep.
+6. **"Remove battery restrictions"** (the home screen asks for it). Without it Android holds the background sync
+   back for hours while the phone lies idle, and Samsung may put the app to sleep.
+7. Optional: **Settings → Minute mode** for a new value every minute; "Pin the notification" brings it back if it
+   is swiped away by accident.
 
 ### Full history from LibreView
 
@@ -104,6 +112,14 @@ Exports in any LibreView language work: the columns are recognized by their head
 history has a point every 15 minutes. In the background SugarBridge fetches the whole history, so nothing is
 missed, but the points are 15 minutes apart. Every minute happens only in minute mode. How often LibreLinkUp
 really delivers values is shown on the home screen.
+
+**Why does glucose show up in Samsung Health late?** The path has four links, and the home screen shows two
+of them: how often LibreLinkUp gets a new value and how long after the sensor reading values reach SugarBridge.
+SugarBridge's own share is measured by device tests: in minute mode every new value is in Health Connect within
+a minute of LibreLinkUp having it, also with the screen off in deep Doze. The background sync is different: on an
+idle phone Android holds it back for hours unless the battery restrictions are removed, so do that (the home
+screen asks). The last link is Samsung Health: it reads Health Connect on its own schedule, which Samsung doesn't
+document; opening Samsung Health makes it pick up new data.
 
 **Why does minute mode have a notification?** Android lets only a service with a notification run more often
 than every 15 minutes. It can be made quiet (Settings → "Glucose in the notification") or turned off completely
@@ -156,8 +172,9 @@ app/src/main/java/com/sugarbridge/app/
 ├── libreview/   history import: CSV parsing, the site window, per-day summary
 ├── health/      Health Connect: writing, reading our own records, deleting
 ├── sync/        sync, the background job, the minute service, autostart, errors as codes
-├── settings/    settings and the app language
-└── ui/          theme, components (cards, chart, the mascot), screens
+├── settings/    settings, the theme and the app language
+├── update/      updates from GitHub Releases
+└── ui/          theme, components (windows, chart, the mascot), screens
 app/src/main/res/values-*/  translations
 app/src/test/               unit tests, laid out the same way
 app/src/androidTest/        device tests
@@ -180,24 +197,25 @@ GitHub Actions builds and signs the APK in Releases when a `v*` tag arrives in t
    ```
 3. **Every release:** add the version's section to [CHANGELOG.md](CHANGELOG.md), then
    ```sh
-   git tag v1.3.0
-   git push origin v1.3.0
+   git tag v1.4.0
+   git push origin v1.4.0
    ```
    A few minutes later `SugarBridge.apk` appears in Releases with the notes from the CHANGELOG.
 
 A signed APK can be built locally too: put `sugarbridge.keystore`, `sugarbridge.keystorePassword`,
 `sugarbridge.keyAlias` and `sugarbridge.keyPassword` into `~/.gradle/gradle.properties` (outside the repository)
-and run `./gradlew assembleRelease -Psugarbridge.version=1.3.0`.
+and run `./gradlew assembleRelease -Psugarbridge.version=1.4.0`.
 
 ## Thanks
 
 - Descriptions of the unofficial API: [pylibrelinkup](https://github.com/robberwick/pylibrelinkup),
   [libreview-unofficial](https://github.com/FokkeZB/libreview-unofficial),
   [a LibreLinkUp HTTP dump](https://gist.github.com/khskekec/6c13ba01b10d3018d816706a32ae8ab2).
-- The [Nunito](https://github.com/googlefonts/nunito) font, SIL Open Font License, see [licenses/](licenses/).
+- The look of [keril.art](https://keril.art/).
+- The [Monocraft](https://github.com/IdreesInc/Monocraft) font by Idrees Hassan, SIL Open Font License, see [licenses/](licenses/).
 
 ## License
 
-[MIT](LICENSE). The Nunito font is distributed under its own OFL license. FreeStyle, Libre, LibreLink,
+[MIT](LICENSE). The Monocraft font is distributed under its own OFL license. FreeStyle, Libre, LibreLink,
 LibreLinkUp and LibreView are trademarks of Abbott; Samsung Health is a trademark of Samsung; Health Connect
 of Google.

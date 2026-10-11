@@ -222,4 +222,33 @@
     <string name="libreview_bad_data">Dosya bilinmeyen bir biçimde geldi</string>
     <string name="libreview_no_glucose">Dosya geldi ama içinde glikoz ölçümü yok. “Glikoz verileri” dışa aktarımı gerekli</string>
     <string name="libreview_read_failed">Dosya alınamadı: %1$s</string>
+
+    <!-- Added in 1.4.0 -->
+    <string name="continue_button">Devam</string>
+    <string name="theme_card">Tema</string>
+    <string name="theme_system">Telefonun teması</string>
+    <string name="theme_light">Açık</string>
+    <string name="theme_dark">Koyu</string>
+    <string name="theme_toggle">Açık ve koyu arasında geçiş yap</string>
+    <string name="window_collapse">Topla</string>
+    <string name="window_expand">Aç</string>
+    <string name="settings_pinned">Bildirimi sabitle</string>
+    <string name="settings_pinned_hint">Yanlışlıkla kaydırılırsa hemen geri gelir</string>
+    <string name="battery_title">Eşitleme gecikebilir</string>
+    <string name="battery_text">Telefon boşta beklerken, SugarBridge pil kısıtlaması olmadan çalışamıyorsa Android arka plan eşitlemesini saatlerce erteler. Samsung telefonlar özellikle katıdır.</string>
+    <string name="sync_delivery">Yeni değerler sensör ölçümünden yaklaşık %1$s dk sonra SugarBridge’e ulaşıyor</string>
+    <string name="chart_hint">Tam ekran açmak için grafiğe dokunun</string>
+    <string name="chart_drag_hint">Her değeri ve saatini görmek için parmağınızı grafikte gezdirin</string>
+    <string name="update_title">Güncelleme</string>
+    <string name="update_available">SugarBridge %1$s çıktı</string>
+    <string name="update_install">İndir ve yükle</string>
+    <string name="update_downloading">İndiriliyor: %%%1$d</string>
+    <string name="update_failed">Güncellenemedi: %1$s</string>
+    <string name="update_other_key">dosya başka bir anahtarla imzalanmış, bu sürümün yerine geçemez</string>
+    <string name="update_not_newer">dosya bu sürümden daha yeni değil</string>
+    <string name="update_not_sugarbridge">dosya SugarBridge değil</string>
+    <string name="update_allow_unknown">SugarBridge’in uygulama yüklemesine izin verin, sonra düğmeye tekrar dokunun</string>
+    <string name="update_check">Güncellemeleri denetle</string>
+    <string name="update_checking">Denetleniyor…</string>
+    <string name="update_latest">En son sürümü kullanıyorsunuz</string>
 </resources>

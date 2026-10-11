@@ -10,6 +10,8 @@
     <!-- minute mode: keep the CPU awake between polls and start again after a reboot -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- updates from GitHub Releases: Android still asks the person to confirm every install -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <!-- the "Remove battery restrictions" button; the app is not for Google Play, so this is fine -->
     <uses-permission
         android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"

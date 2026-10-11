@@ -2,6 +2,27 @@
 
 Newest version first. A version's section becomes the release notes on GitHub.
 
+## 1.4.0 — 2026-10-11
+
+- A new look after keril.art: a blue sky with dots, bubbles, stars and hearts, Windows XP style windows
+  (the "_" button rolls a window up), glossy buttons, the Monocraft pixel font and an address bar with
+  a light/dark switch and a language menu. The theme can also be set in Settings: phone, light or dark.
+- Tenshi-chan is now an ice fairy with a big blue bow, ice-crystal wings and a ":3" smile. New app icon,
+  themed icon and notification icon.
+- The chart opens full screen with a tap: pick 3, 6 or 12 hours and move a finger along it to read every
+  value and its time.
+- Updates from GitHub: SugarBridge looks for a new version on start (at most every 6 hours) and in
+  Settings, downloads it, checks it is SugarBridge signed with the same key and hands it to Android to
+  install. Settings also link to the GitHub page.
+- The language screen on the first start applies the choice only on "Continue" and already shows its
+  texts in the marked language.
+- Fixed: the minute-mode notification lagged behind the app when the app itself synced (on opening,
+  "Sync now", the background job). It now follows every sync at once.
+- "Pin the notification": if it is swiped away by accident, it comes right back.
+- Late data: tests showed minute mode delivers every value within a minute, also in deep Doze, while the
+  background sync can be held back for hours on an idle phone without the battery exemption. The home
+  screen now asks for it whenever sync is on, and shows how long after the sensor reading values arrive.
+
 ## 1.3.0 — 2026-10-11
 
 - 12 languages: English, Russian, Ukrainian, German, French, Spanish, Portuguese, Italian, Turkish,

@@ -35,6 +35,7 @@ import com.sugarbridge.app.libreview.readingsOnDays
 import com.sugarbridge.app.libreview.summarizeDays
 import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.settings.SettingsStore
+import com.sugarbridge.app.settings.ThemeMode
 import com.sugarbridge.app.sync.LiveSyncService
 import com.sugarbridge.app.sync.Problem
 import com.sugarbridge.app.sync.SyncBlocked
@@ -46,6 +47,9 @@ import com.sugarbridge.app.sync.syncAndRecord
 import com.sugarbridge.app.ui.UiText
 import com.sugarbridge.app.ui.clockFormat
 import com.sugarbridge.app.ui.uiText
+import com.sugarbridge.app.update.Release
+import com.sugarbridge.app.update.UpdateRejected
+import com.sugarbridge.app.update.Updater
 import java.io.File
 import java.time.Duration
 import java.time.Instant
@@ -79,6 +83,14 @@ data class UiState(
     val gmi90: GmiResult? = null,
 )
 
+/** A newer version on GitHub and the state of downloading it. */
+data class UpdateUi(
+    val available: Release? = null,
+    val checking: Boolean = false,
+    val progress: Float? = null,     // downloading: 0..1
+    val checkedNothing: Boolean = false,
+)
+
 /** History import from LibreView: the loaded readings, the chosen period and days. */
 data class ImportUi(
     val source: String = "",
@@ -109,6 +121,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     var ui by mutableStateOf(UiState())
         private set
     var history by mutableStateOf(ImportUi())
+        private set
+    var update by mutableStateOf(UpdateUi())
         private set
     var tab by mutableStateOf(Tab.NOW)
 
@@ -185,7 +199,63 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             autoSync()
             if (hc == HealthConnectState.AVAILABLE) refreshGmi()
         }
+        checkForUpdate(force = false)
     }
+
+    /** Looks for a newer version on GitHub: by itself on start at most every 6 hours, or when asked. */
+    fun checkForUpdate(force: Boolean = true) {
+        if (update.checking || update.progress != null) return
+        update = update.copy(checking = force, checkedNothing = false)
+        viewModelScope.launch {
+            try {
+                val found = withContext(Dispatchers.IO) { Updater.check(context, force) }
+                update = update.copy(available = found, checkedNothing = force && found == null)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                if (force) sayError(R.string.update_failed, e)
+            } finally {
+                update = update.copy(checking = false)
+            }
+        }
+    }
+
+    /** Downloads the new version, checks it and hands it to Android, which asks the person to confirm. */
+    fun installUpdate() {
+        val release = update.available ?: return
+        if (update.progress != null) return
+        update = update.copy(progress = 0f)
+        viewModelScope.launch {
+            try {
+                val file = withContext(Dispatchers.IO) {
+                    Updater.download(context, release) { p -> update = update.copy(progress = p) }
+                }
+                withContext(Dispatchers.IO) {
+                    Updater.verify(context, file)
+                    Updater.install(context, file)
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: UpdateRejected) {
+                val reason = when (e.reason) {
+                    UpdateRejected.Reason.OTHER_KEY -> R.string.update_other_key
+                    UpdateRejected.Reason.NOT_NEWER -> R.string.update_not_newer
+                    UpdateRejected.Reason.NOT_SUGARBRIDGE -> R.string.update_not_sugarbridge
+                }
+                say { res -> res.getString(R.string.update_failed, res.getString(reason)) }
+            } catch (e: Exception) {
+                sayError(R.string.update_failed, e)
+            } finally {
+                update = update.copy(progress = null)
+            }
+        }
+    }
+
+    /** What Android's installer answered, for the Activity. */
+    fun updateFailed(message: String) = say(R.string.update_failed, message)
+
+    /** The sun/moon button: switch to the opposite of what is on screen now. */
+    fun toggleTheme(nightNow: Boolean) = updateSettings { it.copy(theme = if (nightNow) ThemeMode.LIGHT else ThemeMode.DARK) }
 
     /**
      * Estimated HbA1c (GMI) for 14 and 90 days from all SugarBridge readings in Health Connect, in one pass
@@ -305,10 +375,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val after = settingsStore.update(change)
         ui = ui.copy(settings = after)
         if (after.backgroundMinutes != before.backgroundMinutes) scheduleSync(context, after)
+        // only what the minute service shows or does matters to it: the theme, for one, doesn't
+        val liveChanged = after.copy(theme = before.theme, backgroundMinutes = before.backgroundMinutes) != before
         when {
             after.liveEnabled && !before.liveEnabled -> if (ui.signedIn) LiveSyncService.start(context)
             !after.liveEnabled && before.liveEnabled -> LiveSyncService.stop(context)
-            after.liveEnabled && after != before -> LiveSyncService.reload(context)
+            after.liveEnabled && liveChanged -> LiveSyncService.reload(context)
         }
         if ((after.lowMgDl != before.lowMgDl || after.highMgDl != before.highMgDl) && history.loaded) {
             history = history.copy(days = summarize(history.readings, history.existing, after))

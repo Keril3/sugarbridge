@@ -84,3 +84,12 @@ fun typicalUpdateMinutes(seen: List<Instant>): Double? {
     val mid = gaps.size / 2
     return if (gaps.size % 2 == 1) gaps[mid] else (gaps[mid - 1] + gaps[mid]) / 2
 }
+
+/** The median of delays in seconds, in minutes; null until there are at least two. */
+fun medianMinutes(seconds: List<Long>): Double? {
+    if (seconds.size < 2) return null
+    val sorted = seconds.sorted()
+    val mid = sorted.size / 2
+    val median = if (sorted.size % 2 == 1) sorted[mid].toDouble() else (sorted[mid - 1] + sorted[mid]) / 2.0
+    return median / 60.0
+}

@@ -222,4 +222,33 @@
     <string name="libreview_bad_data">Il file è arrivato in una forma sconosciuta</string>
     <string name="libreview_no_glucose">Il file è arrivato, ma non contiene letture di glicemia. Serve l’esportazione “Dati glicemia”</string>
     <string name="libreview_read_failed">Impossibile recuperare il file: %1$s</string>
+
+    <!-- Added in 1.4.0 -->
+    <string name="continue_button">Continua</string>
+    <string name="theme_card">Tema</string>
+    <string name="theme_system">Tema del telefono</string>
+    <string name="theme_light">Chiaro</string>
+    <string name="theme_dark">Scuro</string>
+    <string name="theme_toggle">Passa tra chiaro e scuro</string>
+    <string name="window_collapse">Arrotola</string>
+    <string name="window_expand">Srotola</string>
+    <string name="settings_pinned">Fissa la notifica</string>
+    <string name="settings_pinned_hint">Se viene scartata per sbaglio, torna subito</string>
+    <string name="battery_title">La sincronizzazione può tardare</string>
+    <string name="battery_text">Mentre il telefono resta inattivo, Android rimanda la sincronizzazione in background di ore, a meno che SugarBridge possa funzionare senza limitazioni della batteria. I telefoni Samsung sono particolarmente severi.</string>
+    <string name="sync_delivery">I nuovi valori arrivano in SugarBridge circa %1$s min dopo la lettura del sensore</string>
+    <string name="chart_hint">Tocca il grafico per aprirlo a schermo intero</string>
+    <string name="chart_drag_hint">Scorri il dito sul grafico per vedere ogni valore e il suo orario</string>
+    <string name="update_title">Aggiornamento</string>
+    <string name="update_available">È uscito SugarBridge %1$s</string>
+    <string name="update_install">Scarica e installa</string>
+    <string name="update_downloading">Download: %1$d%%</string>
+    <string name="update_failed">Aggiornamento non riuscito: %1$s</string>
+    <string name="update_other_key">il file è firmato con un’altra chiave e non può sostituire questa versione</string>
+    <string name="update_not_newer">il file non è più recente di questa versione</string>
+    <string name="update_not_sugarbridge">il file non è SugarBridge</string>
+    <string name="update_allow_unknown">Consenti a SugarBridge di installare app, poi tocca di nuovo il pulsante</string>
+    <string name="update_check">Cerca aggiornamenti</string>
+    <string name="update_checking">Ricerca…</string>
+    <string name="update_latest">Hai l’ultima versione</string>
 </resources>

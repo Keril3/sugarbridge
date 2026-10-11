@@ -15,11 +15,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sugarbridge.app.MainViewModel
 import com.sugarbridge.app.R
@@ -29,20 +27,24 @@ import com.sugarbridge.app.glucose.formatGlucose
 import com.sugarbridge.app.glucose.mmolOf
 import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.settings.LANGUAGES
+import com.sugarbridge.app.settings.ThemeMode
 import com.sugarbridge.app.settings.appLanguage
 import com.sugarbridge.app.ui.AppActions
 import com.sugarbridge.app.ui.components.BottomSpace
 import com.sugarbridge.app.ui.components.ButtonRow
-import com.sugarbridge.app.ui.components.CardTitle
 import com.sugarbridge.app.ui.components.ChoiceRow
-import com.sugarbridge.app.ui.components.GradientButton
+import com.sugarbridge.app.ui.components.DottedDivider
 import com.sugarbridge.app.ui.components.Hint
+import com.sugarbridge.app.ui.components.OutlinedTitle
+import com.sugarbridge.app.ui.components.PrimaryButton
 import com.sugarbridge.app.ui.components.ScreenColumn
-import com.sugarbridge.app.ui.components.SoftButton
+import com.sugarbridge.app.ui.components.SecondaryButton
 import com.sugarbridge.app.ui.components.SwitchRow
-import com.sugarbridge.app.ui.components.TenshiCard
+import com.sugarbridge.app.ui.components.XpMeter
+import com.sugarbridge.app.ui.components.XpWindow
 import com.sugarbridge.app.ui.currentLocale
 import com.sugarbridge.app.ui.minutesText
+import com.sugarbridge.app.ui.theme.LocalXp
 import com.sugarbridge.app.ui.theme.Tenshi
 import kotlin.math.roundToInt
 
@@ -52,20 +54,18 @@ fun SettingsScreen(vm: MainViewModel, actions: AppActions) {
     val s = ui.settings
 
     ScreenColumn(Modifier.verticalScroll(rememberScrollState())) {
-        Spacer(Modifier.height(4.dp))
-        Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.headlineSmall.copy(brush = Brush.linearGradient(Tenshi.Rainbow)))
+        Spacer(Modifier.height(2.dp))
+        OutlinedTitle(stringResource(R.string.settings_title).uppercase(currentLocale()), style = MaterialTheme.typography.headlineSmall)
 
-        TenshiCard {
-            CardTitle("LibreLinkUp")
-            Text(ui.email ?: "—", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+        XpWindow("LibreLinkUp") {
+            Text(ui.email ?: "—", style = MaterialTheme.typography.bodyLarge)
             ButtonRow {
-                GradientButton(stringResource(R.string.settings_check), onClick = vm::checkLibre, loading = ui.checking)
-                SoftButton(stringResource(R.string.settings_sign_out), onClick = vm::signOut, danger = true)
+                PrimaryButton(stringResource(R.string.settings_check), onClick = vm::checkLibre, loading = ui.checking)
+                SecondaryButton(stringResource(R.string.settings_sign_out), onClick = vm::signOut, danger = true)
             }
         }
 
-        TenshiCard {
-            CardTitle(stringResource(R.string.settings_hc_title))
+        XpWindow(stringResource(R.string.settings_hc_title)) {
             Text(
                 stringResource(
                     when (ui.canWrite) {
@@ -75,18 +75,17 @@ fun SettingsScreen(vm: MainViewModel, actions: AppActions) {
                     }
                 ),
                 style = MaterialTheme.typography.bodyLarge,
-                color = if (ui.canWrite == false) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                color = if (ui.canWrite == false) MaterialTheme.colorScheme.error else LocalXp.current.text,
             )
             ButtonRow {
-                SoftButton(stringResource(R.string.settings_permissions), onClick = actions::requestHealthPermission)
-                SoftButton(stringResource(R.string.settings_open_hc), onClick = actions::openHealthConnect)
-                if (ui.samsungHealth) SoftButton(stringResource(R.string.settings_open_samsung), onClick = actions::openSamsungHealth)
+                SecondaryButton(stringResource(R.string.settings_permissions), onClick = actions::requestHealthPermission)
+                SecondaryButton(stringResource(R.string.settings_open_hc), onClick = actions::openHealthConnect)
+                if (ui.samsungHealth) SecondaryButton(stringResource(R.string.settings_open_samsung), onClick = actions::openSamsungHealth)
             }
             Hint(stringResource(R.string.settings_hc_hint))
         }
 
-        TenshiCard {
-            CardTitle(stringResource(R.string.settings_background_title))
+        XpWindow(stringResource(R.string.settings_background_title)) {
             ChoiceRow(
                 options = AppSettings.BACKGROUND_CHOICES,
                 selected = s.backgroundMinutes,
@@ -94,10 +93,13 @@ fun SettingsScreen(vm: MainViewModel, actions: AppActions) {
                 onSelect = { minutes -> vm.updateSettings { it.copy(backgroundMinutes = minutes) } },
             )
             Hint(stringResource(R.string.settings_background_hint))
+            if (!ui.batteryUnrestricted) {
+                Hint(stringResource(R.string.battery_text))
+                PrimaryButton(stringResource(R.string.settings_battery), onClick = actions::requestBatteryUnrestricted, modifier = Modifier.fillMaxWidth())
+            }
         }
 
-        TenshiCard {
-            CardTitle(stringResource(R.string.settings_live_title))
+        XpWindow(stringResource(R.string.settings_live_title)) {
             SwitchRow(
                 stringResource(R.string.settings_live_switch),
                 stringResource(R.string.settings_live_switch_hint),
@@ -119,21 +121,27 @@ fun SettingsScreen(vm: MainViewModel, actions: AppActions) {
                 enabled = s.liveEnabled,
             )
             SwitchRow(
+                stringResource(R.string.settings_pinned),
+                stringResource(R.string.settings_pinned_hint),
+                checked = s.livePinned,
+                onChange = { on -> vm.updateSettings { it.copy(livePinned = on) } },
+                enabled = s.liveEnabled,
+            )
+            SwitchRow(
                 stringResource(R.string.settings_keep_awake),
                 stringResource(R.string.settings_keep_awake_hint),
                 checked = s.liveKeepAwake,
                 onChange = { on -> vm.updateSettings { it.copy(liveKeepAwake = on) } },
                 enabled = s.liveEnabled,
             )
-            SoftButton(stringResource(R.string.settings_hide_notification), onClick = actions::hideNotification, enabled = s.liveEnabled, modifier = Modifier.fillMaxWidth())
+            SecondaryButton(stringResource(R.string.settings_hide_notification), onClick = actions::hideNotification, enabled = s.liveEnabled, modifier = Modifier.fillMaxWidth())
             if (!ui.batteryUnrestricted) {
-                GradientButton(stringResource(R.string.settings_battery), onClick = actions::requestBatteryUnrestricted, modifier = Modifier.fillMaxWidth())
+                PrimaryButton(stringResource(R.string.settings_battery), onClick = actions::requestBatteryUnrestricted, modifier = Modifier.fillMaxWidth())
             }
             Hint(stringResource(R.string.settings_live_hint))
         }
 
-        TenshiCard {
-            CardTitle(stringResource(R.string.settings_display_title))
+        XpWindow(stringResource(R.string.settings_display_title)) {
             ChoiceRow(
                 options = GlucoseUnit.entries.toList(),
                 selected = s.unit,
@@ -143,15 +151,25 @@ fun SettingsScreen(vm: MainViewModel, actions: AppActions) {
             TargetRange(s) { low, high -> vm.updateSettings { it.copy(lowMgDl = low, highMgDl = high) } }
         }
 
-        LanguageCard(actions)
-
-        TenshiCard {
-            CardTitle(stringResource(R.string.settings_about_title))
-            val context = LocalContext.current
-            val version = remember { context.packageManager.getPackageInfo(context.packageName, 0).versionName.orEmpty() }
-            Text(stringResource(R.string.settings_version, version), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
-            Hint(stringResource(R.string.settings_about_hint))
+        XpWindow(stringResource(R.string.theme_card)) {
+            ChoiceRow(
+                options = ThemeMode.entries.toList(),
+                selected = s.theme,
+                label = {
+                    stringResource(
+                        when (it) {
+                            ThemeMode.SYSTEM -> R.string.theme_system
+                            ThemeMode.LIGHT -> R.string.theme_light
+                            ThemeMode.DARK -> R.string.theme_dark
+                        }
+                    )
+                },
+                onSelect = { mode -> vm.updateSettings { it.copy(theme = mode) } },
+            )
         }
+
+        LanguageCard(actions)
+        AboutCard(vm, actions)
         BottomSpace()
     }
 }
@@ -161,8 +179,7 @@ fun SettingsScreen(vm: MainViewModel, actions: AppActions) {
 private fun LanguageCard(actions: AppActions) {
     val context = LocalContext.current
     val current = remember(currentLocale()) { appLanguage(context)?.tag }
-    TenshiCard {
-        CardTitle(stringResource(R.string.language_card))
+    XpWindow(stringResource(R.string.language_card)) {
         val system = stringResource(R.string.language_system)
         ChoiceRow(
             options = listOf<String?>(null) + LANGUAGES.map { it.tag },
@@ -170,6 +187,40 @@ private fun LanguageCard(actions: AppActions) {
             label = { tag -> LANGUAGES.firstOrNull { it.tag == tag }?.name ?: system },
             onSelect = actions::setLanguage,
         )
+    }
+}
+
+/** The version, the GitHub page and updates from GitHub Releases. */
+@Composable
+private fun AboutCard(vm: MainViewModel, actions: AppActions) {
+    val context = LocalContext.current
+    val version = remember { context.packageManager.getPackageInfo(context.packageName, 0).versionName.orEmpty() }
+    val update = vm.update
+    XpWindow(stringResource(R.string.settings_about_title)) {
+        Text(stringResource(R.string.settings_version, version), style = MaterialTheme.typography.bodyLarge)
+        val release = update.available
+        val progress = update.progress
+        when {
+            progress != null -> {
+                XpMeter(progress, Modifier.fillMaxWidth())
+                Hint(stringResource(R.string.update_downloading, (progress * 100).roundToInt()))
+            }
+            release != null -> {
+                Text(stringResource(R.string.update_available, release.version), style = MaterialTheme.typography.bodyMedium, color = Tenshi.InRange)
+                PrimaryButton(stringResource(R.string.update_install), onClick = actions::installUpdate, modifier = Modifier.fillMaxWidth())
+            }
+            update.checkedNothing -> Hint(stringResource(R.string.update_latest))
+        }
+        ButtonRow {
+            SecondaryButton(
+                if (update.checking) stringResource(R.string.update_checking) else stringResource(R.string.update_check),
+                onClick = { vm.checkForUpdate() },
+                enabled = !update.checking && progress == null,
+            )
+            SecondaryButton("GitHub", onClick = actions::openGitHub)
+        }
+        DottedDivider()
+        Hint(stringResource(R.string.settings_about_hint))
     }
 }
 
@@ -185,7 +236,6 @@ private fun TargetRange(s: AppSettings, onDone: (Double, Double) -> Unit) {
     Text(
         stringResource(R.string.settings_target_range, formatGlucose(low, s.unit, locale), formatGlucose(high, s.unit, locale), stringResource(s.unit.label)),
         style = MaterialTheme.typography.bodyLarge,
-        fontWeight = FontWeight.Bold,
     )
     RangeSlider(
         value = range,
@@ -196,7 +246,7 @@ private fun TargetRange(s: AppSettings, onDone: (Double, Double) -> Unit) {
         colors = SliderDefaults.colors(
             activeTrackColor = Tenshi.InRange,
             inactiveTrackColor = MaterialTheme.colorScheme.outlineVariant,
-            thumbColor = MaterialTheme.colorScheme.primary,
+            thumbColor = Tenshi.ButtonBorder,
             activeTickColor = Color.Transparent,     // 119 steps of 0.1: no dots on the track
             inactiveTickColor = Color.Transparent,
         ),
