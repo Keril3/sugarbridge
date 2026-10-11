@@ -3,6 +3,10 @@ package com.sugarbridge.app.libreview
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.SystemClock
+import android.view.View
+import android.view.ViewGroup
+import android.webkit.WebView
+import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.assertEquals
@@ -10,6 +14,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
 
 /**
  * The LibreView window catches a CSV the site builds right in the browser (blob:) and revokes at once.
@@ -59,6 +65,41 @@ class LibreViewDownloadTest {
         val parsed = LibreViewCsv.parse(LibreViewCsv.decode(result.readBytes()))
         assertEquals(3, parsed.readings.size)
         assertEquals(6.4, parsed.readings.first().mmol, 0.0)
+    }
+
+    /**
+     * The site must get nearly the whole screen, and the page must see that height too:
+     * LibreView sizes itself with "height: 100%", which was 0 and left the sign-in in a 50 px box.
+     */
+    @Test
+    fun siteFillsTheScreen() {
+        val html = """<html><body style="margin:0"><div id="full" style="height:100vh">LibreView</div></body></html>"""
+        val intent = Intent(context, LibreViewActivity::class.java).putExtra(LibreViewActivity.EXTRA_TEST_HTML, html)
+        ActivityScenario.launch<LibreViewActivity>(intent).use { scenario ->
+            Thread.sleep(1500)
+            lateinit var web: WebView
+            scenario.onActivity { activity ->
+                val root = activity.window.decorView
+                web = findWebView(root)!!
+                val share = web.height.toFloat() / root.height
+                assertTrue("the site gets only ${(share * 100).toInt()}% of the screen", share > 0.8f)
+            }
+            val heights = LinkedBlockingQueue<String>()
+            scenario.onActivity {
+                web.evaluateJavascript("[document.getElementById('full').offsetHeight, document.documentElement.clientHeight, innerHeight].join(',')") {
+                    heights.add(it.trim('"'))
+                }
+            }
+            val (vh, html100, inner) = heights.poll(10, TimeUnit.SECONDS)!!.split(',').map { it.toInt() }
+            assertTrue("100vh is $vh px, the window is $inner px", vh > inner * 0.9)
+            assertTrue("height: 100% is $html100 px, the window is $inner px", html100 > inner * 0.9)
+        }
+    }
+
+    private fun findWebView(view: View): WebView? = when (view) {
+        is WebView -> view
+        is ViewGroup -> (0 until view.childCount).firstNotNullOfOrNull { findWebView(view.getChildAt(it)) }
+        else -> null
     }
 
     /** The real site in the window: a visual check that it opens in the embedded browser. */

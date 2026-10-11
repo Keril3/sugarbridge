@@ -2,6 +2,12 @@
 
 Newest version first. A version's section becomes the release notes on GitHub.
 
+## 1.5.1 — 2026-10-11
+
+- Fixed: the LibreView site did not open properly. The page was laid out with zero height, so its sign-in
+  sat squeezed in a tiny box. Now the site gets the whole screen below one compact row with "?" (how to
+  download the history) and "Close", and it makes room for the keyboard.
+
 ## 1.5.0 — 2026-10-11
 
 - Tenshi-chan is the angel again: sky-blue hair, a halo and feathered wings, now with a red ribbon. Tap her and

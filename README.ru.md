@@ -205,14 +205,14 @@ APK в Releases собирает и подписывает GitHub Actions, ко�
    ```
 3. **Каждый выпуск:** допишите раздел версии в [CHANGELOG.md](CHANGELOG.md) (на английском), затем
    ```sh
-   git tag v1.5.0
-   git push origin v1.5.0
+   git tag v1.5.1
+   git push origin v1.5.1
    ```
    Через несколько минут в Releases появится `SugarBridge.apk` с описанием из CHANGELOG.
 
 Подписанный APK можно собрать и у себя: пропишите в `~/.gradle/gradle.properties` (вне репозитория)
 `sugarbridge.keystore`, `sugarbridge.keystorePassword`, `sugarbridge.keyAlias`, `sugarbridge.keyPassword`
-и запустите `./gradlew assembleRelease -Psugarbridge.version=1.5.0`.
+и запустите `./gradlew assembleRelease -Psugarbridge.version=1.5.1`.
 
 ## Благодарности
 
