@@ -27,8 +27,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SugarBridge">
+        <!-- a language change is handled in place: no restart, so the screen doesn't flash black -->
         <activity
             android:name=".MainActivity"
+            android:configChanges="locale|layoutDirection"
             android:exported="true"
             android:launchMode="singleTop"
             android:theme="@style/Theme.SugarBridge"

@@ -145,7 +145,7 @@
     <string name="settings_battery">Lever les restrictions de batterie</string>
     <string name="settings_live_hint">Pour tourner plus souvent que toutes les 15 minutes, Android exige un service avec une notification. Vous pouvez désactiver la notification dans les réglages de son canal : le mode continue et l’appli reste dans la liste des applis actives.</string>
     <string name="settings_display_title">Affichage</string>
-    <string name="settings_target_range">Plage cible : %1$s – %2$s %3$s</string>
+    <string name="settings_target_range">Plage cible :\n%1$s – %2$s %3$s</string>
     <string name="settings_target_hint">Seulement pour les couleurs, le graphique et la part « dans la cible ». Sans effet sur les alarmes de LibreLink.</string>
     <string name="settings_about_title">À propos de SugarBridge</string>
     <string name="settings_version">Version %1$s</string>
@@ -229,9 +229,6 @@
     <string name="theme_system">Thème du téléphone</string>
     <string name="theme_light">Clair</string>
     <string name="theme_dark">Sombre</string>
-    <string name="theme_toggle">Basculer entre clair et sombre</string>
-    <string name="window_collapse">Enrouler</string>
-    <string name="window_expand">Dérouler</string>
     <string name="settings_pinned">Épingler la notification</string>
     <string name="settings_pinned_hint">Si elle est balayée par erreur, elle revient aussitôt</string>
     <string name="battery_title">La synchronisation peut être en retard</string>
@@ -252,4 +249,8 @@
     <string name="update_checking">Recherche…</string>
     <string name="update_latest">Vous avez la dernière version</string>
     <string name="update_play_protect">Si Play Protect bloque l’installation d’une appli d’un développeur inconnu : « Plus de détails » → « Installer quand même ».</string>
+    <string name="target_from">De</string>
+    <string name="target_to">À</string>
+    <string name="target_save">Enregistrer la plage</string>
+    <string name="target_invalid">Saisissez deux nombres de %1$s à %2$s %3$s, le plus petit d’abord</string>
 </resources>

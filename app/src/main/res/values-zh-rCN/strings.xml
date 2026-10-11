@@ -145,7 +145,7 @@
     <string name="settings_battery">解除电池限制</string>
     <string name="settings_live_hint">要比每 15 分钟更频繁地运行，Android 要求使用带通知的服务。可以在通知渠道设置中关闭通知：模式会继续运行，应用仍保留在活动应用列表中。</string>
     <string name="settings_display_title">显示</string>
-    <string name="settings_target_range">目标范围：%1$s – %2$s %3$s</string>
+    <string name="settings_target_range">目标范围：\n%1$s – %2$s %3$s</string>
     <string name="settings_target_hint">仅用于颜色、图表和“在范围内”比例，不影响 LibreLink 的警报。</string>
     <string name="settings_about_title">关于 SugarBridge</string>
     <string name="settings_version">版本 %1$s</string>
@@ -229,9 +229,6 @@
     <string name="theme_system">跟随手机</string>
     <string name="theme_light">浅色</string>
     <string name="theme_dark">深色</string>
-    <string name="theme_toggle">切换浅色和深色</string>
-    <string name="window_collapse">收起</string>
-    <string name="window_expand">展开</string>
     <string name="settings_pinned">固定通知</string>
     <string name="settings_pinned_hint">即使不小心划掉，它也会立刻回来</string>
     <string name="battery_title">同步可能会延迟</string>
@@ -252,4 +249,8 @@
     <string name="update_checking">正在检查…</string>
     <string name="update_latest">已是最新版本</string>
     <string name="update_play_protect">如果 Play 保护机制以“未知开发者的应用”为由阻止安装：点按“更多详情”→“仍然安装”。</string>
+    <string name="target_from">从</string>
+    <string name="target_to">到</string>
+    <string name="target_save">保存范围</string>
+    <string name="target_invalid">请输入 %1$s 到 %2$s %3$s 之间的两个数字，较小的在前</string>
 </resources>

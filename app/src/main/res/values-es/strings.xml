@@ -145,7 +145,7 @@
     <string name="settings_battery">Quitar las restricciones de batería</string>
     <string name="settings_live_hint">Para funcionar más a menudo que cada 15 minutos, Android exige un servicio con notificación. Puedes desactivar la notificación en los ajustes de su canal: el modo sigue funcionando y la app sigue en la lista de apps activas.</string>
     <string name="settings_display_title">Visualización</string>
-    <string name="settings_target_range">Rango objetivo: %1$s – %2$s %3$s</string>
+    <string name="settings_target_range">Rango objetivo:\n%1$s – %2$s %3$s</string>
     <string name="settings_target_hint">Solo para los colores, la gráfica y el porcentaje «en rango». No afecta a las alarmas de LibreLink.</string>
     <string name="settings_about_title">Acerca de SugarBridge</string>
     <string name="settings_version">Versión %1$s</string>
@@ -229,9 +229,6 @@
     <string name="theme_system">Tema del teléfono</string>
     <string name="theme_light">Claro</string>
     <string name="theme_dark">Oscuro</string>
-    <string name="theme_toggle">Cambiar entre claro y oscuro</string>
-    <string name="window_collapse">Recoger</string>
-    <string name="window_expand">Desplegar</string>
     <string name="settings_pinned">Fijar la notificación</string>
     <string name="settings_pinned_hint">Si se desliza por error, vuelve enseguida</string>
     <string name="battery_title">La sincronización puede retrasarse</string>
@@ -252,4 +249,8 @@
     <string name="update_checking">Buscando…</string>
     <string name="update_latest">Tienes la última versión</string>
     <string name="update_play_protect">Si Play Protect bloquea la instalación por ser de un desarrollador desconocido: «Más detalles» → «Instalar de todas formas».</string>
+    <string name="target_from">Desde</string>
+    <string name="target_to">Hasta</string>
+    <string name="target_save">Guardar rango</string>
+    <string name="target_invalid">Introduce dos números entre %1$s y %2$s %3$s, el menor primero</string>
 </resources>

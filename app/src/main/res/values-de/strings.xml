@@ -145,7 +145,7 @@
     <string name="settings_battery">Akku-Beschränkungen aufheben</string>
     <string name="settings_live_hint">Öfter als alle 15 Minuten erlaubt Android Hintergrundarbeit nur einem Dienst mit Benachrichtigung. Du kannst die Benachrichtigung in den Kanaleinstellungen ausschalten: Der Modus läuft weiter und die App bleibt in der Liste aktiver Apps.</string>
     <string name="settings_display_title">Anzeige</string>
-    <string name="settings_target_range">Zielbereich: %1$s – %2$s %3$s</string>
+    <string name="settings_target_range">Zielbereich:\n%1$s – %2$s %3$s</string>
     <string name="settings_target_hint">Nur für Farben, das Diagramm und den Anteil „im Bereich“. Wirkt sich nicht auf die Alarme von LibreLink aus.</string>
     <string name="settings_about_title">Über SugarBridge</string>
     <string name="settings_version">Version %1$s</string>
@@ -229,9 +229,6 @@
     <string name="theme_system">Design des Telefons</string>
     <string name="theme_light">Hell</string>
     <string name="theme_dark">Dunkel</string>
-    <string name="theme_toggle">Zwischen hell und dunkel wechseln</string>
-    <string name="window_collapse">Einrollen</string>
-    <string name="window_expand">Ausrollen</string>
     <string name="settings_pinned">Benachrichtigung anheften</string>
     <string name="settings_pinned_hint">Wird sie versehentlich weggewischt, kommt sie sofort zurück</string>
     <string name="battery_title">Die Synchronisierung kann sich verspäten</string>
@@ -252,4 +249,8 @@
     <string name="update_checking">Suche…</string>
     <string name="update_latest">Du hast die neueste Version</string>
     <string name="update_play_protect">Blockiert Play Protect die Installation als App eines unbekannten Entwicklers: „Weitere Details“ → „Trotzdem installieren“.</string>
+    <string name="target_from">Von</string>
+    <string name="target_to">Bis</string>
+    <string name="target_save">Bereich speichern</string>
+    <string name="target_invalid">Gib zwei Zahlen von %1$s bis %2$s %3$s ein, die kleinere zuerst</string>
 </resources>

@@ -6,6 +6,7 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageInstaller
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
@@ -64,7 +65,7 @@ class MainActivity : ComponentActivity(), AppActions {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        createNotificationChannels(this)   // also renames the channels after a language change
+        createNotificationChannels(this)
         scheduleSync(this)   // safe to call on every start
         if (savedInstanceState == null) handleIntent(intent)
         setContent {
@@ -78,6 +79,15 @@ class MainActivity : ComponentActivity(), AppActions {
                 SugarApp(vm, this)
             }
         }
+    }
+
+    /**
+     * The app language changed. The screen stays (see configChanges in the manifest) and Compose redraws
+     * every text in the new language; only the notification channels need their new names.
+     */
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        createNotificationChannels(this)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -121,7 +131,7 @@ class MainActivity : ComponentActivity(), AppActions {
         }
     }
 
-    /** null follows the phone. If the language really changes, Android recreates this screen in it. */
+    /** null follows the phone. The screen redraws in the new language in place (see onConfigurationChanged). */
     override fun setLanguage(tag: String?) {
         vm.languageChosen()
         setAppLanguage(this, tag)

@@ -145,7 +145,7 @@
     <string name="settings_battery">Снять ограничения батареи</string>
     <string name="settings_live_hint">Чаще раза в 15 минут Android даёт работать в фоне только сервису с уведомлением. Уведомление можно выключить в настройках канала — режим продолжит работать, приложение останется в списке активных.</string>
     <string name="settings_display_title">Отображение</string>
-    <string name="settings_target_range">Целевой диапазон: %1$s – %2$s %3$s</string>
+    <string name="settings_target_range">Целевой диапазон:\n%1$s – %2$s %3$s</string>
     <string name="settings_target_hint">Только для цветов, графика и процента «в диапазоне». На тревоги LibreLink не влияет.</string>
     <string name="settings_about_title">О SugarBridge</string>
     <string name="settings_version">Версия %1$s</string>
@@ -229,9 +229,6 @@
     <string name="theme_system">Тема телефона</string>
     <string name="theme_light">Светлая</string>
     <string name="theme_dark">Тёмная</string>
-    <string name="theme_toggle">Переключить светлую и тёмную тему</string>
-    <string name="window_collapse">Свернуть</string>
-    <string name="window_expand">Развернуть</string>
     <string name="settings_pinned">Закрепить уведомление</string>
     <string name="settings_pinned_hint">Если его случайно смахнуть, оно сразу вернётся</string>
     <string name="battery_title">Синхронизация может опаздывать</string>
@@ -252,4 +249,8 @@
     <string name="update_checking">Проверяю…</string>
     <string name="update_latest">У вас последняя версия</string>
     <string name="update_play_protect">Если Play Защита заблокирует установку как приложение неизвестного разработчика: «Подробнее» → «Всё равно установить».</string>
+    <string name="target_from">От</string>
+    <string name="target_to">До</string>
+    <string name="target_save">Сохранить диапазон</string>
+    <string name="target_invalid">Введите два числа от %1$s до %2$s %3$s, меньшее — первым</string>
 </resources>

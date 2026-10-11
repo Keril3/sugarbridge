@@ -145,7 +145,7 @@
     <string name="settings_battery">Rimuovi le limitazioni della batteria</string>
     <string name="settings_live_hint">Per funzionare più spesso di ogni 15 minuti, Android richiede un servizio con notifica. Puoi disattivare la notifica nelle impostazioni del suo canale: la modalità continua a funzionare e l’app resta nell’elenco delle app attive.</string>
     <string name="settings_display_title">Visualizzazione</string>
-    <string name="settings_target_range">Intervallo obiettivo: %1$s – %2$s %3$s</string>
+    <string name="settings_target_range">Intervallo obiettivo:\n%1$s – %2$s %3$s</string>
     <string name="settings_target_hint">Solo per i colori, il grafico e la quota “in intervallo”. Non influisce sugli allarmi di LibreLink.</string>
     <string name="settings_about_title">Informazioni su SugarBridge</string>
     <string name="settings_version">Versione %1$s</string>
@@ -229,9 +229,6 @@
     <string name="theme_system">Tema del telefono</string>
     <string name="theme_light">Chiaro</string>
     <string name="theme_dark">Scuro</string>
-    <string name="theme_toggle">Passa tra chiaro e scuro</string>
-    <string name="window_collapse">Arrotola</string>
-    <string name="window_expand">Srotola</string>
     <string name="settings_pinned">Fissa la notifica</string>
     <string name="settings_pinned_hint">Se viene scartata per sbaglio, torna subito</string>
     <string name="battery_title">La sincronizzazione può tardare</string>
@@ -252,4 +249,8 @@
     <string name="update_checking">Ricerca…</string>
     <string name="update_latest">Hai l’ultima versione</string>
     <string name="update_play_protect">Se Play Protect blocca l’installazione come app di uno sviluppatore sconosciuto: “Altri dettagli” → “Installa comunque”.</string>
+    <string name="target_from">Da</string>
+    <string name="target_to">A</string>
+    <string name="target_save">Salva intervallo</string>
+    <string name="target_invalid">Inserisci due numeri da %1$s a %2$s %3$s, il più piccolo per primo</string>
 </resources>

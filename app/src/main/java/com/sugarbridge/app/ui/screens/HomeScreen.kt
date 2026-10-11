@@ -21,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sugarbridge.app.MainViewModel
@@ -167,7 +168,7 @@ private fun GlucoseHero(latest: Reading?, s: AppSettings, now: Instant) {
                 GlucoseLevel.IN_RANGE -> Mood.HAPPY
                 GlucoseLevel.HIGH -> Mood.HIGH
             }
-            Mascot(mood, size = 116.dp)
+            Mascot(mood, size = 116.dp, modifier = Modifier.testTag("mascot"))
             Spacer(Modifier.width(8.dp))
             Column(Modifier.weight(1f)) {
                 if (latest == null || level == null) {

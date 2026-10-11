@@ -1,13 +1,5 @@
 package com.sugarbridge.app.ui.components
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.keyframes
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -32,12 +24,8 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -46,17 +34,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -67,42 +51,31 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.sugarbridge.app.R
 import com.sugarbridge.app.ui.theme.LocalNight
 import com.sugarbridge.app.ui.theme.LocalXp
 import com.sugarbridge.app.ui.theme.Tenshi
-import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.sin
-import kotlin.random.Random
-import kotlinx.coroutines.launch
 
 // ---------------------------------------------------------------------------------------------------------
 // The sky
 // ---------------------------------------------------------------------------------------------------------
 
-/** The background of the whole app, as on keril.art: a sky gradient, a field of dots and floating bubbles, stars and hearts. */
+/** The background of the whole app, as on keril.art: a sky gradient and a still field of dots. */
 @Composable
 fun SkyBackground(modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
     val xp = LocalXp.current
     Box(modifier.fillMaxSize().background(Brush.verticalGradient(xp.sky))) {
         DotField()
-        Floaters()
         // a 10% shade keeps the background from competing with the windows, like on the site
         Box(Modifier.fillMaxSize().background(Color(0x1A0B2545)))
         CompositionLocalProvider(LocalContentColor provides xp.text) {
@@ -142,115 +115,25 @@ private fun DotField() {
     }
 }
 
-private enum class FloaterKind { BUBBLE, STAR, HEART }
-
-private class Floater(val kind: FloaterKind, val x: Float, val phase: Float, val speed: Float, val size: Float, val white: Boolean)
-
-@Composable
-private fun Floaters() {
-    val xp = LocalXp.current
-    val night = LocalNight.current
-    val floaters = remember {
-        val random = Random(11)
-        List(24) {
-            val kind = when (it % 8) {
-                0, 3, 5 -> FloaterKind.BUBBLE
-                1, 4, 6 -> FloaterKind.STAR
-                else -> FloaterKind.HEART
-            }
-            Floater(kind, random.nextFloat(), random.nextFloat(), 0.4f + random.nextFloat() * 0.6f, random.nextFloat(), random.nextBoolean())
-        }
-    }
-    val time by rememberInfiniteTransition(label = "sky").animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(60_000, easing = LinearEasing)),
-        label = "time",
-    )
-    // own layer: the floaters move without redrawing the screen above them
-    Canvas(Modifier.fillMaxSize().graphicsLayer()) {
-        val w = size.width
-        val h = size.height
-        floaters.forEach { f ->
-            when (f.kind) {
-                FloaterKind.BUBBLE -> {
-                    val r = (5 + f.size * 8).dp.toPx()
-                    val y = (f.phase - time * f.speed * 2).mod(1f) * (h + 4 * r) - 2 * r
-                    val x = w * f.x + sin(2 * PI * (time * 3 + f.phase)).toFloat() * 10.dp.toPx()
-                    drawCircle(Color.White.copy(alpha = if (night) 0.10f else 0.16f), r, Offset(x, y))
-                    drawCircle(Color.White.copy(alpha = if (night) 0.45f else 0.7f), r, Offset(x, y), style = Stroke(1.dp.toPx()))
-                    drawCircle(Color.White.copy(alpha = 0.85f), r * 0.28f, Offset(x - r * 0.35f, y - r * 0.35f))
-                }
-                FloaterKind.STAR -> {
-                    val glow = 0.5f + 0.5f * sin(2 * PI * (time * 12 + f.phase)).toFloat()
-                    val r = (4 + f.size * 6).dp.toPx() * (0.85f + 0.25f * glow)
-                    val color = if (f.white) Color.White else xp.floaterStar
-                    sparkle(Offset(w * f.x, h * f.phase), r, color.copy(alpha = 0.35f + 0.6f * glow))
-                }
-                FloaterKind.HEART -> {
-                    val s = (3.5f + f.size * 3.5f).dp.toPx()
-                    val y = (f.phase - time * f.speed).mod(1f) * (h + 4 * s) - 2 * s
-                    val x = w * f.x + sin(2 * PI * (time * 2 + f.phase)).toFloat() * 14.dp.toPx()
-                    heart(Offset(x, y), s, Tenshi.Pink.copy(alpha = 0.9f))
-                }
-            }
-        }
-    }
-}
-
-/** A four-pointed star with concave sides ✦. */
-fun DrawScope.sparkle(center: Offset, radius: Float, color: Color) {
-    val (x, y) = center
-    val path = Path().apply {
-        moveTo(x, y - radius)
-        quadraticTo(x, y, x + radius, y)
-        quadraticTo(x, y, x, y + radius)
-        quadraticTo(x, y, x - radius, y)
-        quadraticTo(x, y, x, y - radius)
-        close()
-    }
-    drawPath(path, color)
-}
-
-private fun DrawScope.heart(center: Offset, s: Float, color: Color) {
-    val (x, y) = center
-    val path = Path().apply {
-        moveTo(x, y + s * 0.9f)
-        cubicTo(x - s * 1.6f, y - s * 0.1f, x - s * 0.9f, y - s * 1.3f, x, y - s * 0.45f)
-        cubicTo(x + s * 0.9f, y - s * 1.3f, x + s * 1.6f, y - s * 0.1f, x, y + s * 0.9f)
-        close()
-    }
-    drawPath(path, color)
-}
-
 // ---------------------------------------------------------------------------------------------------------
 // Windows
 // ---------------------------------------------------------------------------------------------------------
 
 private val WindowShape = RoundedCornerShape(10.dp)
 
-/**
- * A Windows XP style window, as on keril.art: a gradient title bar with an outlined title and three buttons.
- * "_" rolls the window up into its title bar and back; "×" closes it when [onClose] is given,
- * otherwise the window just bounces.
- */
+/** A Windows XP style window, as on keril.art: a gradient title bar with an outlined title above the content. */
 @Composable
 fun XpWindow(
     title: String,
     modifier: Modifier = Modifier,
-    onClose: (() -> Unit)? = null,
     bodyPadding: PaddingValues = PaddingValues(16.dp),
     onBodyClick: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val xp = LocalXp.current
-    var collapsed by rememberSaveable(title) { mutableStateOf(false) }
-    val bounce = remember { Animatable(1f) }
-    val scope = rememberCoroutineScope()
     Column(
         modifier
             .fillMaxWidth()
-            .scale(bounce.value)
             .shadow(10.dp, WindowShape, ambientColor = xp.shadow, spotColor = xp.shadow)
             .clip(WindowShape)
             .border(2.dp, xp.windowBorder, WindowShape)
@@ -260,39 +143,19 @@ fun XpWindow(
             Modifier
                 .fillMaxWidth()
                 .background(Brush.verticalGradient(xp.bar))
-                .padding(start = 12.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
+                .padding(horizontal = 12.dp, vertical = 7.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             OutlinedTitle(title, Modifier.weight(1f))
-            Spacer(Modifier.width(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                WindowButton(
-                    if (collapsed) WindowGlyph.RESTORE else WindowGlyph.MINIMIZE,
-                    stringResource(if (collapsed) R.string.window_expand else R.string.window_collapse),
-                ) { collapsed = !collapsed }
-                WindowButton(WindowGlyph.MAXIMIZE, stringResource(R.string.window_expand)) { collapsed = false }
-                WindowButton(WindowGlyph.CLOSE, stringResource(R.string.close)) {
-                    if (onClose != null) {
-                        onClose()
-                    } else {
-                        scope.launch {
-                            bounce.animateTo(1.04f, tween(110))
-                            bounce.animateTo(1f, tween(220))
-                        }
-                    }
-                }
-            }
         }
-        AnimatedVisibility(!collapsed) {
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .then(if (onBodyClick != null) Modifier.clickable(onClick = onBodyClick) else Modifier)
-                    .padding(bodyPadding),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                content = content,
-            )
-        }
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .then(if (onBodyClick != null) Modifier.clickable(onClick = onBodyClick) else Modifier)
+                .padding(bodyPadding),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            content = content,
+        )
     }
 }
 
@@ -316,46 +179,6 @@ fun OutlinedTitle(text: String, modifier: Modifier = Modifier, style: TextStyle 
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-    }
-}
-
-private enum class WindowGlyph { MINIMIZE, RESTORE, MAXIMIZE, CLOSE }
-
-@Composable
-private fun WindowButton(glyph: WindowGlyph, description: String, onClick: () -> Unit) {
-    val close = glyph == WindowGlyph.CLOSE
-    val shape = RoundedCornerShape(3.dp)
-    Box(
-        Modifier
-            .size(width = 22.dp, height = 20.dp)
-            .clip(shape)
-            .border(1.dp, if (close) Tenshi.DangerBorder else Tenshi.SmallButtonBorder, shape)
-            .background(Brush.verticalGradient(if (close) Tenshi.CloseGloss else Tenshi.SmallButtonGloss))
-            .clickable(role = Role.Button, onClick = onClick)
-            .semantics { contentDescription = description },
-        contentAlignment = Alignment.Center,
-    ) {
-        Canvas(Modifier.size(10.dp)) {
-            val c = if (close) Color.White else Tenshi.ButtonText
-            val s = size.minDimension
-            val w = 1.6.dp.toPx()
-            when (glyph) {
-                WindowGlyph.MINIMIZE -> drawLine(c, Offset(s * 0.1f, s * 0.85f), Offset(s * 0.9f, s * 0.85f), w * 1.3f)
-                WindowGlyph.RESTORE -> {
-                    drawRect(c, Offset(s * 0.1f, s * 0.35f), Size(s * 0.55f, s * 0.55f), style = Stroke(w))
-                    drawLine(c, Offset(s * 0.35f, s * 0.12f), Offset(s * 0.9f, s * 0.12f), w)
-                    drawLine(c, Offset(s * 0.9f, s * 0.12f), Offset(s * 0.9f, s * 0.65f), w)
-                }
-                WindowGlyph.MAXIMIZE -> {
-                    drawRect(c, Offset(s * 0.1f, s * 0.1f), Size(s * 0.8f, s * 0.8f), style = Stroke(w))
-                    drawLine(c, Offset(s * 0.1f, s * 0.2f), Offset(s * 0.9f, s * 0.2f), w * 1.4f)
-                }
-                WindowGlyph.CLOSE -> {
-                    drawLine(c, Offset(s * 0.15f, s * 0.15f), Offset(s * 0.85f, s * 0.85f), w * 1.2f, cap = StrokeCap.Round)
-                    drawLine(c, Offset(s * 0.85f, s * 0.15f), Offset(s * 0.15f, s * 0.85f), w * 1.2f, cap = StrokeCap.Round)
-                }
-            }
-        }
     }
 }
 
@@ -564,140 +387,4 @@ fun ScreenColumn(modifier: Modifier = Modifier, content: @Composable ColumnScope
         verticalArrangement = Arrangement.spacedBy(14.dp),
         content = content,
     )
-}
-
-// ---------------------------------------------------------------------------------------------------------
-// The address bar
-// ---------------------------------------------------------------------------------------------------------
-
-/** A language for the language menu: its tag (null = the phone's) and its name. */
-class LanguageItem(val tag: String?, val name: String)
-
-/**
- * The address bar from the top of keril.art: "C:\SugarBridge\now_" with a blinking cursor, the connection
- * state, the light/dark switch and the language menu.
- */
-@Composable
-fun AddressBar(
-    path: String,
-    online: Boolean,
-    onToggleTheme: () -> Unit,
-    languageLabel: String,
-    languages: List<LanguageItem>,
-    currentLanguage: String?,
-    onLanguage: (String?) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val xp = LocalXp.current
-    val night = LocalNight.current
-    val cursor by rememberInfiniteTransition(label = "cursor").animateFloat(
-        initialValue = 1f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            keyframes {
-                durationMillis = 1000
-                1f at 490
-                0f at 500
-                0f at 990
-            },
-        ),
-        label = "blink",
-    )
-    var menu by remember { mutableStateOf(false) }
-    Row(
-        modifier
-            .fillMaxWidth()
-            .shadow(4.dp, CircleShape, spotColor = xp.shadow)
-            .clip(CircleShape)
-            .border(1.dp, xp.statusBorder, CircleShape)
-            .background(Brush.verticalGradient(xp.statusBar))
-            .padding(start = 14.dp, end = 6.dp, top = 4.dp, bottom = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Row(Modifier.weight(1f)) {
-            Text(
-                "C:\\SugarBridge\\$path",
-                style = MaterialTheme.typography.labelLarge,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f, fill = false),
-            )
-            Text("_", style = MaterialTheme.typography.labelLarge, modifier = Modifier.alpha(cursor))
-        }
-        Spacer(Modifier.width(8.dp))
-        Text(if (online) "online" else "offline", style = MaterialTheme.typography.labelMedium, color = xp.textMuted)
-        Spacer(Modifier.width(8.dp))
-        SmallGlossButton(stringResource(R.string.theme_toggle), onToggleTheme) {
-            Canvas(Modifier.size(14.dp)) { if (night) moon() else sun() }
-        }
-        Spacer(Modifier.width(4.dp))
-        Box {
-            SmallGlossButton(stringResource(R.string.language_card), { menu = true }, minWidth = 46.dp) {
-                Text("$languageLabel ▾", style = MaterialTheme.typography.labelMedium, color = Tenshi.ButtonText)
-            }
-            DropdownMenu(
-                expanded = menu,
-                onDismissRequest = { menu = false },
-                containerColor = xp.windowBody,
-                shape = RoundedCornerShape(8.dp),
-            ) {
-                languages.forEach { language ->
-                    DropdownMenuItem(
-                        text = { Text(language.name, style = MaterialTheme.typography.bodyMedium, color = xp.text) },
-                        onClick = {
-                            menu = false
-                            onLanguage(language.tag)
-                        },
-                        trailingIcon = if (language.tag == currentLanguage) {
-                            { Text("✓", color = xp.accent) }
-                        } else {
-                            null
-                        },
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun SmallGlossButton(description: String, onClick: () -> Unit, minWidth: Dp = 30.dp, content: @Composable () -> Unit) {
-    val shape = RoundedCornerShape(5.dp)
-    Box(
-        Modifier
-            .height(28.dp)
-            .widthIn(min = minWidth)
-            .clip(shape)
-            .border(1.dp, Tenshi.ButtonBorder, shape)
-            .background(gloss(Tenshi.ButtonGloss))
-            .clickable(role = Role.Button, onClick = onClick)
-            .semantics { contentDescription = description }
-            .padding(horizontal = 6.dp),
-        contentAlignment = Alignment.Center,
-    ) { content() }
-}
-
-private fun DrawScope.sun() {
-    val c = Tenshi.ButtonText
-    val center = Offset(size.width / 2, size.height / 2)
-    val s = size.minDimension
-    drawCircle(c, s * 0.2f, center, style = Stroke(s * 0.1f))
-    for (i in 0 until 8) {
-        val a = i * PI / 4
-        val from = Offset(center.x + (s * 0.32f) * cos(a).toFloat(), center.y + (s * 0.32f) * sin(a).toFloat())
-        val to = Offset(center.x + (s * 0.46f) * cos(a).toFloat(), center.y + (s * 0.46f) * sin(a).toFloat())
-        drawLine(c, from, to, s * 0.1f, cap = StrokeCap.Round)
-    }
-}
-
-private fun DrawScope.moon() {
-    val s = size.minDimension
-    val path = Path().apply {
-        moveTo(s * 0.62f, s * 0.08f)
-        cubicTo(s * 0.18f, s * 0.12f, s * 0.05f, s * 0.7f, s * 0.42f, s * 0.9f)
-        cubicTo(s * 0.62f, s * 1.0f, s * 0.85f, s * 0.9f, s * 0.95f, s * 0.7f)
-        cubicTo(s * 0.6f, s * 0.75f, s * 0.38f, s * 0.4f, s * 0.62f, s * 0.08f)
-        close()
-    }
-    drawPath(path, Tenshi.ButtonText)
 }

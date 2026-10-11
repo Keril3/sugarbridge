@@ -15,6 +15,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.addCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,6 +38,7 @@ import com.sugarbridge.app.R
 import com.sugarbridge.app.libre.Libre
 import com.sugarbridge.app.settings.SettingsStore
 import com.sugarbridge.app.ui.components.Hint
+import com.sugarbridge.app.ui.components.SecondaryButton
 import com.sugarbridge.app.ui.components.SkyBackground
 import com.sugarbridge.app.ui.components.XpMeter
 import com.sugarbridge.app.ui.components.XpWindow
@@ -108,9 +110,10 @@ class LibreViewActivity : ComponentActivity() {
             SugarTheme(SettingsStore(this).load().theme) {
                 SkyBackground {
                     Column(Modifier.fillMaxSize().safeDrawingPadding().padding(horizontal = 10.dp, vertical = 8.dp)) {
-                        // the site sits in a window of its own; its "×" closes it
-                        XpWindow("LibreView", Modifier.fillMaxSize(), onClose = ::finish, bodyPadding = PaddingValues(0.dp)) {
-                            Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+                        // the site sits in a window of its own
+                        XpWindow("LibreView", Modifier.fillMaxSize(), bodyPadding = PaddingValues(0.dp)) {
+                            Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                SecondaryButton(stringResource(R.string.close), onClick = ::finish, modifier = Modifier.fillMaxWidth())
                                 Hint(stringResource(R.string.libreview_hint))
                                 status?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = LocalXp.current.accent) }
                             }

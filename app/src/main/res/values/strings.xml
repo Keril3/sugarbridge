@@ -148,7 +148,7 @@
     <string name="settings_battery">Remove battery restrictions</string>
     <string name="settings_live_hint">To run more often than every 15 minutes, Android requires a service with a notification. You can turn the notification off in its channel settings: the mode keeps working and the app stays in the list of active apps.</string>
     <string name="settings_display_title">Display</string>
-    <string name="settings_target_range">Target range: %1$s – %2$s %3$s</string>
+    <string name="settings_target_range">Target range:\n%1$s – %2$s %3$s</string>
     <string name="settings_target_hint">Only for colors, the chart and the “in range” share. It doesn’t affect LibreLink alarms.</string>
     <string name="settings_about_title">About SugarBridge</string>
     <string name="settings_version">Version %1$s</string>
@@ -232,9 +232,6 @@
     <string name="theme_system">Phone theme</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
-    <string name="theme_toggle">Switch between light and dark</string>
-    <string name="window_collapse">Roll up</string>
-    <string name="window_expand">Unroll</string>
     <string name="settings_pinned">Pin the notification</string>
     <string name="settings_pinned_hint">If it gets swiped away by accident, it comes right back</string>
     <string name="battery_title">Sync may be late</string>
@@ -255,4 +252,8 @@
     <string name="update_checking">Checking…</string>
     <string name="update_latest">You have the latest version</string>
     <string name="update_play_protect">If Play Protect blocks the install as an app from an unknown developer: “More details” → “Install anyway”.</string>
+    <string name="target_from">From</string>
+    <string name="target_to">To</string>
+    <string name="target_save">Save range</string>
+    <string name="target_invalid">Enter two numbers from %1$s to %2$s %3$s, the lower one first</string>
 </resources>

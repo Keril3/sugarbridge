@@ -4,7 +4,10 @@ import android.graphics.Bitmap
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.test.espresso.Espresso
@@ -16,7 +19,10 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.sugarbridge.app.MainActivity
 import com.sugarbridge.app.MainViewModel
 import com.sugarbridge.app.R
+import com.sugarbridge.app.glucose.GlucoseUnit
+import com.sugarbridge.app.glucose.MGDL_PER_MMOL
 import com.sugarbridge.app.glucose.Reading
+import com.sugarbridge.app.glucose.formatGlucose
 import com.sugarbridge.app.health.HealthConnectState
 import com.sugarbridge.app.health.WRITE_GLUCOSE
 import com.sugarbridge.app.health.deleteOwnGlucose
@@ -44,6 +50,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.math.abs
 import kotlin.math.exp
 import kotlin.math.sin
 import kotlinx.coroutines.runBlocking
@@ -149,6 +156,8 @@ class ScreenshotTest {
         compose.waitUntil(10_000) { vm.ui.signedIn && vm.ui.canWrite != null }
         compose.onNodeWithText(text(R.string.tab_now)).assertExists()   // the screen really is in this language
         shot(language, "home")
+        compose.onNodeWithTag("mascot").performClick()   // she tilts her head, closes her eyes and smiles
+        shot(language, "home_tap")
         compose.waitUntil(20_000) { vm.ui.gmi14 != null }
         compose.onNodeWithText(res.getString(R.string.gmi_hint, 70)).performScrollTo()
         shot(language, "home_gmi")
@@ -175,6 +184,13 @@ class ScreenshotTest {
         shot(language, "settings")
         compose.onNodeWithText(text(R.string.settings_about_title)).performScrollTo()
         shot(language, "settings_bottom")
+
+        // the target range is typed in: a new lower bound with the decimal separator of the language, then Save
+        val locale = Locale.forLanguageTag(language)
+        compose.onNode(hasSetTextAction() and hasText(formatGlucose(70.0, GlucoseUnit.MMOL, locale))).performTextReplacement(String.format(locale, "%.1f", 4.2))
+        compose.onNodeWithText(text(R.string.target_save)).performClick()
+        compose.waitUntil(5_000) { abs(vm.ui.settings.lowMgDl - 4.2 * MGDL_PER_MMOL) < 0.1 }
+        scenario.onActivity { vm.updateSettings { it.copy(lowMgDl = 70.0) } }
 
         compose.onNodeWithText(text(R.string.tab_now)).performClick()
         scenario.onActivity { vm.updateSettings { it.copy(theme = ThemeMode.DARK) } }   // the sun/moon switch

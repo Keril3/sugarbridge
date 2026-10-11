@@ -145,7 +145,7 @@
     <string name="settings_battery">Зняти обмеження батареї</string>
     <string name="settings_live_hint">Частіше ніж раз на 15 хвилин Android дає працювати у фоні лише сервісу зі сповіщенням. Сповіщення можна вимкнути в налаштуваннях каналу — режим працюватиме далі, застосунок залишиться в списку активних.</string>
     <string name="settings_display_title">Відображення</string>
-    <string name="settings_target_range">Цільовий діапазон: %1$s – %2$s %3$s</string>
+    <string name="settings_target_range">Цільовий діапазон:\n%1$s – %2$s %3$s</string>
     <string name="settings_target_hint">Лише для кольорів, графіка й відсотка «у діапазоні». На тривоги LibreLink не впливає.</string>
     <string name="settings_about_title">Про SugarBridge</string>
     <string name="settings_version">Версія %1$s</string>
@@ -229,9 +229,6 @@
     <string name="theme_system">Тема телефона</string>
     <string name="theme_light">Світла</string>
     <string name="theme_dark">Темна</string>
-    <string name="theme_toggle">Перемкнути світлу й темну тему</string>
-    <string name="window_collapse">Згорнути</string>
-    <string name="window_expand">Розгорнути</string>
     <string name="settings_pinned">Закріпити сповіщення</string>
     <string name="settings_pinned_hint">Якщо його випадково змахнути, воно одразу повернеться</string>
     <string name="battery_title">Синхронізація може запізнюватися</string>
@@ -252,4 +249,8 @@
     <string name="update_checking">Перевіряю…</string>
     <string name="update_latest">У вас остання версія</string>
     <string name="update_play_protect">Якщо Play Захист заблокує встановлення як застосунок невідомого розробника: «Докладніше» → «Однаково встановити».</string>
+    <string name="target_from">Від</string>
+    <string name="target_to">До</string>
+    <string name="target_save">Зберегти діапазон</string>
+    <string name="target_invalid">Введіть два числа від %1$s до %2$s %3$s, менше — першим</string>
 </resources>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Now tab: a little house with a heart -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FF000000"
+        android:fillType="evenOdd"
+        android:pathData="M12,2.9L21.4,10.5A1,1 0,0 1,20.8 12.3H19.6V18.6A2.5,2.5 0,0 1,17.1 21.1H6.9A2.5,2.5 0,0 1,4.4 18.6V12.3H3.2A1,1 0,0 1,2.6 10.5Z M12,5.5L6.2,10.3V18.4A1,1 0,0 0,7.2 19.4H16.8A1,1 0,0 0,17.8 18.4V10.3Z M12,17.4C12,17.4 9.1,15.6 9.1,13.8C9.1,12.6 10.1,11.9 11.1,12.1C11.5,12.2 11.8,12.5 12,12.9C12.2,12.5 12.5,12.2 12.9,12.1C13.9,11.9 14.9,12.6 14.9,13.8C14.9,15.6 12,17.4 12,17.4Z" />
+</vector>

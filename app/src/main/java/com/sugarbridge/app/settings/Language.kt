@@ -35,7 +35,7 @@ fun appLanguage(context: Context): Language? {
 
 /**
  * Switches the app language (Android 13+ per-app languages); null follows the phone again.
- * Android itself restarts the open screens in the new language and remembers the choice.
+ * Android remembers the choice and tells the open screens, which redraw in the new language.
  */
 fun setAppLanguage(context: Context, tag: String?) {
     context.getSystemService(LocaleManager::class.java).applicationLocales =

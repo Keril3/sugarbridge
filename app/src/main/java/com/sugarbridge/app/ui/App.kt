@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -30,7 +32,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -42,12 +43,8 @@ import com.sugarbridge.app.MainViewModel
 import com.sugarbridge.app.R
 import com.sugarbridge.app.Tab
 import com.sugarbridge.app.health.HealthConnectState
-import com.sugarbridge.app.settings.LANGUAGES
-import com.sugarbridge.app.settings.appLanguage
-import com.sugarbridge.app.ui.components.AddressBar
 import com.sugarbridge.app.ui.components.ButtonRow
 import com.sugarbridge.app.ui.components.Hint
-import com.sugarbridge.app.ui.components.LanguageItem
 import com.sugarbridge.app.ui.components.Mascot
 import com.sugarbridge.app.ui.components.Mood
 import com.sugarbridge.app.ui.components.PrimaryButton
@@ -60,11 +57,8 @@ import com.sugarbridge.app.ui.screens.LanguageScreen
 import com.sugarbridge.app.ui.screens.LoginScreen
 import com.sugarbridge.app.ui.screens.SettingsScreen
 import com.sugarbridge.app.ui.screens.UpdateBanner
-import com.sugarbridge.app.ui.theme.LocalNight
 import com.sugarbridge.app.ui.theme.LocalXp
 import com.sugarbridge.app.ui.theme.Tenshi
-import java.time.Duration
-import java.time.Instant
 
 /** What only the Activity can do: permission dialogs, other apps, system settings, the app language and updates. */
 interface AppActions {
@@ -93,17 +87,16 @@ fun SugarApp(vm: MainViewModel, actions: AppActions) {
             // the very first start: the language comes before everything else
             !vm.ui.signedIn && !vm.ui.languageChosen -> LanguageScreen(onContinue = actions::setLanguage)
             !vm.ui.signedIn -> {
-                Column(Modifier.fillMaxSize()) {
-                    TopBar(vm, actions, "login", Modifier.statusBarsPadding())
+                Column(Modifier.fillMaxSize().statusBarsPadding()) {
                     // a new version is offered before signing in too
-                    UpdateBanner(vm.update, actions, Modifier.padding(horizontal = 14.dp))
+                    UpdateBanner(vm.update, actions, Modifier.padding(horizontal = 14.dp, vertical = 8.dp))
                     LoginScreen(busy = vm.ui.signingIn, onSignIn = vm::signIn)
                 }
                 TenshiSnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).navigationBarsPadding())
             }
             else -> Scaffold(
                 containerColor = Color.Transparent,
-                topBar = { TopBar(vm, actions, vm.tab.name.lowercase(), Modifier.statusBarsPadding()) },
+                topBar = { Spacer(Modifier.statusBarsPadding().height(8.dp)) },
                 bottomBar = { Dock(vm.tab) { vm.tab = it } },
                 snackbarHost = { TenshiSnackbarHost(snackbar) },
             ) { padding ->
@@ -118,29 +111,6 @@ fun SugarApp(vm: MainViewModel, actions: AppActions) {
         }
         if (vm.ui.healthConnect != HealthConnectState.AVAILABLE) HealthConnectGate(vm.ui.healthConnect, actions)
     }
-}
-
-/** The keril.art address bar: where we are, whether LibreLinkUp answers, the theme switch and the language menu. */
-@Composable
-private fun TopBar(vm: MainViewModel, actions: AppActions, path: String, modifier: Modifier = Modifier) {
-    val context = LocalContext.current
-    val night = LocalNight.current
-    val locale = currentLocale()
-    val chosen = remember(locale) { appLanguage(context)?.tag }
-    val system = stringResource(R.string.language_system)
-    val last = vm.ui.sync.lastOkAt
-    val online = last != null && Duration.between(last, Instant.now()) < Duration.ofMinutes(20) &&
-        (vm.ui.sync.errorAt == null || !vm.ui.sync.errorAt!!.isAfter(last))
-    AddressBar(
-        path = path,
-        online = online,
-        onToggleTheme = { vm.toggleTheme(night) },
-        languageLabel = (chosen ?: locale.language).substringBefore('-').uppercase(),
-        languages = listOf(LanguageItem(null, system)) + LANGUAGES.map { LanguageItem(it.tag, it.name) },
-        currentLanguage = chosen,
-        onLanguage = actions::setLanguage,
-        modifier = modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-    )
 }
 
 /** The tab bar: a translucent bar like the address bar, the open tab is a pressed glossy button. */
@@ -161,7 +131,7 @@ private fun Dock(current: Tab, onSelect: (Tab) -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         listOf(
-            Triple(Tab.NOW, R.drawable.ic_stat_tenshi, R.string.tab_now),
+            Triple(Tab.NOW, R.drawable.ic_tab_home, R.string.tab_now),
             Triple(Tab.HISTORY, R.drawable.ic_tab_history, R.string.tab_history),
             Triple(Tab.SETTINGS, R.drawable.ic_tab_settings, R.string.tab_settings),
         ).forEach { (tab, icon, label) ->

@@ -145,7 +145,7 @@
     <string name="settings_battery">Pil kısıtlamalarını kaldır</string>
     <string name="settings_live_hint">15 dakikadan sık çalışmak için Android bildirimli bir hizmet ister. Bildirimi kanal ayarlarından kapatabilirsiniz: mod çalışmaya devam eder ve uygulama etkin uygulamalar listesinde kalır.</string>
     <string name="settings_display_title">Görünüm</string>
-    <string name="settings_target_range">Hedef aralık: %1$s – %2$s %3$s</string>
+    <string name="settings_target_range">Hedef aralık:\n%1$s – %2$s %3$s</string>
     <string name="settings_target_hint">Yalnızca renkler, grafik ve “aralıkta” oranı için. LibreLink alarmlarını etkilemez.</string>
     <string name="settings_about_title">SugarBridge hakkında</string>
     <string name="settings_version">Sürüm %1$s</string>
@@ -229,9 +229,6 @@
     <string name="theme_system">Telefonun teması</string>
     <string name="theme_light">Açık</string>
     <string name="theme_dark">Koyu</string>
-    <string name="theme_toggle">Açık ve koyu arasında geçiş yap</string>
-    <string name="window_collapse">Topla</string>
-    <string name="window_expand">Aç</string>
     <string name="settings_pinned">Bildirimi sabitle</string>
     <string name="settings_pinned_hint">Yanlışlıkla kaydırılırsa hemen geri gelir</string>
     <string name="battery_title">Eşitleme gecikebilir</string>
@@ -252,4 +249,8 @@
     <string name="update_checking">Denetleniyor…</string>
     <string name="update_latest">En son sürümü kullanıyorsunuz</string>
     <string name="update_play_protect">Play Protect yüklemeyi bilinmeyen geliştirici uygulaması diye engellerse: “Diğer ayrıntılar” → “Yine de yükle”.</string>
+    <string name="target_from">En az</string>
+    <string name="target_to">En çok</string>
+    <string name="target_save">Aralığı kaydet</string>
+    <string name="target_invalid">%1$s ile %2$s %3$s arasında iki sayı girin, küçük olan önce</string>
 </resources>

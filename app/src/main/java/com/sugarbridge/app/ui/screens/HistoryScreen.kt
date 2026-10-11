@@ -122,7 +122,7 @@ fun HistoryScreen(vm: MainViewModel, actions: AppActions) {
     }
     if (confirmDelete) {
         Dialog(onDismissRequest = { confirmDelete = false }) {
-            XpWindow(stringResource(R.string.history_delete_title), onClose = { confirmDelete = false }) {
+            XpWindow(stringResource(R.string.history_delete_title)) {
                 Text(stringResource(R.string.history_delete_text, h.selected.size), style = MaterialTheme.typography.bodyMedium)
                 ButtonRow {
                     SecondaryButton(stringResource(R.string.delete), onClick = { confirmDelete = false; vm.deleteSelected() }, danger = true)

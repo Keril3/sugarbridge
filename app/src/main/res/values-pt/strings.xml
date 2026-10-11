@@ -145,7 +145,7 @@
     <string name="settings_battery">Remover restrições de bateria</string>
     <string name="settings_live_hint">Para rodar mais de uma vez a cada 15 minutos, o Android exige um serviço com notificação. Você pode desligar a notificação nos ajustes do canal: o modo continua funcionando e o app fica na lista de apps ativos.</string>
     <string name="settings_display_title">Exibição</string>
-    <string name="settings_target_range">Faixa-alvo: %1$s – %2$s %3$s</string>
+    <string name="settings_target_range">Faixa-alvo:\n%1$s – %2$s %3$s</string>
     <string name="settings_target_hint">Só para as cores, o gráfico e a porcentagem “na faixa”. Não afeta os alarmes do LibreLink.</string>
     <string name="settings_about_title">Sobre o SugarBridge</string>
     <string name="settings_version">Versão %1$s</string>
@@ -229,9 +229,6 @@
     <string name="theme_system">Tema do telefone</string>
     <string name="theme_light">Claro</string>
     <string name="theme_dark">Escuro</string>
-    <string name="theme_toggle">Alternar entre claro e escuro</string>
-    <string name="window_collapse">Recolher</string>
-    <string name="window_expand">Expandir</string>
     <string name="settings_pinned">Fixar a notificação</string>
     <string name="settings_pinned_hint">Se for dispensada sem querer, ela volta na hora</string>
     <string name="battery_title">A sincronização pode atrasar</string>
@@ -252,4 +249,8 @@
     <string name="update_checking">Procurando…</string>
     <string name="update_latest">Você tem a versão mais recente</string>
     <string name="update_play_protect">Se o Play Protect bloquear a instalação por ser de um desenvolvedor desconhecido: “Mais detalhes” → “Instalar mesmo assim”.</string>
+    <string name="target_from">De</string>
+    <string name="target_to">Até</string>
+    <string name="target_save">Salvar faixa</string>
+    <string name="target_invalid">Digite dois números de %1$s a %2$s %3$s, o menor primeiro</string>
 </resources>

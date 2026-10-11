@@ -1,13 +1,21 @@
 package com.sugarbridge.app.ui.screens
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RangeSlider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -15,16 +23,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sugarbridge.app.MainViewModel
 import com.sugarbridge.app.R
 import com.sugarbridge.app.glucose.GlucoseUnit
-import com.sugarbridge.app.glucose.MGDL_PER_MMOL
+import com.sugarbridge.app.glucose.TARGET_MAX_MGDL
+import com.sugarbridge.app.glucose.TARGET_MIN_MGDL
 import com.sugarbridge.app.glucose.formatGlucose
-import com.sugarbridge.app.glucose.mmolOf
+import com.sugarbridge.app.glucose.isValidTarget
+import com.sugarbridge.app.glucose.parseGlucose
 import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.settings.LANGUAGES
 import com.sugarbridge.app.settings.ThemeMode
@@ -174,7 +183,7 @@ fun SettingsScreen(vm: MainViewModel, actions: AppActions) {
     }
 }
 
-/** Every language in its own name; the first option follows the phone. Android recreates the screen in the new language. */
+/** Every language in its own name; the first option follows the phone. The screen redraws in the new language in place. */
 @Composable
 private fun LanguageCard(actions: AppActions) {
     val context = LocalContext.current
@@ -225,33 +234,85 @@ private fun AboutCard(vm: MainViewModel, actions: AppActions) {
     }
 }
 
-/** Target range: a slider in mmol/L with a 0.1 step; the label is in the chosen unit. */
+/**
+ * Target range: the saved bounds on their own line, then two fields to type new ones in the chosen unit.
+ * "Save" is active only for a range that makes sense.
+ */
 @Composable
 private fun TargetRange(s: AppSettings, onDone: (Double, Double) -> Unit) {
+    val xp = LocalXp.current
     val locale = currentLocale()
-    var range by remember(s.lowMgDl, s.highMgDl) {
-        mutableStateOf(mmolOf(s.lowMgDl).toFloat()..mmolOf(s.highMgDl).toFloat())
+    val unit = stringResource(s.unit.label)
+    val focus = LocalFocusManager.current
+    var lowText by remember(s.lowMgDl, s.unit, locale) { mutableStateOf(formatGlucose(s.lowMgDl, s.unit, locale)) }
+    var highText by remember(s.highMgDl, s.unit, locale) { mutableStateOf(formatGlucose(s.highMgDl, s.unit, locale)) }
+    val low = parseGlucose(lowText, s.unit)
+    val high = parseGlucose(highText, s.unit)
+    val valid = isValidTarget(low, high)
+    val changed = lowText != formatGlucose(s.lowMgDl, s.unit, locale) || highText != formatGlucose(s.highMgDl, s.unit, locale)
+    val fieldColors = OutlinedTextFieldDefaults.colors(
+        focusedBorderColor = Tenshi.ButtonBorder,
+        unfocusedBorderColor = xp.dots,
+        focusedLabelColor = xp.accent,
+        cursorColor = xp.accent,
+        focusedTextColor = xp.text,
+        unfocusedTextColor = xp.text,
+    )
+    val keyboard = KeyboardOptions(
+        keyboardType = if (s.unit == GlucoseUnit.MMOL) KeyboardType.Decimal else KeyboardType.Number,
+        imeAction = ImeAction.Done,
+    )
+    fun save() {
+        if (valid && low != null && high != null) {
+            onDone(low, high)
+            focus.clearFocus()
+        }
     }
-    val low = range.start * MGDL_PER_MMOL
-    val high = range.endInclusive * MGDL_PER_MMOL
+
     Text(
-        stringResource(R.string.settings_target_range, formatGlucose(low, s.unit, locale), formatGlucose(high, s.unit, locale), stringResource(s.unit.label)),
+        stringResource(R.string.settings_target_range, formatGlucose(s.lowMgDl, s.unit, locale), formatGlucose(s.highMgDl, s.unit, locale), unit),
         style = MaterialTheme.typography.bodyLarge,
     )
-    RangeSlider(
-        value = range,
-        onValueChange = { r -> range = (r.start * 10).roundToInt() / 10f..(r.endInclusive * 10).roundToInt() / 10f },
-        valueRange = 3.0f..15.0f,
-        steps = 119,
-        onValueChangeFinished = { onDone(range.start * MGDL_PER_MMOL, range.endInclusive * MGDL_PER_MMOL) },
-        colors = SliderDefaults.colors(
-            activeTrackColor = Tenshi.InRange,
-            inactiveTrackColor = MaterialTheme.colorScheme.outlineVariant,
-            thumbColor = Tenshi.ButtonBorder,
-            activeTickColor = Color.Transparent,     // 119 steps of 0.1: no dots on the track
-            inactiveTickColor = Color.Transparent,
-        ),
-        modifier = Modifier.fillMaxWidth(),
-    )
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        OutlinedTextField(
+            value = lowText,
+            onValueChange = { lowText = it.take(5) },
+            label = { Text(stringResource(R.string.target_from)) },
+            singleLine = true,
+            colors = fieldColors,
+            shape = MaterialTheme.shapes.small,
+            keyboardOptions = keyboard,
+            keyboardActions = KeyboardActions(onDone = { save() }),
+            isError = low == null,
+            modifier = Modifier.weight(1f),
+        )
+        Text("–", style = MaterialTheme.typography.titleMedium)
+        OutlinedTextField(
+            value = highText,
+            onValueChange = { highText = it.take(5) },
+            label = { Text(stringResource(R.string.target_to)) },
+            singleLine = true,
+            colors = fieldColors,
+            shape = MaterialTheme.shapes.small,
+            keyboardOptions = keyboard,
+            keyboardActions = KeyboardActions(onDone = { save() }),
+            isError = high == null,
+            modifier = Modifier.weight(1f),
+        )
+        Text(unit, style = MaterialTheme.typography.labelMedium, color = xp.textMuted)
+    }
+    if (!valid) {
+        Text(
+            stringResource(
+                R.string.target_invalid,
+                formatGlucose(TARGET_MIN_MGDL, s.unit, locale),
+                formatGlucose(TARGET_MAX_MGDL, s.unit, locale),
+                unit,
+            ),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.error,
+        )
+    }
+    PrimaryButton(stringResource(R.string.target_save), onClick = ::save, enabled = valid && changed, modifier = Modifier.fillMaxWidth())
     Hint(stringResource(R.string.settings_target_hint))
 }

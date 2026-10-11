@@ -2,6 +2,18 @@
 
 Newest version first. A version's section becomes the release notes on GitHub.
 
+## 1.5.0 — 2026-10-11
+
+- Tenshi-chan is the angel again: sky-blue hair, a halo and feathered wings, now with a red ribbon. Tap her and
+  she tilts her head, closes her eyes and smiles. The app icon is back too.
+- The target range is typed in: two fields in the chosen unit and a "Save" button that only works for a range
+  that makes sense. The saved range is shown on its own line.
+- Calmer screens: no more address bar at the top (the theme and the language are in Settings), no window
+  buttons, and the background no longer moves: no bubbles, stars or hearts, only the still field of dots.
+- The "Now" tab has a house icon.
+- Fixed: changing the language made the whole screen flash black. The screen now stays and its texts switch
+  to the new language in place.
+
 ## 1.4.0 — 2026-10-11
 
 - A new look after keril.art: a blue sky with dots, bubbles, stars and hearts, Windows XP style windows

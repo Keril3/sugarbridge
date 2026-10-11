@@ -28,13 +28,14 @@ from the LibreLinkUp cloud and writes them to Health Connect, where Samsung Heal
 - **Estimated HbA1c (GMI)** for 14 and 90 days, from all the history SugarBridge has written to Health Connect.
 - **Its own chart and statistics** for 12 hours, mmol/L or mg/dL, your own target range. Tap the chart to open it
   full screen and move a finger along it to read every value and its time.
-- **Light and dark theme** in the style of [keril.art](https://keril.art/): a blue sky with bubbles and stars,
-  Windows XP style windows and a pixel font. The phone's theme by default; the sun/moon button switches it.
+- **Light and dark theme** in the style of [keril.art](https://keril.art/): a blue sky with a field of dots,
+  Windows XP style windows and a pixel font. The phone's theme by default, or light or dark in Settings.
 - **12 languages**: English, Русский, Українська, Deutsch, Français, Español, Português, Italiano, Türkçe,
   简体中文, 日本語, 한국어. Chosen on the first start, changeable in Settings or in Android's per-app language settings.
 - **The password is protected by the Android Keystore** and stays on the phone.
 - **Updates in the app**: SugarBridge finds a new version on GitHub, downloads it and hands it to Android to install.
-- **Tenshi-chan**, an ice-fairy chibi mascot who is happy, worried, flustered or sleepy depending on your glucose.
+- **Tenshi-chan**, a chibi angel mascot who is happy, worried, flustered or sleepy depending on your glucose.
+  Tap her and she tilts her head, closes her eyes and smiles.
 
 Data path: sensor → LibreLink on the phone → LibreLinkUp cloud → SugarBridge → Health Connect → Samsung Health.
 
@@ -198,14 +199,14 @@ GitHub Actions builds and signs the APK in Releases when a `v*` tag arrives in t
    ```
 3. **Every release:** add the version's section to [CHANGELOG.md](CHANGELOG.md), then
    ```sh
-   git tag v1.4.0
-   git push origin v1.4.0
+   git tag v1.5.0
+   git push origin v1.5.0
    ```
    A few minutes later `SugarBridge.apk` appears in Releases with the notes from the CHANGELOG.
 
 A signed APK can be built locally too: put `sugarbridge.keystore`, `sugarbridge.keystorePassword`,
 `sugarbridge.keyAlias` and `sugarbridge.keyPassword` into `~/.gradle/gradle.properties` (outside the repository)
-and run `./gradlew assembleRelease -Psugarbridge.version=1.4.0`.
+and run `./gradlew assembleRelease -Psugarbridge.version=1.5.0`.
 
 ## Thanks
 

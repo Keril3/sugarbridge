@@ -234,7 +234,7 @@ fun ChartDialog(
             }
             val pick = selected?.let { shown.getOrNull(it) } ?: shown.lastOrNull()
             Column(Modifier.fillMaxSize().safeDrawingPadding().padding(12.dp)) {
-                XpWindow(title, Modifier.weight(1f), onClose = onDismiss) {
+                XpWindow(title, Modifier.weight(1f)) {
                     ChoiceRow(
                         options = listOf(3, 6, 12),
                         selected = hours,
@@ -255,6 +255,7 @@ fun ChartDialog(
                         showDots = true,
                     )
                     Hint(stringResource(R.string.chart_drag_hint))
+                    SecondaryButton(stringResource(R.string.close), onClick = onDismiss, modifier = Modifier.fillMaxWidth())
                 }
             }
         }

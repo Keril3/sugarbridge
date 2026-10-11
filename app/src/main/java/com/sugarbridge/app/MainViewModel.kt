@@ -35,7 +35,6 @@ import com.sugarbridge.app.libreview.readingsOnDays
 import com.sugarbridge.app.libreview.summarizeDays
 import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.settings.SettingsStore
-import com.sugarbridge.app.settings.ThemeMode
 import com.sugarbridge.app.sync.LiveSyncService
 import com.sugarbridge.app.sync.Problem
 import com.sugarbridge.app.sync.SyncBlocked
@@ -253,9 +252,6 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     /** What Android's installer answered, for the Activity. */
     fun updateFailed(message: String) = say(R.string.update_failed, message)
-
-    /** The sun/moon button: switch to the opposite of what is on screen now. */
-    fun toggleTheme(nightNow: Boolean) = updateSettings { it.copy(theme = if (nightNow) ThemeMode.LIGHT else ThemeMode.DARK) }
 
     /**
      * Estimated HbA1c (GMI) for 14 and 90 days from all SugarBridge readings in Health Connect, in one pass
