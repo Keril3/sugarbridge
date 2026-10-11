@@ -195,7 +195,6 @@ APK в Releases собирает и подписывает GitHub Actions, ко�
 
 ## Благодарности
 
-- Гайд «Libre 2 → Samsung Health без сервера», с которого начался проект.
 - Описания неофициального API: [pylibrelinkup](https://github.com/robberwick/pylibrelinkup),
   [libreview-unofficial](https://github.com/FokkeZB/libreview-unofficial),
   [HTTP-дамп LibreLinkUp](https://gist.github.com/khskekec/6c13ba01b10d3018d816706a32ae8ab2).
