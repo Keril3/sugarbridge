@@ -254,4 +254,5 @@
     <string name="update_check">Check for updates</string>
     <string name="update_checking">Checking…</string>
     <string name="update_latest">You have the latest version</string>
+    <string name="update_play_protect">If Play Protect blocks the install as an app from an unknown developer: “More details” → “Install anyway”.</string>
 </resources>

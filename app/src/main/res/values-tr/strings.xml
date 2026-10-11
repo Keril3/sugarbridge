@@ -251,4 +251,5 @@
     <string name="update_check">Güncellemeleri denetle</string>
     <string name="update_checking">Denetleniyor…</string>
     <string name="update_latest">En son sürümü kullanıyorsunuz</string>
+    <string name="update_play_protect">Play Protect yüklemeyi bilinmeyen geliştirici uygulaması diye engellerse: “Diğer ayrıntılar” → “Yine de yükle”.</string>
 </resources>

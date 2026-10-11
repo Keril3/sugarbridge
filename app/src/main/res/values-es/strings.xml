@@ -251,4 +251,5 @@
     <string name="update_check">Buscar actualizaciones</string>
     <string name="update_checking">Buscando…</string>
     <string name="update_latest">Tienes la última versión</string>
+    <string name="update_play_protect">Si Play Protect bloquea la instalación por ser de un desarrollador desconocido: «Más detalles» → «Instalar de todas formas».</string>
 </resources>

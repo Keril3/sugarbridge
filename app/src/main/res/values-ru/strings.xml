@@ -251,4 +251,5 @@
     <string name="update_check">Проверить обновления</string>
     <string name="update_checking">Проверяю…</string>
     <string name="update_latest">У вас последняя версия</string>
+    <string name="update_play_protect">Если Play Защита заблокирует установку как приложение неизвестного разработчика: «Подробнее» → «Всё равно установить».</string>
 </resources>

@@ -208,6 +208,7 @@ private fun AboutCard(vm: MainViewModel, actions: AppActions) {
             release != null -> {
                 Text(stringResource(R.string.update_available, release.version), style = MaterialTheme.typography.bodyMedium, color = Tenshi.InRange)
                 PrimaryButton(stringResource(R.string.update_install), onClick = actions::installUpdate, modifier = Modifier.fillMaxWidth())
+                Hint(stringResource(R.string.update_play_protect))
             }
             update.checkedNothing -> Hint(stringResource(R.string.update_latest))
         }

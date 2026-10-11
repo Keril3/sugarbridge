@@ -140,9 +140,9 @@ fun levelText(level: GlucoseLevel): String = stringResource(
 
 /** A newer version is on GitHub: one button downloads it and hands it to Android to install. */
 @Composable
-private fun UpdateBanner(update: UpdateUi, actions: AppActions) {
+fun UpdateBanner(update: UpdateUi, actions: AppActions, modifier: Modifier = Modifier) {
     val release = update.available ?: return
-    XpWindow(stringResource(R.string.update_title)) {
+    XpWindow(stringResource(R.string.update_title), modifier) {
         Text(stringResource(R.string.update_available, release.version), style = MaterialTheme.typography.bodyMedium)
         val progress = update.progress
         if (progress != null) {
@@ -150,6 +150,7 @@ private fun UpdateBanner(update: UpdateUi, actions: AppActions) {
             Hint(stringResource(R.string.update_downloading, (progress * 100).roundToInt()))
         } else {
             PrimaryButton(stringResource(R.string.update_install), onClick = actions::installUpdate, modifier = Modifier.fillMaxWidth())
+            Hint(stringResource(R.string.update_play_protect))
         }
     }
 }

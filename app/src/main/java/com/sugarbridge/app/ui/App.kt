@@ -59,6 +59,7 @@ import com.sugarbridge.app.ui.screens.HomeScreen
 import com.sugarbridge.app.ui.screens.LanguageScreen
 import com.sugarbridge.app.ui.screens.LoginScreen
 import com.sugarbridge.app.ui.screens.SettingsScreen
+import com.sugarbridge.app.ui.screens.UpdateBanner
 import com.sugarbridge.app.ui.theme.LocalNight
 import com.sugarbridge.app.ui.theme.LocalXp
 import com.sugarbridge.app.ui.theme.Tenshi
@@ -94,6 +95,8 @@ fun SugarApp(vm: MainViewModel, actions: AppActions) {
             !vm.ui.signedIn -> {
                 Column(Modifier.fillMaxSize()) {
                     TopBar(vm, actions, "login", Modifier.statusBarsPadding())
+                    // a new version is offered before signing in too
+                    UpdateBanner(vm.update, actions, Modifier.padding(horizontal = 14.dp))
                     LoginScreen(busy = vm.ui.signingIn, onSignIn = vm::signIn)
                 }
                 TenshiSnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).navigationBarsPadding())

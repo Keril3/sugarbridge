@@ -73,7 +73,8 @@ You need:
 3. If Play Protect warns about an unknown app, choose "Install anyway".
 4. **Updating:** from version 1.4.0 SugarBridge looks for updates itself: a window on the home screen (or
    Settings → About SugarBridge → "Check for updates") downloads the new version, and Android asks you to confirm
-   the install. The first time Android asks to allow SugarBridge to install apps. Older versions are updated by
+   the install. The first time Android asks to allow SugarBridge to install apps; if Play Protect blocks the app as
+   one from an unknown developer, tap "More details" → "Install anyway". Older versions are updated by
    installing the new APK from the link above over them. Your sign-in and settings are kept either way.
 
 > If you installed a SugarBridge built in Android Studio before, uninstall it first: the versions from

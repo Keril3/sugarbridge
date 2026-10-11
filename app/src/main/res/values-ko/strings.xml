@@ -251,4 +251,5 @@
     <string name="update_check">업데이트 확인</string>
     <string name="update_checking">확인 중…</string>
     <string name="update_latest">최신 버전이에요</string>
+    <string name="update_play_protect">Play 프로텍트가 알 수 없는 개발자의 앱이라며 설치를 막으면 ‘세부정보 더보기’ → ‘무시하고 설치’를 누르세요.</string>
 </resources>
