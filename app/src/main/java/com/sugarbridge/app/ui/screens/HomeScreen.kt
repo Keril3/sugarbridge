@@ -169,8 +169,8 @@ private fun GlucoseHero(latest: Reading?, s: AppSettings, now: Instant) {
                 GlucoseLevel.HIGH -> Mood.HIGH
             }
             Mascot(mood, size = 116.dp, modifier = Modifier.testTag("mascot"))
-            Spacer(Modifier.width(8.dp))
-            Column(Modifier.weight(1f)) {
+            // the value sits in the middle of the space between Tenshi-chan and the window edge
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
                 if (latest == null || level == null) {
                     Text(stringResource(R.string.home_no_data), style = MaterialTheme.typography.titleLarge)
                     Hint(stringResource(R.string.home_no_data_hint))
@@ -199,9 +199,9 @@ private fun GlucoseHero(latest: Reading?, s: AppSettings, now: Instant) {
     }
 }
 
-/** Min / average / max and time in range over the shown period. */
+/** Min / average / max and time in range over the shown readings: the home chart and the history chart. */
 @Composable
-private fun DayStats(readings: List<Reading>, s: AppSettings) {
+internal fun DayStats(readings: List<Reading>, s: AppSettings) {
     val locale = currentLocale()
     val values = readings.map { it.mgDl }
     val inRange = (100.0 * readings.count { levelOf(it.mgDl, s.lowMgDl, s.highMgDl) == GlucoseLevel.IN_RANGE } / readings.size).roundToInt()

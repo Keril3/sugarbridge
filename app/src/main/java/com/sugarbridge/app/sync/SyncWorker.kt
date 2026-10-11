@@ -22,7 +22,7 @@ import kotlinx.coroutines.CancellationException
 class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result = try {
-        val result = syncAndRecord(applicationContext)
+        val result = syncAndRecord(applicationContext, "background")
         Log.i(TAG, "written: ${result.written}")
         Result.success()
     } catch (e: CancellationException) {   // WorkManager stopped the job itself: not an error

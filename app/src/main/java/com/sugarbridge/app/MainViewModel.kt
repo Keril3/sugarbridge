@@ -9,6 +9,7 @@ import android.provider.OpenableColumns
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.sugarbridge.app.glucose.GlucoseBins
@@ -111,6 +112,11 @@ data class ImportUi(
     fun inRange(date: LocalDate) = (from == null || date >= from) && (to == null || date <= to)
 }
 
+/** The last imported history, kept until it is closed. */
+fun savedHistoryFile(context: Context) = File(context.filesDir, "history.csv")
+
+private const val HISTORY_PREFS = "history"
+
 class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     private val context: Context get() = getApplication()
@@ -141,6 +147,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         settingsPrefs.registerOnSharedPreferenceChangeListener(listener)
         refreshAccount()
         refreshLocal()
+        restoreHistory()
     }
 
     override fun onCleared() {
@@ -292,7 +299,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         ui = ui.copy(syncing = true)
         viewModelScope.launch {
             try {
-                val result = syncAndRecord(context)
+                val result = syncAndRecord(context, if (quiet) "app opened" else "button")
                 if (!quiet) {
                     if (result.written == 0) say(R.string.msg_nothing_new) else say(R.string.msg_written, result.written)
                 }
@@ -371,8 +378,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val after = settingsStore.update(change)
         ui = ui.copy(settings = after)
         if (after.backgroundMinutes != before.backgroundMinutes) scheduleSync(context, after)
-        // only what the minute service shows or does matters to it: the theme, for one, doesn't
-        val liveChanged = after.copy(theme = before.theme, backgroundMinutes = before.backgroundMinutes) != before
+        // only what the minute service shows or does matters to it: the look of the app doesn't
+        val liveChanged = after.copy(
+            theme = before.theme, backgroundMinutes = before.backgroundMinutes,
+            textScale = before.textScale, lowVision = before.lowVision, developer = before.developer,
+        ) != before
         when {
             after.liveEnabled && !before.liveEnabled -> if (ui.signedIn) LiveSyncService.start(context)
             !after.liveEnabled && before.liveEnabled -> LiveSyncService.stop(context)
@@ -405,8 +415,18 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    private suspend fun importBytes(bytes: ByteArray, source: String) {
-        tab = Tab.HISTORY
+    /** The history imported last time is kept until "Close", so it can be looked through again later. */
+    private fun restoreHistory() {
+        viewModelScope.launch {
+            val file = savedHistoryFile(context)
+            val bytes = withContext(Dispatchers.IO) { runCatching { file.takeIf { it.exists() }?.readBytes() }.getOrNull() } ?: return@launch
+            val source = context.getSharedPreferences(HISTORY_PREFS, Context.MODE_PRIVATE).getString("source", null) ?: "CSV"
+            importBytes(bytes, source, open = false, keep = false)
+        }
+    }
+
+    private suspend fun importBytes(bytes: ByteArray, source: String, open: Boolean = true, keep: Boolean = true) {
+        if (open) tab = Tab.HISTORY
         history = ImportUi(source = source, busy = true)
         try {
             val parsed = withContext(Dispatchers.Default) { LibreViewCsv.parse(LibreViewCsv.decode(bytes), zone) }
@@ -428,6 +448,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 to = days.last().date,
                 selected = days.filterNot { it.complete }.map { it.date }.toSet(),
             )
+            if (keep) {
+                withContext(Dispatchers.IO) { runCatching { savedHistoryFile(context).writeBytes(bytes) } }
+                context.getSharedPreferences(HISTORY_PREFS, Context.MODE_PRIVATE).edit { putString("source", source) }
+            }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -486,6 +510,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun closeHistory() {
         history = ImportUi()
+        savedHistoryFile(context).delete()
     }
 
     fun writeSelected() {

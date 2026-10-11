@@ -15,14 +15,20 @@ data class AppSettings(
     val liveShowValue: Boolean = true,   // glucose in the notification and the status bar
     val liveKeepAwake: Boolean = true,   // keep the CPU from sleeping between polls
     val livePinned: Boolean = false,     // the notification comes straight back if swiped away
+    val liveStatusValue: Boolean = true, // the number itself as the status bar icon, instead of Tenshi-chan
+    val liveArrow: Boolean = true,       // the trend arrow next to the value in the notification and the status bar
     val unit: GlucoseUnit = GlucoseUnit.MMOL,
     val lowMgDl: Double = 70.0,          // 3.9 mmol/L
     val highMgDl: Double = 180.0,        // 10.0 mmol/L
     val theme: ThemeMode = ThemeMode.SYSTEM,
+    val textScale: Float = 1f,           // on top of the phone's font size
+    val lowVision: Boolean = false,      // a plain readable font, larger and with more contrast, no dots
+    val developer: Boolean = false,      // the developer tools in Settings
 ) {
     companion object {
         val BACKGROUND_CHOICES = listOf(15, 30, 60, 180, 0)   // 15 minutes is the WorkManager minimum
         val LIVE_CHOICES = listOf(1, 2, 5, 10)
+        val TEXT_SCALES = listOf(0.9f, 1f, 1.15f, 1.3f)
     }
 }
 
@@ -38,10 +44,15 @@ class SettingsStore(context: Context) {
             liveShowValue = prefs.getBoolean("live_show_value", d.liveShowValue),
             liveKeepAwake = prefs.getBoolean("live_keep_awake", d.liveKeepAwake),
             livePinned = prefs.getBoolean("live_pinned", d.livePinned),
+            liveStatusValue = prefs.getBoolean("live_status_value", d.liveStatusValue),
+            liveArrow = prefs.getBoolean("live_arrow", d.liveArrow),
             unit = GlucoseUnit.entries.getOrElse(prefs.getInt("unit", d.unit.ordinal)) { d.unit },
             lowMgDl = prefs.getFloat("low_mgdl", d.lowMgDl.toFloat()).toDouble(),
             highMgDl = prefs.getFloat("high_mgdl", d.highMgDl.toFloat()).toDouble(),
             theme = ThemeMode.entries.firstOrNull { it.name == prefs.getString("theme", null) } ?: d.theme,
+            textScale = prefs.getFloat("text_scale", d.textScale),
+            lowVision = prefs.getBoolean("low_vision", d.lowVision),
+            developer = prefs.getBoolean("developer", d.developer),
         )
     }
 
@@ -53,10 +64,15 @@ class SettingsStore(context: Context) {
             putBoolean("live_show_value", s.liveShowValue)
             putBoolean("live_keep_awake", s.liveKeepAwake)
             putBoolean("live_pinned", s.livePinned)
+            putBoolean("live_status_value", s.liveStatusValue)
+            putBoolean("live_arrow", s.liveArrow)
             putInt("unit", s.unit.ordinal)
             putFloat("low_mgdl", s.lowMgDl.toFloat())
             putFloat("high_mgdl", s.highMgDl.toFloat())
             putString("theme", s.theme.name)
+            putFloat("text_scale", s.textScale)
+            putBoolean("low_vision", s.lowVision)
+            putBoolean("developer", s.developer)
         }
     }
 

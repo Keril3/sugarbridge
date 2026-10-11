@@ -82,7 +82,7 @@ class MainActivity : ComponentActivity(), AppActions {
         scheduleSync(this)   // safe to call on every start
         if (savedInstanceState == null) handleIntent(intent)
         setContent {
-            SugarTheme(vm.ui.settings.theme) {
+            SugarTheme(vm.ui.settings) {
                 // status bar icons follow the chosen theme, not only the phone's
                 val night = LocalNight.current
                 LaunchedEffect(night) {
@@ -193,6 +193,12 @@ class MainActivity : ComponentActivity(), AppActions {
     @SuppressLint("BatteryLife")   // the app is not for Google Play, and sleep gets in the way of minute mode
     override fun requestBatteryUnrestricted() =
         open(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, "package:$packageName".toUri()))
+
+    /** Usage access lets the developer tools show when Samsung Health was opened or worked in the background. */
+    override fun openUsageAccess() {
+        val ours = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS, "package:$packageName".toUri())
+        open(if (ours.resolveActivity(packageManager) != null) ours else Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+    }
 
     override fun openSamsungHealth() {
         packageManager.getLaunchIntentForPackage(SAMSUNG_HEALTH_PACKAGE)?.let(::open)

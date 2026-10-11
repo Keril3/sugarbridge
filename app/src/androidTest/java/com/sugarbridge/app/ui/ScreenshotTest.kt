@@ -1,20 +1,23 @@
 package com.sugarbridge.app.ui
 
 import android.graphics.Bitmap
-import androidx.compose.ui.test.junit4.createEmptyComposeRule
-import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performTouchInput
-import androidx.test.espresso.Espresso
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.test.performTouchInput
 import androidx.lifecycle.ViewModelProvider
 import androidx.test.core.app.ActivityScenario
+import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.sugarbridge.app.MainActivity
@@ -35,6 +38,7 @@ import com.sugarbridge.app.libre.Libre
 import com.sugarbridge.app.libre.Session
 import com.sugarbridge.app.libre.sha256
 import com.sugarbridge.app.resourcesIn
+import com.sugarbridge.app.savedHistoryFile
 import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.settings.SettingsStore
 import com.sugarbridge.app.settings.ThemeMode
@@ -106,6 +110,7 @@ class ScreenshotTest {
     fun seed() {
         // background sync is off: with the demo account LibreLinkUp would answer "wrong password"
         SettingsStore(context).save(AppSettings(backgroundMinutes = 0, liveEnabled = false))
+        savedHistoryFile(context).delete()   // a history kept from another run would replace the empty History tab
         SettingsStore(context).languageChosen = true
         AccountStore(context).save(Account("tenshi@example.com", "demo", Session("ru", "demo-token", sha256("demo"))))
         val now = Instant.now()
@@ -186,12 +191,38 @@ class ScreenshotTest {
         compose.waitUntil(20_000) { vm.history.loaded && !vm.history.busy }
         shot(language, "history")
 
+        // the history chart opens full screen; a finger picks a point with its date
+        compose.onNodeWithTag("history-chart").performClick()
+        compose.onNodeWithTag("chart-full").performTouchInput {
+            down(Offset(width * 0.5f, height * 0.5f))
+            up()
+        }
+        shot(language, "history_chart")
+        Espresso.pressBack()
+        // the days to write are picked in the calendar
+        // the bar with the write button lies over the end of the list: press the button itself, not the screen there
+        compose.onNodeWithTag("sync-period").performScrollTo().performSemanticsAction(SemanticsActions.OnClick)
+        compose.onNodeWithTag("calendar-title").assertExists()
+        shot(language, "calendar")
+        compose.onNodeWithTag("calendar-title").performClick()   // the grid of months
+        shot(language, "calendar_months")
+        compose.onNodeWithText(text(R.string.cancel)).performClick()
+
         compose.onNodeWithText(text(R.string.tab_settings)).performClick()
         shot(language, "settings")
         compose.onNodeWithText(text(R.string.settings_background_intro)).performScrollTo()
         shot(language, "settings_sync")
         compose.onNodeWithText(text(R.string.settings_about_title)).performScrollTo()
         shot(language, "settings_bottom")
+
+        // the developer tools
+        scenario.onActivity { vm.updateSettings { it.copy(developer = true) } }
+        // a message popping up at the bottom may cover the button for a moment: press the button itself
+        compose.onNodeWithText(text(R.string.settings_developer_open)).performScrollTo().performSemanticsAction(SemanticsActions.OnClick)
+        compose.waitUntil(15_000) { compose.onAllNodesWithText(text(R.string.dev_version)).fetchSemanticsNodes().isNotEmpty() }
+        shot(language, "developer")
+        Espresso.pressBack()
+        scenario.onActivity { vm.updateSettings { it.copy(developer = false) } }
 
         // the target range is typed in: a new lower bound with the decimal separator of the language, then Save
         val locale = Locale.forLanguageTag(language)
@@ -206,6 +237,14 @@ class ScreenshotTest {
         compose.onNodeWithText(text(R.string.tab_settings)).performClick()
         shot(language, "settings_night")
         scenario.onActivity { vm.updateSettings { it.copy(theme = ThemeMode.LIGHT) } }
+        compose.onNodeWithText(text(R.string.tab_now)).performClick()
+
+        // low vision: the plain font, larger, with more contrast, here also with the largest text
+        scenario.onActivity { vm.updateSettings { it.copy(lowVision = true, textScale = 1.3f) } }
+        shot(language, "home_low_vision")
+        compose.onNodeWithText(text(R.string.tab_settings)).performClick()
+        shot(language, "settings_low_vision")
+        scenario.onActivity { vm.updateSettings { it.copy(lowVision = false, textScale = 1f) } }
         compose.onNodeWithText(text(R.string.tab_now)).performClick()
 
         scenario.onActivity { ViewModelProvider(it)[MainViewModel::class.java].signOut() }

@@ -58,4 +58,13 @@ class ReadingTest {
         assertEquals(GlucoseLevel.IN_RANGE, levelOf(180.0, 70.0, 180.0))
         assertEquals(GlucoseLevel.HIGH, levelOf(180.1, 70.0, 180.0))
     }
+
+    /** LibreLinkUp's TrendArrow means what LibreLink shows: 1 falling fast … 3 steady … 5 rising fast. */
+    @Test
+    fun trendArrowsMatchLibreLink() {
+        val arrows = (0..6).map { parseReading(item("10/8/2026 6:00:00 PM", 115, trend = it)).arrow }
+        assertEquals(listOf("", "↓", "↘", "→", "↗", "↑", ""), arrows)
+        // the drawn arrow turns from pointing right: down, down-right, right, up-right, up
+        assertEquals(listOf(null, 90f, 45f, 0f, -45f, -90f, null), (0..6).map { trendAngle(it) })
+    }
 }

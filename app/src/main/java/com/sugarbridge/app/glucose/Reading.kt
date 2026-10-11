@@ -35,7 +35,11 @@ fun levelOf(mgDl: Double, lowMgDl: Double, highMgDl: Double): GlucoseLevel = whe
     else -> GlucoseLevel.IN_RANGE
 }
 
+// LibreLinkUp's TrendArrow, the same arrow LibreLink shows: 1 falling fast, 2 falling, 3 steady, 4 rising, 5 rising fast
 private val ARROWS = listOf("", "↓", "↘", "→", "↗", "↑")
+
+/** How far to turn an arrow pointing right, in degrees clockwise on screen: 90 points down, −90 up; null without a trend. */
+fun trendAngle(trend: Int): Float? = if (trend in 1..5) (3 - trend) * 45f else null
 
 val Reading.arrow: String get() = ARROWS.getOrElse(trend) { "" }
 

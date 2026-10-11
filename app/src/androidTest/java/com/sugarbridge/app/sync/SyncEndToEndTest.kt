@@ -6,13 +6,12 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.drawable.Icon
 import android.os.SystemClock
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.sugarbridge.app.MainActivity
 import com.sugarbridge.app.R
-import com.sugarbridge.app.resourcesIn
-import com.sugarbridge.app.useAppLanguage
 import com.sugarbridge.app.glucose.GlucoseUnit
 import com.sugarbridge.app.glucose.formatGlucose
 import com.sugarbridge.app.health.HealthConnectState
@@ -21,8 +20,10 @@ import com.sugarbridge.app.health.deleteOwnGlucose
 import com.sugarbridge.app.health.healthConnectState
 import com.sugarbridge.app.health.ownMinuteKeys
 import com.sugarbridge.app.libre.Libre
+import com.sugarbridge.app.resourcesIn
 import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.settings.SettingsStore
+import com.sugarbridge.app.useAppLanguage
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -147,6 +148,36 @@ class SyncEndToEndTest {
         val after = waitForNotification(timeoutMs = 10_000) { it.contains(formatGlucose(160.0, GlucoseUnit.MMOL)) }
         assertTrue("$before → $after", after.contains(LiveSyncService.CHANNEL_LIVE))
     }
+
+    /** The trend arrow and the number in the status bar each have a switch in Settings. */
+    @Test
+    fun arrowAndStatusBarNumberCanBeTurnedOff() {
+        useAppLanguage(context, "en")
+        SettingsStore(context).save(AppSettings(backgroundMinutes = 0, liveEnabled = true, liveMinutes = 10, liveShowValue = true, liveKeepAwake = false))
+        context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        val withArrow = waitForNotification { it.contains(LiveSyncService.CHANNEL_LIVE) && it.contains(formatGlucose(115.0, GlucoseUnit.MMOL)) }
+        assertTrue(withArrow, withArrow.contains("↗"))   // LibreLinkUp says 4: rising
+        assertEquals(Icon.TYPE_BITMAP, smallIcon().type)   // the number drawn as the icon
+        instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_HOME").close()
+        Thread.sleep(1500)
+        saveScreenshot("en", "statusbar_arrow")
+
+        SettingsStore(context).update { it.copy(liveArrow = false) }
+        LiveSyncService.reload(context)
+        val noArrow = waitForNotification { it.contains(LiveSyncService.CHANNEL_LIVE) && !it.contains("↗") }
+        assertTrue(noArrow, noArrow.contains(formatGlucose(115.0, GlucoseUnit.MMOL)))
+
+        SettingsStore(context).update { it.copy(liveStatusValue = false) }
+        LiveSyncService.reload(context)
+        val deadline = SystemClock.uptimeMillis() + 10_000
+        while (smallIcon().type != Icon.TYPE_RESOURCE && SystemClock.uptimeMillis() < deadline) Thread.sleep(250)
+        assertEquals(Icon.TYPE_RESOURCE, smallIcon().type)   // Tenshi-chan's icon again, the value still in the shade
+        assertTrue(waitForNotification { it.contains(LiveSyncService.CHANNEL_LIVE) }.contains(formatGlucose(115.0, GlucoseUnit.MMOL)))
+    }
+
+    private fun smallIcon(): Icon =
+        context.getSystemService(NotificationManager::class.java).activeNotifications
+            .first { it.id == LiveSyncService.NOTIFICATION_ID }.notification.smallIcon
 
     /** A swipe on Android 14+ removes the notification and sends the service "dismissed"; pinned brings it right back. */
     @Test

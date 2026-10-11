@@ -3,28 +3,28 @@ package com.sugarbridge.app.ui.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.sugarbridge.app.MainViewModel
 import com.sugarbridge.app.R
@@ -120,6 +120,20 @@ fun SettingsScreen(vm: MainViewModel, actions: AppActions) {
                 enabled = s.liveEnabled,
             )
             SwitchRow(
+                stringResource(R.string.settings_status_value),
+                stringResource(R.string.settings_status_value_hint),
+                checked = s.liveStatusValue,
+                onChange = { on -> vm.updateSettings { it.copy(liveStatusValue = on) } },
+                enabled = s.liveEnabled && s.liveShowValue,
+            )
+            SwitchRow(
+                stringResource(R.string.settings_arrow),
+                stringResource(R.string.settings_arrow_hint),
+                checked = s.liveArrow,
+                onChange = { on -> vm.updateSettings { it.copy(liveArrow = on) } },
+                enabled = s.liveEnabled && s.liveShowValue,
+            )
+            SwitchRow(
                 stringResource(R.string.settings_pinned),
                 stringResource(R.string.settings_pinned_hint),
                 checked = s.livePinned,
@@ -183,6 +197,31 @@ fun SettingsScreen(vm: MainViewModel, actions: AppActions) {
             )
         }
 
+        XpWindow(stringResource(R.string.settings_text_title)) {
+            Text(stringResource(R.string.settings_text_size), style = MaterialTheme.typography.bodyLarge)
+            ChoiceRow(
+                options = AppSettings.TEXT_SCALES,
+                selected = AppSettings.TEXT_SCALES.minBy { kotlin.math.abs(it - s.textScale) },
+                label = {
+                    stringResource(
+                        when (AppSettings.TEXT_SCALES.indexOf(it)) {
+                            0 -> R.string.text_size_small
+                            1 -> R.string.text_size_normal
+                            2 -> R.string.text_size_large
+                            else -> R.string.text_size_huge
+                        }
+                    )
+                },
+                onSelect = { scale -> vm.updateSettings { it.copy(textScale = scale) } },
+            )
+            SwitchRow(
+                stringResource(R.string.settings_low_vision),
+                stringResource(R.string.settings_low_vision_hint),
+                checked = s.lowVision,
+                onChange = { on -> vm.updateSettings { it.copy(lowVision = on) } },
+            )
+        }
+
         LanguageCard(actions)
         AboutCard(vm, actions)
         BottomSpace()
@@ -211,6 +250,7 @@ private fun AboutCard(vm: MainViewModel, actions: AppActions) {
     val context = LocalContext.current
     val version = remember { context.packageManager.getPackageInfo(context.packageName, 0).versionName.orEmpty() }
     val update = vm.update
+    var tools by remember { mutableStateOf(false) }
     XpWindow(stringResource(R.string.settings_about_title)) {
         Text(stringResource(R.string.settings_version, version), style = MaterialTheme.typography.bodyLarge)
         val release = update.available
@@ -237,7 +277,17 @@ private fun AboutCard(vm: MainViewModel, actions: AppActions) {
         }
         DottedDivider()
         Hint(stringResource(R.string.settings_about_hint))
+        SwitchRow(
+            stringResource(R.string.settings_developer),
+            stringResource(R.string.settings_developer_hint),
+            checked = vm.ui.settings.developer,
+            onChange = { on -> vm.updateSettings { it.copy(developer = on) } },
+        )
+        if (vm.ui.settings.developer) {
+            SecondaryButton(stringResource(R.string.settings_developer_open), onClick = { tools = true }, modifier = Modifier.fillMaxWidth())
+        }
     }
+    if (tools) DeveloperDialog(vm, actions) { tools = false }
 }
 
 /**

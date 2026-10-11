@@ -1,8 +1,10 @@
 package com.sugarbridge.app.sync
 
 import android.content.Context
+import android.os.SystemClock
 import androidx.core.content.edit
 import androidx.health.connect.client.HealthConnectClient
+import com.sugarbridge.app.debug.DebugLog
 import com.sugarbridge.app.glucose.Reading
 import com.sugarbridge.app.health.HealthConnectState
 import com.sugarbridge.app.health.WRITE_GLUCOSE
@@ -11,14 +13,22 @@ import com.sugarbridge.app.health.toRecord
 import com.sugarbridge.app.libre.Libre
 import java.time.Duration
 import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
-/** The outcome of one sync: how many were written, the latest reading and all readings for 12 hours. */
-class SyncResult(val written: Int, val latest: Reading?, val readings: List<Reading>)
+/** The outcome of one sync: how many were written, the latest reading, all readings for 12 hours and the timings. */
+class SyncResult(
+    val written: Int,
+    val latest: Reading?,
+    val readings: List<Reading>,
+    val fetchMillis: Long = 0,   // the LibreLinkUp request
+    val writeMillis: Long = 0,   // the Health Connect insert
+)
 
 /** The background job, the minute service and the button on screen must not sync at the same time. */
 private val syncMutex = Mutex()
@@ -29,7 +39,9 @@ suspend fun syncOnce(context: Context): SyncResult = syncMutex.withLock {
     val hc = HealthConnectClient.getOrCreate(context)
     if (WRITE_GLUCOSE !in hc.permissionController.getGrantedPermissions()) throw SyncBlocked(Problem.Code.NO_PERMISSION)
     val libre = Libre.client(context) ?: throw SyncBlocked(Problem.Code.SIGNED_OUT)
+    val fetchStart = SystemClock.elapsedRealtime()
     val readings = withContext(Dispatchers.IO) { libre.readings() }
+    val writeStart = SystemClock.elapsedRealtime()
 
     val store = SyncStore(context)
     val state = store.state()
@@ -42,17 +54,31 @@ suspend fun syncOnce(context: Context): SyncResult = syncMutex.withLock {
     // the order matters: first the records, then the state; if it fails in between, the record ids make a retry safe
     store.saveState(state.after(fresh, now))
     store.saveSuccess(readings, fresh.size)
-    SyncResult(fresh.size, readings.lastOrNull(), readings)
+    val done = SystemClock.elapsedRealtime()
+    SyncResult(fresh.size, readings.lastOrNull(), readings, writeStart - fetchStart, done - writeStart)
 }
 
-/** The same, but a failure is remembered so the home screen can show it. */
-suspend fun syncAndRecord(context: Context): SyncResult = try {
-    syncOnce(context)
+/**
+ * The same, but a failure is remembered so the home screen can show it, and every run goes to the event log
+ * with its [trigger]: the minute mode, the background job, the app being opened or the button.
+ */
+suspend fun syncAndRecord(context: Context, trigger: String = "other"): SyncResult = try {
+    syncOnce(context).also { DebugLog.add(context, "sync", describe(trigger, it)) }
 } catch (e: CancellationException) {
     throw e
 } catch (e: Exception) {
-    SyncStore(context).saveError(Problem.of(e))
+    val problem = Problem.of(e)
+    SyncStore(context).saveError(problem)
+    DebugLog.add(context, "error", "$trigger: ${problem.code} ${problem.detail.orEmpty()}".trim())
     throw e
+}
+
+/** "minute: newest 18:05:00, 64 s old; 48 points, wrote 1 (18:05); LibreLinkUp 610 ms, Health Connect 85 ms". */
+private fun describe(trigger: String, r: SyncResult, now: Instant = Instant.now()): String {
+    val zone = ZoneId.systemDefault()
+    val clock = DateTimeFormatter.ofPattern("HH:mm:ss")
+    val newest = r.latest?.let { "newest ${it.time.atZone(zone).format(clock)}, ${Duration.between(it.time, now).seconds} s old" } ?: "no readings"
+    return "$trigger: $newest; ${r.readings.size} points, wrote ${r.written}; LibreLinkUp ${r.fetchMillis} ms, Health Connect ${r.writeMillis} ms"
 }
 
 /** What the home screen shows: the latest readings, the last successful sync and the error. */

@@ -5,8 +5,10 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.pm.ServiceInfo
 import android.content.res.Configuration
@@ -21,13 +23,16 @@ import android.os.PowerManager
 import android.os.SystemClock
 import android.util.Log
 import androidx.core.graphics.createBitmap
+import androidx.core.graphics.withRotation
 import com.sugarbridge.app.MainActivity
 import com.sugarbridge.app.R
+import com.sugarbridge.app.debug.DebugLog
 import com.sugarbridge.app.glucose.GlucoseLevel
 import com.sugarbridge.app.glucose.Reading
 import com.sugarbridge.app.glucose.formatGlucose
 import com.sugarbridge.app.glucose.levelOf
 import com.sugarbridge.app.glucose.text
+import com.sugarbridge.app.glucose.trendAngle
 import com.sugarbridge.app.libre.Libre
 import com.sugarbridge.app.libre.LoginFailed
 import com.sugarbridge.app.libre.RateLimited
@@ -76,9 +81,30 @@ class LiveSyncService : Service() {
         }
     }
 
+    /** Doze and the screen go to the event log: they explain gaps between polls. */
+    private val phoneListener = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val text = when (intent.action) {
+                PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED ->
+                    if (getSystemService(PowerManager::class.java).isDeviceIdleMode) "Doze on" else "Doze off"
+                Intent.ACTION_SCREEN_ON -> "screen on"
+                Intent.ACTION_SCREEN_OFF -> "screen off"
+                else -> return
+            }
+            DebugLog.add(context, "phone", text)
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
+        running = true
         getSharedPreferences(SyncStore.NAME, MODE_PRIVATE).registerOnSharedPreferenceChangeListener(syncListener)
+        val events = IntentFilter().apply {
+            addAction(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED)
+            addAction(Intent.ACTION_SCREEN_ON)
+            addAction(Intent.ACTION_SCREEN_OFF)
+        }
+        registerReceiver(phoneListener, events, RECEIVER_NOT_EXPORTED)
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -125,6 +151,7 @@ class LiveSyncService : Service() {
         }
         if (loop?.isActive != true) {
             Log.i(SyncWorker.TAG, "minute mode: every ${settings.liveMinutes} min, glucose in the notification: ${settings.liveShowValue}")
+            DebugLog.add(this, "service", "minute mode on: every ${settings.liveMinutes} min, keep awake ${settings.liveKeepAwake}")
             loop = scope.launch { runLoop() }
         }
         return START_STICKY
@@ -139,6 +166,9 @@ class LiveSyncService : Service() {
     }
 
     override fun onDestroy() {
+        running = false
+        DebugLog.add(this, "service", "minute mode off")
+        runCatching { unregisterReceiver(phoneListener) }
         getSharedPreferences(SyncStore.NAME, MODE_PRIVATE).unregisterOnSharedPreferenceChangeListener(syncListener)
         scope.cancel()
         keepAwake?.let { if (it.isHeld) it.release() }
@@ -153,9 +183,13 @@ class LiveSyncService : Service() {
             var settings = SettingsStore(this).load()
             holdWakeLock(settings)
             var pause = settings.liveMinutes * 60_000L
-            lastSyncAt = SystemClock.elapsedRealtime()
+            val now = SystemClock.elapsedRealtime()
+            // a gap much longer than planned means Android held the service back (Doze, battery limits)
+            val trigger = if (lastSyncAt > 0) "minute, ${(now - lastSyncAt) / 1000} s after the previous" else "minute, first"
+            lastSyncAt = now
+            lastTick = System.currentTimeMillis()
             try {
-                val result = withSyncWakeLock(settings) { syncAndRecord(this) }
+                val result = withSyncWakeLock(settings) { syncAndRecord(this, trigger) }
                 latest = result.latest ?: latest
                 problem = null
                 Log.i(SyncWorker.TAG, "minute mode: written ${result.written}")
@@ -220,7 +254,8 @@ class LiveSyncService : Service() {
         val r = latest
         if (s.liveShowValue && r != null) {
             val value = formatGlucose(r.mgDl, s.unit)
-            val title = r.text(getString(s.unit.label), s.unit)
+            val trend = if (s.liveArrow) r.trend else 0
+            val title = r.copy(trend = trend).text(getString(s.unit.label), s.unit)
             val time = r.time.atZone(ZoneId.systemDefault()).format(clockFormat(this))
             val level = when (levelOf(r.mgDl, s.lowMgDl, s.highMgDl)) {
                 GlucoseLevel.LOW -> R.string.level_low
@@ -228,7 +263,8 @@ class LiveSyncService : Service() {
                 GlucoseLevel.HIGH -> R.string.level_high
             }
             val text = getString(R.string.notif_value_text, time, getString(level))
-            return "value|$title|$text" to builder(channel, title, text, value).build()
+            val icon = if (s.liveStatusValue) valueIcon(value, trend) else null
+            return "value|$title|$text|${s.liveStatusValue}" to builder(channel, title, text, icon).build()
         }
         val every = if (s.liveMinutes == 1) getString(R.string.notif_every_minute) else getString(R.string.notif_every, s.liveMinutes)
         return "quiet|$channel|$every" to builder(channel, getString(R.string.notif_watching), every).build()
@@ -243,14 +279,14 @@ class LiveSyncService : Service() {
         else -> getString(R.string.notif_failed) to p.text(resources)
     }
 
-    private fun builder(channel: String, title: String, text: String?, value: String? = null): Notification.Builder {
+    private fun builder(channel: String, title: String, text: String?, icon: Icon? = null): Notification.Builder {
         val openApp = Intent(this, MainActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)   // don't stack copies of the screen
         val open = PendingIntent.getActivity(this, 0, openApp, PendingIntent.FLAG_IMMUTABLE)
         val stop = PendingIntent.getService(this, 1, action(ACTION_STOP), PendingIntent.FLAG_IMMUTABLE)
         val dismissed = PendingIntent.getService(this, 2, action(ACTION_DISMISSED), PendingIntent.FLAG_IMMUTABLE)
         return Notification.Builder(this, channel)
-            .setSmallIcon(if (value != null) valueIcon(value) else Icon.createWithResource(this, R.drawable.ic_stat_tenshi))
+            .setSmallIcon(icon ?: Icon.createWithResource(this, R.drawable.ic_stat_tenshi))
             .setContentTitle(title)
             .apply { if (text != null) setContentText(text) }
             .setContentIntent(open)
@@ -265,10 +301,17 @@ class LiveSyncService : Service() {
 
     private fun action(name: String) = Intent(this, LiveSyncService::class.java).setAction(name)
 
-    /** The glucose value right in the status bar: the icon is drawn from text, the system tints it. */
-    private fun valueIcon(value: String): Icon {
+    /**
+     * The glucose value right in the status bar: the icon is drawn from text, the system tints it.
+     * With a [trend], a small arrow stands to the right of the number, turned the way the app draws it.
+     */
+    private fun valueIcon(value: String, trend: Int): Icon {
         val size = 96
         val bitmap = createBitmap(size, size)
+        val canvas = Canvas(bitmap)
+        val angle = trendAngle(trend)
+        val arrowWidth = if (angle != null) size * 0.34f else 0f
+        val room = size * 0.98f - arrowWidth
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.WHITE
             textAlign = Paint.Align.CENTER
@@ -276,10 +319,28 @@ class LiveSyncService : Service() {
             textSize = size * 0.78f
         }
         val width = paint.measureText(value)
-        if (width > size * 0.98f) paint.textSize *= size * 0.98f / width
+        if (width > room) paint.textSize *= room / width
         val bounds = Rect()
         paint.getTextBounds(value, 0, value.length, bounds)
-        Canvas(bitmap).drawText(value, size / 2f, size / 2f - bounds.exactCenterY(), paint)
+        val textCenter = (size - arrowWidth) / 2f
+        canvas.drawText(value, textCenter, size / 2f - bounds.exactCenterY(), paint)
+        if (angle != null) {
+            val cx = size - arrowWidth / 2f
+            val cy = size / 2f
+            val half = arrowWidth * 0.42f
+            val stroke = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.WHITE
+                style = Paint.Style.STROKE
+                strokeWidth = size * 0.1f
+                strokeCap = Paint.Cap.ROUND
+                strokeJoin = Paint.Join.ROUND
+            }
+            canvas.withRotation(angle, cx, cy) {   // drawn pointing right, then turned like the arrow in the app
+                drawLine(cx - half, cy, cx + half, cy, stroke)
+                drawLine(cx + half * 0.15f, cy - half * 0.75f, cx + half, cy, stroke)
+                drawLine(cx + half * 0.15f, cy + half * 0.75f, cx + half, cy, stroke)
+            }
+        }
         return Icon.createWithBitmap(bitmap)
     }
 
@@ -309,12 +370,18 @@ class LiveSyncService : Service() {
     }
 
     companion object {
+        /** For the developer tools: whether the service runs in this process and when it last asked LibreLinkUp. */
+        @Volatile var running = false
+            private set
+        @Volatile var lastTick = 0L
+            private set
+
         // "live" was used by version 1.0.0 with LOW importance: such notifications get no status bar icon,
         // and an app can't change the importance of an existing channel, hence the new id
         const val CHANNEL_LIVE = "glucose"
         internal const val LEGACY_CHANNEL = "live"
         const val CHANNEL_QUIET = "quiet"
-        private const val NOTIFICATION_ID = 1
+        const val NOTIFICATION_ID = 1
         private const val ACTION_STOP = "stop"
         internal const val ACTION_DISMISSED = "dismissed"
         private const val ACTION_RELOAD = "reload"

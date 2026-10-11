@@ -96,6 +96,28 @@ class LibreViewDownloadTest {
         }
     }
 
+    /** A large phone font must not enlarge the site's text: LibreView's cards have a fixed width. */
+    @Test
+    fun largePhoneFontKeepsSiteTextSize() {
+        val shell = instrumentation.uiAutomation
+        shell.executeShellCommand("settings put system font_scale 1.3").close()
+        try {
+            Thread.sleep(1000)
+            val html = """<html><body style="font-size:16px">LibreView</body></html>"""
+            val intent = Intent(context, LibreViewActivity::class.java).putExtra(LibreViewActivity.EXTRA_TEST_HTML, html)
+            ActivityScenario.launch<LibreViewActivity>(intent).use { scenario ->
+                Thread.sleep(1500)
+                val size = LinkedBlockingQueue<String>()
+                scenario.onActivity { activity ->
+                    findWebView(activity.window.decorView)!!.evaluateJavascript("getComputedStyle(document.body).fontSize") { size.add(it.trim('"')) }
+                }
+                assertEquals("16px", size.poll(10, TimeUnit.SECONDS))
+            }
+        } finally {
+            shell.executeShellCommand("settings put system font_scale 1.0").close()
+        }
+    }
+
     private fun findWebView(view: View): WebView? = when (view) {
         is WebView -> view
         is ViewGroup -> (0 until view.childCount).firstNotNullOfOrNull { findWebView(view.getChildAt(it)) }

@@ -62,8 +62,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import com.sugarbridge.app.glucose.trendAngle
 import com.sugarbridge.app.ui.theme.LocalNight
 import com.sugarbridge.app.ui.theme.LocalXp
+import com.sugarbridge.app.ui.theme.ProvideTextScale
 import com.sugarbridge.app.ui.theme.Tenshi
 
 // ---------------------------------------------------------------------------------------------------------
@@ -75,9 +79,11 @@ import com.sugarbridge.app.ui.theme.Tenshi
 fun SkyBackground(modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
     val xp = LocalXp.current
     Box(modifier.fillMaxSize().background(Brush.verticalGradient(xp.sky))) {
-        DotField()
-        // a 20% tint: the shade of the site plus 10% more, so text on the sky reads well
-        Box(Modifier.fillMaxSize().background(Color(0x330B2545)))
+        if (xp.starry) {
+            DotField()
+            // a 20% tint: the shade of the site plus 10% more, so text on the sky reads well
+            Box(Modifier.fillMaxSize().background(Color(0x330B2545)))
+        }
         CompositionLocalProvider(LocalContentColor provides xp.text) {
             content()
         }
@@ -118,6 +124,12 @@ private fun DotField() {
 // ---------------------------------------------------------------------------------------------------------
 // Windows
 // ---------------------------------------------------------------------------------------------------------
+
+/** A dialog with the app's text size: a dialog window gets the phone's font size again. */
+@Composable
+fun XpDialog(onDismissRequest: () -> Unit, properties: DialogProperties = DialogProperties(), content: @Composable () -> Unit) {
+    Dialog(onDismissRequest, properties) { ProvideTextScale(content) }
+}
 
 private val WindowShape = RoundedCornerShape(10.dp)
 
@@ -320,8 +332,7 @@ fun Pill(text: String, color: Color, modifier: Modifier = Modifier) {
 /** The trend arrow, drawn rather than a character: 1 = down … 3 = right … 5 = up. */
 @Composable
 fun TrendArrow(trend: Int, color: Color, size: Dp = 40.dp) {
-    if (trend !in 1..5) return
-    val angle = (3 - trend) * 45f   // 3 is horizontal, each step is 45°
+    val angle = trendAngle(trend) ?: return
     Canvas(Modifier.size(size).rotate(angle)) {
         val s = this.size.minDimension
         val stroke = Stroke(width = s * 0.13f, cap = StrokeCap.Round, join = StrokeJoin.Round)

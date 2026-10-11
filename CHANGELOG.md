@@ -2,6 +2,28 @@
 
 Newest version first. A version's section becomes the release notes on GitHub.
 
+## 1.6.0 — 2026-10-11
+
+- History chart: after importing a LibreView export, look through it as a chart, a day, a week, a month, three
+  months, all of it or any period from the calendar, with arrows to step through time, the statistics and the
+  estimated HbA1c of the period. A tap opens it full screen with dates under the finger. The imported file now
+  stays in the app until "Close", so it is still there after a restart.
+- A new calendar for periods: ready-made periods, "From" and "To", a month with a dot on every day with data
+  (colored by time in range), and a grid of months to get years back in three taps.
+- Text size in Settings, and a low vision mode: the phone's own font, larger text, more contrast, a plain
+  background.
+- The number in the status bar and the trend arrow each have a switch. With the arrow on, the status bar shows it
+  next to the number too.
+- Developer tools (Settings → About SugarBridge): the state of everything that can delay glucose (minute mode,
+  background job, battery limits, Android's standby bucket, Doze, Health Connect, Samsung Health) and an event
+  log of every sync with its trigger, timings and the age of the newest value, the minute service, Doze and the
+  screen. With usage access it also shows when Samsung Health was opened or ran a background service. The log
+  can be copied or shared.
+- The glucose value sits in the middle between Tenshi-chan and the window edge.
+- Checked: the trend arrow is LibreLink's own (LibreLinkUp's TrendArrow 1–5: ↓ ↘ → ↗ ↑), now pinned by a test.
+- Fixed: with a large phone font the LibreView site broke its layout: words spilled out of its cards and the
+  header was cut. The site now keeps its own text size; pinch to zoom instead.
+
 ## 1.5.2 — 2026-10-11
 
 - Tenshi-chan’s ahoge now rises through her halo: the near side of the ring passes in front of it. The app

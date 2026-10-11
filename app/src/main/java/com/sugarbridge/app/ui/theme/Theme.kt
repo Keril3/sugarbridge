@@ -11,14 +11,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sugarbridge.app.R
 import com.sugarbridge.app.glucose.GlucoseLevel
+import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.settings.ThemeMode
 
 /**
@@ -38,6 +41,7 @@ class XpColors(
     val dots: Color,                  // dotted lines between rows
     val floaterStar: Color,
     val shadow: Color,
+    val starry: Boolean = true,       // the field of dots and the tint; the low vision look has a plain background
 )
 
 val LightXp = XpColors(
@@ -68,6 +72,39 @@ val DarkXp = XpColors(
     dots = Color(0xFF6F8FEA),
     floaterStar = Color(0xFFE3EEFF),
     shadow = Color(0x73000000),
+)
+
+// For low vision: a plain background, black or white text, dark title bars and clear window edges
+val LightContrastXp = XpColors(
+    sky = listOf(Color(0xFFEAF2FB), Color(0xFFEAF2FB)),
+    windowBody = Color.White,
+    windowBorder = Color(0xFF0B1630),
+    bar = listOf(Color(0xFF1F5FBF), Color(0xFF15468F)),
+    text = Color.Black,
+    textMuted = Color(0xFF1E2B45),
+    statusBar = listOf(Color.White, Color.White),
+    statusBorder = Color(0xFF0B1630),
+    accent = Color(0xFF0B47A8),
+    dots = Color(0xFF1F5FBF),
+    floaterStar = Color(0xFF0B47A8),
+    shadow = Color(0x4D000000),
+    starry = false,
+)
+
+val DarkContrastXp = XpColors(
+    sky = listOf(Color(0xFF02040E), Color(0xFF02040E)),
+    windowBody = Color(0xFF0A0F24),
+    windowBorder = Color(0xFFE3EEFF),
+    bar = listOf(Color(0xFF3557D6), Color(0xFF1E3399)),
+    text = Color.White,
+    textMuted = Color(0xFFDCE6FF),
+    statusBar = listOf(Color(0xFF0A0F24), Color(0xFF0A0F24)),
+    statusBorder = Color(0xFFE3EEFF),
+    accent = Color(0xFFB5D3FF),
+    dots = Color(0xFF8FA9F0),
+    floaterStar = Color.White,
+    shadow = Color(0x99000000),
+    starry = false,
 )
 
 /** Colors that are the same in both themes. */
@@ -185,6 +222,32 @@ private val XpTypography = Typography(
     labelSmall = style(11, 14),
 )
 
+/**
+ * For low vision: the phone's own font instead of the pixel one, a size larger, with more space between lines
+ * and bold titles. Every style keeps its place, so the screens stay the same.
+ */
+private val ReadableTypography = Typography().let { m3 ->
+    fun TextStyle.readable(size: Int, weight: FontWeight = FontWeight.Normal) =
+        copy(fontFamily = FontFamily.SansSerif, fontWeight = weight, fontSize = size.sp, lineHeight = (size * 1.32f).sp, letterSpacing = 0.sp)
+    Typography(
+        displayLarge = m3.displayLarge.readable(54, FontWeight.Bold),
+        displayMedium = m3.displayMedium.readable(46, FontWeight.Bold),
+        displaySmall = m3.displaySmall.readable(34, FontWeight.Bold),
+        headlineLarge = m3.headlineLarge.readable(30, FontWeight.Bold),
+        headlineMedium = m3.headlineMedium.readable(26, FontWeight.Bold),
+        headlineSmall = m3.headlineSmall.readable(23, FontWeight.Bold),
+        titleLarge = m3.titleLarge.readable(21, FontWeight.Bold),
+        titleMedium = m3.titleMedium.readable(18, FontWeight.Bold),
+        titleSmall = m3.titleSmall.readable(16, FontWeight.Bold),
+        bodyLarge = m3.bodyLarge.readable(18),
+        bodyMedium = m3.bodyMedium.readable(17),
+        bodySmall = m3.bodySmall.readable(16),
+        labelLarge = m3.labelLarge.readable(17, FontWeight.Bold),
+        labelMedium = m3.labelMedium.readable(15, FontWeight.Bold),
+        labelSmall = m3.labelSmall.readable(14, FontWeight.Medium),
+    )
+}
+
 private val XpShapes = Shapes(
     extraSmall = RoundedCornerShape(4.dp),
     small = RoundedCornerShape(6.dp),
@@ -199,6 +262,9 @@ val LocalNight = staticCompositionLocalOf { false }
 /** The keril.art colors of the current theme. */
 val LocalXp = staticCompositionLocalOf { LightXp }
 
+/** How much larger than the phone's font size the app's text is, from Settings. */
+val LocalTextScale = staticCompositionLocalOf { 1f }
+
 @Composable
 fun isNight(mode: ThemeMode): Boolean = when (mode) {
     ThemeMode.SYSTEM -> isSystemInDarkTheme()
@@ -206,15 +272,38 @@ fun isNight(mode: ThemeMode): Boolean = when (mode) {
     ThemeMode.DARK -> true
 }
 
+/**
+ * Applies the text size from Settings. A dialog is a window of its own that gets the phone's font size again,
+ * so every dialog's content goes through this too (see XpDialog).
+ */
 @Composable
-fun SugarTheme(mode: ThemeMode = ThemeMode.SYSTEM, content: @Composable () -> Unit) {
+fun ProvideTextScale(content: @Composable () -> Unit) {
+    val density = LocalDensity.current
+    val scale = LocalTextScale.current
+    CompositionLocalProvider(LocalDensity provides Density(density.density, density.fontScale * scale), content = content)
+}
+
+@Composable
+fun SugarTheme(mode: ThemeMode = ThemeMode.SYSTEM, textScale: Float = 1f, lowVision: Boolean = false, content: @Composable () -> Unit) {
     val night = isNight(mode)
-    CompositionLocalProvider(LocalNight provides night, LocalXp provides if (night) DarkXp else LightXp) {
+    val xp = when {
+        lowVision && night -> DarkContrastXp
+        lowVision -> LightContrastXp
+        night -> DarkXp
+        else -> LightXp
+    }
+    CompositionLocalProvider(LocalNight provides night, LocalXp provides xp, LocalTextScale provides textScale) {
         MaterialTheme(
             colorScheme = if (night) DarkColors else LightColors,
-            typography = XpTypography,
+            typography = if (lowVision) ReadableTypography else XpTypography,
             shapes = XpShapes,
-            content = content,
-        )
+        ) {
+            ProvideTextScale(content)
+        }
     }
 }
+
+/** Builds the theme from the saved settings. */
+@Composable
+fun SugarTheme(settings: AppSettings, content: @Composable () -> Unit) =
+    SugarTheme(settings.theme, settings.textScale, settings.lowVision, content)

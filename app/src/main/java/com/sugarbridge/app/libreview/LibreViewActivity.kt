@@ -84,6 +84,11 @@ class LibreViewActivity : ComponentActivity() {
             layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
+            // WebView enlarges site text by the phone's font size, and LibreView's fixed-width cards can't take it:
+            // words spill out of them. The site gets its own text size; a pinch zooms it all evenly instead
+            settings.textZoom = 100
+            settings.builtInZoomControls = true
+            settings.displayZoomControls = false
             // some sites take "; wv" in the User-Agent for an embedded browser and simplify the page
             settings.userAgentString = settings.userAgentString.replace("; wv", "")
             addJavascriptInterface(CsvBridge(), "SugarBridgeCsv")
@@ -119,7 +124,7 @@ class LibreViewActivity : ComponentActivity() {
         onBackPressedDispatcher.addCallback(this) { if (web.canGoBack()) web.goBack() else finish() }
 
         setContent {
-            SugarTheme(SettingsStore(this).load().theme) {
+            SugarTheme(SettingsStore(this).load()) {
                 LibreViewScreen()
             }
         }

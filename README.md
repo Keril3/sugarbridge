@@ -22,14 +22,20 @@ from the LibreLinkUp cloud and writes them to Health Connect, where Samsung Heal
 
 - **Glucose in Samsung Health**: in the background every 15 minutes (or less often), without a notification.
 - **Minute mode**: every new reading goes to Samsung Health, and the glucose value with its trend arrow is
-  shown as a number in the status bar. The notification can be made quiet or hidden completely.
-- **Full history from LibreView**: download the export right in the app, then choose the period and the days
-  you want in Samsung Health. Nothing is written twice, and anything unwanted can be deleted.
+  shown as a number in the status bar. The number and the arrow can each be turned off; the notification can be
+  made quiet or hidden completely.
+- **Full history from LibreView**: download the export right in the app, look through it on a chart (a day, a
+  week, a month, all of it or any period from a calendar), then choose the days you want in Samsung Health.
+  Nothing is written twice, and anything unwanted can be deleted. The file stays in the app until you close it.
 - **Estimated HbA1c (GMI)** for 14 and 90 days, from all the history SugarBridge has written to Health Connect.
 - **Its own chart and statistics** for 12 hours, mmol/L or mg/dL, your own target range. Tap the chart to open it
   full screen and move a finger along it to read every value and its time.
 - **Light and dark theme** in the style of [keril.art](https://keril.art/): a blue sky with a field of dots,
   Windows XP style windows and a pixel font. The phone's theme by default, or light or dark in Settings.
+- **Readable for everyone**: four text sizes and a low vision mode with the phone's own font, larger text,
+  more contrast and a plain background.
+- **Developer tools** (Settings → About SugarBridge): an event log of every sync and of what Android did
+  around it, and the state of everything that can hold glucose back, to find where a delay comes from.
 - **12 languages**: English, Русский, Українська, Deutsch, Français, Español, Português, Italiano, Türkçe,
   简体中文, 日本語, 한국어. Chosen on the first start, changeable in Settings or in Android's per-app language settings.
 - **The password is protected by the Android Keystore** and stays on the phone.
@@ -103,7 +109,9 @@ LibreLinkUp remembers only the last 12 hours. Everything else is kept in LibreVi
 2. Sign in with your **LibreLink** account, the one in the sensor app, not LibreLinkUp.
 3. "Glucose History" → "Download glucose data" → "I'm not a robot" → "Download".
    SugarBridge picks up the file by itself.
-4. Choose the period and the days → "Write to Health Connect". Days that are already there are marked "✓ in HC".
+4. Look through it in "History chart": a day, a week, a month, all of it, or a period picked in the calendar;
+   the arrows step back and forth, a tap opens the chart full screen.
+5. Choose the period and the days → "Write to Health Connect". Days that are already there are marked "✓ in HC".
 
 A CSV downloaded in a browser can be opened with SugarBridge or chosen with "Choose a downloaded CSV".
 Exports in any LibreView language work: the columns are recognized by their headers.
@@ -121,7 +129,9 @@ SugarBridge's own share is measured by device tests: in minute mode every new va
 a minute of LibreLinkUp having it, also with the screen off in deep Doze. The background sync is different: on an
 idle phone Android holds it back for hours unless the battery restrictions are removed, so do that (the home
 screen asks). The last link is Samsung Health: it reads Health Connect on its own schedule, which Samsung doesn't
-document; opening Samsung Health makes it pick up new data.
+document, and other apps can neither hurry it nor see when it reads; opening Samsung Health makes it pick up new
+data. To see it on your phone, turn on Settings → About SugarBridge → Developer tools: the log shows when each
+value reached Health Connect, and Health Connect's own "Recent access" shows when Samsung Health read it.
 
 **Why does minute mode have a notification?** Android lets only a service with a notification run more often
 than every 15 minutes. It can be made quiet (Settings → "Glucose in the notification") or turned off completely
@@ -176,6 +186,7 @@ app/src/main/java/com/sugarbridge/app/
 ├── libre/       the LibreLinkUp client, response parsing, the account under the Keystore
 ├── libreview/   history import: CSV parsing, the site window, per-day summary
 ├── health/      Health Connect: writing, reading our own records, deleting
+├── debug/       the event log and the status for the developer tools
 ├── sync/        sync, the background job, the minute service, autostart, errors as codes
 ├── settings/    settings, the theme and the app language
 ├── update/      updates from GitHub Releases
@@ -202,14 +213,14 @@ GitHub Actions builds and signs the APK in Releases when a `v*` tag arrives in t
    ```
 3. **Every release:** add the version's section to [CHANGELOG.md](CHANGELOG.md), then
    ```sh
-   git tag v1.5.2
-   git push origin v1.5.2
+   git tag v1.6.0
+   git push origin v1.6.0
    ```
    A few minutes later `SugarBridge.apk` appears in Releases with the notes from the CHANGELOG.
 
 A signed APK can be built locally too: put `sugarbridge.keystore`, `sugarbridge.keystorePassword`,
 `sugarbridge.keyAlias` and `sugarbridge.keyPassword` into `~/.gradle/gradle.properties` (outside the repository)
-and run `./gradlew assembleRelease -Psugarbridge.version=1.5.2`.
+and run `./gradlew assembleRelease -Psugarbridge.version=1.6.0`.
 
 ## Thanks
 

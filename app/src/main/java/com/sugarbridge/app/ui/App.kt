@@ -8,10 +8,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -38,7 +38,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.sugarbridge.app.MainViewModel
 import com.sugarbridge.app.R
@@ -51,6 +50,7 @@ import com.sugarbridge.app.ui.components.Mood
 import com.sugarbridge.app.ui.components.PrimaryButton
 import com.sugarbridge.app.ui.components.SecondaryButton
 import com.sugarbridge.app.ui.components.SkyBackground
+import com.sugarbridge.app.ui.components.XpDialog
 import com.sugarbridge.app.ui.components.XpWindow
 import com.sugarbridge.app.ui.screens.HistoryScreen
 import com.sugarbridge.app.ui.screens.HomeScreen
@@ -74,6 +74,7 @@ interface AppActions {
     fun requestBatteryUnrestricted()
     fun openSamsungHealth()
     fun openGitHub()
+    fun openUsageAccess()
     fun installUpdate()
 }
 
@@ -186,7 +187,7 @@ private fun TenshiSnackbarHost(state: SnackbarHostState, modifier: Modifier = Mo
 @Composable
 private fun HealthConnectGate(state: HealthConnectState, actions: AppActions) {
     val update = state == HealthConnectState.UPDATE_REQUIRED
-    Dialog(onDismissRequest = {}, properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)) {
+    XpDialog(onDismissRequest = {}, properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)) {
         XpWindow(stringResource(if (update) R.string.hc_update_title else R.string.hc_missing_title)) {
             Mascot(Mood.SLEEPY, size = 96.dp, modifier = Modifier.align(Alignment.CenterHorizontally))
             Text(
