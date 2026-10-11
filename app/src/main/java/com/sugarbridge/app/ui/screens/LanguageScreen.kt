@@ -75,7 +75,7 @@ fun LanguageScreen(onContinue: (String?) -> Unit) {
     ) {
         Mascot(Mood.HAPPY, size = 130.dp)
         OutlinedTitle("SugarBridge", style = MaterialTheme.typography.displaySmall)
-        XpWindow(preview.getString(R.string.language_title), bodyPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 8.dp)) {
+        XpWindow(preview.getString(R.string.language_title), bodyPadding = androidx.compose.foundation.layout.PaddingValues(start = 12.dp, top = 14.dp, end = 12.dp, bottom = 8.dp)) {
             Column {
                 LanguageRow(preview.getString(R.string.language_system), phone, selected = chosen == null) { chosen = null }
                 LANGUAGES.forEach { language ->

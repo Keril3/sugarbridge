@@ -125,16 +125,16 @@
     <string name="settings_hc_allowed">已允许写入血糖 ✓</string>
     <string name="settings_hc_denied">没有写入血糖的权限</string>
     <string name="settings_hc_checking">正在检查权限…</string>
-    <string name="settings_permissions">权限</string>
+    <string name="settings_permissions">允许写入</string>
     <string name="settings_open_hc">打开 Health Connect</string>
     <string name="settings_open_samsung">打开 Samsung Health</string>
     <string name="settings_hc_hint">Samsung Health 会自行从 Health Connect 读取血糖。没有数据点？请在 Samsung Health → 设置 → Health Connect 中确认它可以读取“血糖”。</string>
     <string name="settings_background_title">后台同步</string>
     <string name="settings_off">关闭</string>
-    <string name="settings_background_hint">无通知。每次都会取回最近 12 小时、约每 15 分钟一个点的数据，即使手机休眠也不会遗漏。15 分钟是 Android 允许的最短间隔。</string>
+    <string name="settings_background_hint">没有通知时，Android 最多允许每 15 分钟运行一次。开启分钟模式时，它可以保留作为备用。每次都会获取最近 12 小时的记录，即使手机休眠也不会遗漏。</string>
     <string name="settings_live_title">分钟模式</string>
-    <string name="settings_live_switch">更频繁地更新血糖</string>
-    <string name="settings_live_switch_hint">每个新读数都会进入 Samsung Health，而不只是每 15 分钟一个点</string>
+    <string name="settings_live_switch">开启</string>
+    <string name="settings_live_switch_hint">血糖会在测量后一两分钟内进入 Samsung Health。模式运行期间，通知栏中会保留一条通知。</string>
     <string name="settings_live_every_minute">每分钟</string>
     <string name="settings_live_every">每 %1$d 分钟</string>
     <string name="settings_live_value">在通知中显示血糖</string>
@@ -143,10 +143,10 @@
     <string name="settings_keep_awake_hint">熄屏时间隔不会被拉长，但耗电更快</string>
     <string name="settings_hide_notification">完全隐藏通知</string>
     <string name="settings_battery">解除电池限制</string>
-    <string name="settings_live_hint">要比每 15 分钟更频繁地运行，Android 要求使用带通知的服务。可以在通知渠道设置中关闭通知：模式会继续运行，应用仍保留在活动应用列表中。</string>
-    <string name="settings_display_title">显示</string>
+    <string name="settings_live_hint">只有显示通知的应用，Android 才允许这么频繁地运行。如果通知打扰你，可以用上面的按钮关闭它，模式会继续运行。</string>
+    <string name="settings_display_title">读数</string>
     <string name="settings_target_range">目标范围：\n%1$s – %2$s %3$s</string>
-    <string name="settings_target_hint">仅用于颜色、图表和“在范围内”比例，不影响 LibreLink 的警报。</string>
+    <string name="settings_target_hint">此范围内的血糖视为正常：显示为绿色，低于范围为粉色，高于范围为橙色。图表中的色带和“在范围内”的比例也按它计算。不会改变 LibreLink 的警报。</string>
     <string name="settings_about_title">关于 SugarBridge</string>
     <string name="settings_version">版本 %1$s</string>
     <string name="settings_about_hint">本应用不是医疗器械：血糖警报和治疗决定只以 LibreLink 为准。LibreLinkUp 和 LibreView 通过非官方 API 使用，仅限你自己的账号和数据。</string>
@@ -253,4 +253,7 @@
     <string name="target_to">到</string>
     <string name="target_save">保存范围</string>
     <string name="target_invalid">请输入 %1$s 到 %2$s %3$s 之间的两个数字，较小的在前</string>
+    <string name="settings_background_intro">无需通知，每 15 分钟或更久一次。它与分钟模式无关：使用分钟模式不需要开启它。</string>
+    <string name="settings_hc_manage">权限在 Health Connect 中更改：在那里找到 SugarBridge。</string>
+    <string name="msg_hc_no_dialog">请在这里允许：SugarBridge → “血糖”</string>
 </resources>

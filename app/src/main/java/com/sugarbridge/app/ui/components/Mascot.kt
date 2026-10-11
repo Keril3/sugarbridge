@@ -156,12 +156,7 @@ private fun DrawScope.drawAngel(mood: Mood, flap: Float, glow: Float, blink: Flo
 
     // the back of the head first, so the dress covers the hair ends
     rotate(tilt, pivot = NECK) {
-        // halo with a pulsing glow
-        val halo = Size(26f, 7.6f)
-        val haloAt = Offset(41f, 19.2f)
-        drawOval(Color(0xFFFFE7A3).copy(alpha = glow * 0.6f), haloAt, halo, style = Stroke(5f))
-        drawOval(Color(0xFFFFC23D), haloAt, halo, style = Stroke(2.6f))
-        drawOval(Color(0xFFFFF4CC), haloAt, halo, style = Stroke(0.8f))
+        drawHalo(glow, front = false)
         drawPath(BACK_HAIR, Hair)
         drawPath(BACK_HAIR, HairLine, style = Stroke(1f))
     }
@@ -217,6 +212,7 @@ private fun DrawScope.drawAngel(mood: Mood, flap: Float, glow: Float, blink: Flo
         drawPath(HAIR_SHINE, Color.White.copy(alpha = 0.65f), style = Stroke(2f, cap = StrokeCap.Round))
         drawPath(AHOGE, Hair)
         drawPath(AHOGE, HairLine, style = Stroke(0.8f))
+        drawHalo(glow, front = true)   // the ahoge rises through the ring, behind its near side
         drawPath(STAR_CLIP, Color(0xFFFFD25E))
         drawPath(STAR_CLIP, Color(0xFFF0B43C), style = Stroke(0.5f, join = StrokeJoin.Round))
 
@@ -238,6 +234,18 @@ private fun DrawScope.drawAngel(mood: Mood, flap: Float, glow: Float, blink: Flo
         translate(left = 25f, top = 46f - 7f * joy) { scale(1.2f, pivot = Offset.Zero) { drawPath(HEART, heart) } }
     }
 }
+
+/** Half of the halo with its pulsing glow: the far half goes behind the head, the near half in front of the ahoge. */
+private fun DrawScope.drawHalo(glow: Float, front: Boolean) {
+    val start = if (front) 0f else 180f   // 0° is the right end, angles grow clockwise: 0..180 is the lower, near half
+    fun arc(color: Color, width: Float) = drawArc(color, start, 180f, false, HALO_AT, HALO_SIZE, style = Stroke(width))
+    arc(Color(0xFFFFE7A3).copy(alpha = glow * 0.6f), 5f)
+    arc(Color(0xFFFFC23D), 2.6f)
+    arc(Color(0xFFFFF4CC), 0.8f)
+}
+
+private val HALO_AT = Offset(41f, 19.2f)
+private val HALO_SIZE = Size(26f, 7.6f)
 
 private fun DrawScope.drawEyes() {
     drawOval(Iris, Offset(40.7f, 56.6f), Size(9.2f, 11.4f))

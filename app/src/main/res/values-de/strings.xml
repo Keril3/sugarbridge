@@ -125,16 +125,16 @@
     <string name="settings_hc_allowed">Schreiben von Zucker ist erlaubt ✓</string>
     <string name="settings_hc_denied">Keine Berechtigung zum Schreiben von Zucker</string>
     <string name="settings_hc_checking">Berechtigung wird geprüft…</string>
-    <string name="settings_permissions">Berechtigungen</string>
+    <string name="settings_permissions">Schreiben erlauben</string>
     <string name="settings_open_hc">Health Connect öffnen</string>
     <string name="settings_open_samsung">Samsung Health öffnen</string>
     <string name="settings_hc_hint">Samsung Health holt den Zucker selbst aus Health Connect. Keine Punkte? Prüfe in Samsung Health → Einstellungen → Health Connect, ob es „Blutzucker“ lesen darf.</string>
     <string name="settings_background_title">Hintergrund-Synchronisierung</string>
     <string name="settings_off">aus</string>
-    <string name="settings_background_hint">Ohne Benachrichtigung. Jeder Lauf holt die letzten 12 Stunden mit einem Punkt etwa alle 15 Minuten, also fehlt nichts, auch wenn das Telefon geschlafen hat. 15 Minuten sind das Minimum, das Android erlaubt.</string>
+    <string name="settings_background_hint">Öfter als alle 15 Minuten erlaubt Android ohne Benachrichtigung nicht. Mit dem Minutenmodus kann sie als Reserve eingeschaltet bleiben. Jedes Mal werden die letzten 12 Stunden geholt, es fehlt also nichts, auch wenn das Handy geschlafen hat.</string>
     <string name="settings_live_title">Minutenmodus</string>
-    <string name="settings_live_switch">Zucker öfter aktualisieren</string>
-    <string name="settings_live_switch_hint">Jede neue Messung landet in Samsung Health, nicht nur ein Punkt alle 15 Minuten</string>
+    <string name="settings_live_switch">Einschalten</string>
+    <string name="settings_live_switch_hint">Der Zucker ist ein bis zwei Minuten nach der Messung in Samsung Health. Solange der Modus läuft, steht eine Benachrichtigung in der Leiste.</string>
     <string name="settings_live_every_minute">jede Min.</string>
     <string name="settings_live_every">alle %1$d Min.</string>
     <string name="settings_live_value">Zucker in der Benachrichtigung</string>
@@ -143,10 +143,10 @@
     <string name="settings_keep_awake_hint">Das Intervall dehnt sich bei ausgeschaltetem Bildschirm nicht, aber der Akku leert sich schneller</string>
     <string name="settings_hide_notification">Benachrichtigung ganz ausblenden</string>
     <string name="settings_battery">Akku-Beschränkungen aufheben</string>
-    <string name="settings_live_hint">Öfter als alle 15 Minuten erlaubt Android Hintergrundarbeit nur einem Dienst mit Benachrichtigung. Du kannst die Benachrichtigung in den Kanaleinstellungen ausschalten: Der Modus läuft weiter und die App bleibt in der Liste aktiver Apps.</string>
-    <string name="settings_display_title">Anzeige</string>
+    <string name="settings_live_hint">So oft darf eine App nur mit Benachrichtigung arbeiten. Stört sie, schalte sie mit der Taste oben aus – der Modus läuft weiter.</string>
+    <string name="settings_display_title">Messwerte</string>
     <string name="settings_target_range">Zielbereich:\n%1$s – %2$s %3$s</string>
-    <string name="settings_target_hint">Nur für Farben, das Diagramm und den Anteil „im Bereich“. Wirkt sich nicht auf die Alarme von LibreLink aus.</string>
+    <string name="settings_target_hint">Zucker in diesem Bereich gilt als normal: Er wird grün angezeigt, darunter rosa, darüber orange. Danach richten sich auch das Band im Diagramm und der Anteil „im Bereich“. LibreLink-Alarme ändern sich nicht.</string>
     <string name="settings_about_title">Über SugarBridge</string>
     <string name="settings_version">Version %1$s</string>
     <string name="settings_about_hint">Kein Medizinprodukt: Zuckeralarme und Therapieentscheidungen gehören allein zu LibreLink. LibreLinkUp und LibreView werden über eine inoffizielle API genutzt, nur mit deinem eigenen Konto und deinen Daten.</string>
@@ -253,4 +253,7 @@
     <string name="target_to">Bis</string>
     <string name="target_save">Bereich speichern</string>
     <string name="target_invalid">Gib zwei Zahlen von %1$s bis %2$s %3$s ein, die kleinere zuerst</string>
+    <string name="settings_background_intro">Ohne Benachrichtigung, alle 15 Minuten oder seltener. Sie hat nichts mit dem Minutenmodus zu tun – für ihn musst du sie nicht einschalten.</string>
+    <string name="settings_hc_manage">Berechtigungen änderst du in Health Connect: Such dort SugarBridge.</string>
+    <string name="msg_hc_no_dialog">Erlaube es hier: SugarBridge → „Blutzucker“</string>
 </resources>

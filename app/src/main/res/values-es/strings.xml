@@ -125,16 +125,16 @@
     <string name="settings_hc_allowed">Escribir glucosa está permitido ✓</string>
     <string name="settings_hc_denied">Sin permiso para escribir glucosa</string>
     <string name="settings_hc_checking">Comprobando el permiso…</string>
-    <string name="settings_permissions">Permisos</string>
+    <string name="settings_permissions">Permitir escritura</string>
     <string name="settings_open_hc">Abrir Health Connect</string>
     <string name="settings_open_samsung">Abrir Samsung Health</string>
     <string name="settings_hc_hint">Samsung Health toma la glucosa de Health Connect por sí solo. ¿No hay puntos? En Samsung Health → Ajustes → Health Connect, comprueba que puede leer «Glucosa en sangre».</string>
     <string name="settings_background_title">Sincronización en segundo plano</string>
     <string name="settings_off">no</string>
-    <string name="settings_background_hint">Sin notificación. Cada vez recoge las últimas 12 horas con un punto cada 15 minutos aproximadamente, así que no falta nada aunque el teléfono estuviera dormido. 15 minutos es el mínimo que permite Android.</string>
+    <string name="settings_background_hint">Sin notificación, Android no permite más de una vez cada 15 minutos. Con el modo minuto puede quedarse activada como respaldo. Cada vez se descargan las últimas 12 horas, así que no faltará nada aunque el teléfono haya estado en reposo.</string>
     <string name="settings_live_title">Modo minuto</string>
-    <string name="settings_live_switch">Actualizar la glucosa más a menudo</string>
-    <string name="settings_live_switch_hint">Cada lectura nueva llega a Samsung Health, no solo un punto cada 15 minutos</string>
+    <string name="settings_live_switch">Activar</string>
+    <string name="settings_live_switch_hint">La glucosa llega a Samsung Health uno o dos minutos después de la medición. Mientras el modo funciona, hay una notificación en la barra.</string>
     <string name="settings_live_every_minute">cada min</string>
     <string name="settings_live_every">cada %1$d min</string>
     <string name="settings_live_value">Glucosa en la notificación</string>
@@ -143,10 +143,10 @@
     <string name="settings_keep_awake_hint">El intervalo no se alarga con la pantalla apagada, pero la batería se gasta antes</string>
     <string name="settings_hide_notification">Ocultar la notificación por completo</string>
     <string name="settings_battery">Quitar las restricciones de batería</string>
-    <string name="settings_live_hint">Para funcionar más a menudo que cada 15 minutos, Android exige un servicio con notificación. Puedes desactivar la notificación en los ajustes de su canal: el modo sigue funcionando y la app sigue en la lista de apps activas.</string>
-    <string name="settings_display_title">Visualización</string>
+    <string name="settings_live_hint">Android solo deja que una app funcione tan a menudo si muestra una notificación. Si te molesta, desactívala con el botón de arriba: el modo seguirá funcionando.</string>
+    <string name="settings_display_title">Mediciones</string>
     <string name="settings_target_range">Rango objetivo:\n%1$s – %2$s %3$s</string>
-    <string name="settings_target_hint">Solo para los colores, la gráfica y el porcentaje «en rango». No afecta a las alarmas de LibreLink.</string>
+    <string name="settings_target_hint">La glucosa dentro de este rango se considera normal: se muestra en verde, por debajo en rosa y por encima en naranja. La franja del gráfico y el porcentaje «en rango» también lo usan. Las alarmas de LibreLink no cambian.</string>
     <string name="settings_about_title">Acerca de SugarBridge</string>
     <string name="settings_version">Versión %1$s</string>
     <string name="settings_about_hint">No es un producto sanitario: las alarmas de glucosa y las decisiones de tratamiento corresponden solo a LibreLink. LibreLinkUp y LibreView se usan mediante una API no oficial, solo con tu cuenta y tus datos.</string>
@@ -253,4 +253,7 @@
     <string name="target_to">Hasta</string>
     <string name="target_save">Guardar rango</string>
     <string name="target_invalid">Introduce dos números entre %1$s y %2$s %3$s, el menor primero</string>
+    <string name="settings_background_intro">Sin notificación, cada 15 minutos o con menos frecuencia. No tiene que ver con el modo minuto: no hace falta activarla para él.</string>
+    <string name="settings_hc_manage">Los permisos se cambian en Health Connect: busca allí SugarBridge.</string>
+    <string name="msg_hc_no_dialog">Permítelo aquí: SugarBridge → «Glucosa en sangre»</string>
 </resources>

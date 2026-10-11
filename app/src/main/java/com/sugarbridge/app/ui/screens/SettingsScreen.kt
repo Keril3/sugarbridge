@@ -86,26 +86,16 @@ fun SettingsScreen(vm: MainViewModel, actions: AppActions) {
                 style = MaterialTheme.typography.bodyLarge,
                 color = if (ui.canWrite == false) MaterialTheme.colorScheme.error else LocalXp.current.text,
             )
+            // once writing is allowed there is nothing to ask for: Health Connect itself changes permissions
+            if (ui.canWrite == false) {
+                PrimaryButton(stringResource(R.string.settings_permissions), onClick = actions::requestHealthPermission, modifier = Modifier.fillMaxWidth())
+            }
             ButtonRow {
-                SecondaryButton(stringResource(R.string.settings_permissions), onClick = actions::requestHealthPermission)
                 SecondaryButton(stringResource(R.string.settings_open_hc), onClick = actions::openHealthConnect)
                 if (ui.samsungHealth) SecondaryButton(stringResource(R.string.settings_open_samsung), onClick = actions::openSamsungHealth)
             }
+            if (ui.canWrite == true) Hint(stringResource(R.string.settings_hc_manage))
             Hint(stringResource(R.string.settings_hc_hint))
-        }
-
-        XpWindow(stringResource(R.string.settings_background_title)) {
-            ChoiceRow(
-                options = AppSettings.BACKGROUND_CHOICES,
-                selected = s.backgroundMinutes,
-                label = { if (it == 0) stringResource(R.string.settings_off) else minutesText(it) },
-                onSelect = { minutes -> vm.updateSettings { it.copy(backgroundMinutes = minutes) } },
-            )
-            Hint(stringResource(R.string.settings_background_hint))
-            if (!ui.batteryUnrestricted) {
-                Hint(stringResource(R.string.battery_text))
-                PrimaryButton(stringResource(R.string.settings_battery), onClick = actions::requestBatteryUnrestricted, modifier = Modifier.fillMaxWidth())
-            }
         }
 
         XpWindow(stringResource(R.string.settings_live_title)) {
@@ -148,6 +138,22 @@ fun SettingsScreen(vm: MainViewModel, actions: AppActions) {
                 PrimaryButton(stringResource(R.string.settings_battery), onClick = actions::requestBatteryUnrestricted, modifier = Modifier.fillMaxWidth())
             }
             Hint(stringResource(R.string.settings_live_hint))
+        }
+
+        XpWindow(stringResource(R.string.settings_background_title)) {
+            // first the answer to "do I need this for the minute mode?"
+            Text(stringResource(R.string.settings_background_intro), style = MaterialTheme.typography.bodyMedium)
+            ChoiceRow(
+                options = AppSettings.BACKGROUND_CHOICES,
+                selected = s.backgroundMinutes,
+                label = { if (it == 0) stringResource(R.string.settings_off) else minutesText(it) },
+                onSelect = { minutes -> vm.updateSettings { it.copy(backgroundMinutes = minutes) } },
+            )
+            Hint(stringResource(R.string.settings_background_hint))
+            if (!ui.batteryUnrestricted) {
+                Hint(stringResource(R.string.battery_text))
+                PrimaryButton(stringResource(R.string.settings_battery), onClick = actions::requestBatteryUnrestricted, modifier = Modifier.fillMaxWidth())
+            }
         }
 
         XpWindow(stringResource(R.string.settings_display_title)) {

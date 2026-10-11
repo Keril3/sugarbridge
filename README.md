@@ -127,6 +127,9 @@ document; opening Samsung Health makes it pick up new data.
 than every 15 minutes. It can be made quiet (Settings → "Glucose in the notification") or turned off completely
 ("Hide the notification completely"); the mode keeps working.
 
+**Do I need background sync for minute mode?** No, they are separate. Background sync (every 15 minutes or
+less often, no notification) can stay on as a backup: each run fetches the last 12 hours, so nothing is missed.
+
 **Can it work without Health Connect?** No, and it doesn't need to: on Android 14+ it is part of the system,
 not a separate app. Writing to Samsung Health directly requires a Samsung partner key. If Health Connect is
 turned off or outdated, SugarBridge shows how to fix it.
@@ -199,14 +202,14 @@ GitHub Actions builds and signs the APK in Releases when a `v*` tag arrives in t
    ```
 3. **Every release:** add the version's section to [CHANGELOG.md](CHANGELOG.md), then
    ```sh
-   git tag v1.5.1
-   git push origin v1.5.1
+   git tag v1.5.2
+   git push origin v1.5.2
    ```
    A few minutes later `SugarBridge.apk` appears in Releases with the notes from the CHANGELOG.
 
 A signed APK can be built locally too: put `sugarbridge.keystore`, `sugarbridge.keystorePassword`,
 `sugarbridge.keyAlias` and `sugarbridge.keyPassword` into `~/.gradle/gradle.properties` (outside the repository)
-and run `./gradlew assembleRelease -Psugarbridge.version=1.5.1`.
+and run `./gradlew assembleRelease -Psugarbridge.version=1.5.2`.
 
 ## Thanks
 

@@ -125,16 +125,16 @@
     <string name="settings_hc_allowed">Gravar glicose está permitido ✓</string>
     <string name="settings_hc_denied">Sem permissão para gravar glicose</string>
     <string name="settings_hc_checking">Verificando a permissão…</string>
-    <string name="settings_permissions">Permissões</string>
+    <string name="settings_permissions">Permitir gravação</string>
     <string name="settings_open_hc">Abrir o Health Connect</string>
     <string name="settings_open_samsung">Abrir o Samsung Health</string>
     <string name="settings_hc_hint">O Samsung Health pega a glicose do Health Connect sozinho. Sem pontos? No Samsung Health → Ajustes → Health Connect, confira se ele pode ler “Glicose no sangue”.</string>
     <string name="settings_background_title">Sincronização em segundo plano</string>
     <string name="settings_off">desligada</string>
-    <string name="settings_background_hint">Sem notificação. Cada execução pega as últimas 12 horas, com um ponto mais ou menos a cada 15 minutos, então nada se perde mesmo que o telefone tenha dormido. 15 minutos é o mínimo que o Android permite.</string>
+    <string name="settings_background_hint">Sem notificação, o Android não permite mais de uma vez a cada 15 minutos. Com o modo minuto ligado, ela pode ficar ativa como reserva. Cada vez são buscadas as últimas 12 horas, então nada se perde mesmo se o celular estiver dormindo.</string>
     <string name="settings_live_title">Modo minuto</string>
-    <string name="settings_live_switch">Atualizar a glicose com mais frequência</string>
-    <string name="settings_live_switch_hint">Cada leitura nova chega ao Samsung Health, não só um ponto a cada 15 minutos</string>
+    <string name="settings_live_switch">Ativar</string>
+    <string name="settings_live_switch_hint">A glicose chega ao Samsung Health um ou dois minutos após a medição. Enquanto o modo funciona, fica uma notificação na barra.</string>
     <string name="settings_live_every_minute">a cada min</string>
     <string name="settings_live_every">a cada %1$d min</string>
     <string name="settings_live_value">Glicose na notificação</string>
@@ -143,10 +143,10 @@
     <string name="settings_keep_awake_hint">O intervalo não se estica com a tela apagada, mas a bateria acaba mais rápido</string>
     <string name="settings_hide_notification">Ocultar a notificação por completo</string>
     <string name="settings_battery">Remover restrições de bateria</string>
-    <string name="settings_live_hint">Para rodar mais de uma vez a cada 15 minutos, o Android exige um serviço com notificação. Você pode desligar a notificação nos ajustes do canal: o modo continua funcionando e o app fica na lista de apps ativos.</string>
-    <string name="settings_display_title">Exibição</string>
+    <string name="settings_live_hint">O Android só deixa um app trabalhar com essa frequência se ele mostrar uma notificação. Se ela incomodar, desative-a no botão acima: o modo continua funcionando.</string>
+    <string name="settings_display_title">Medições</string>
     <string name="settings_target_range">Faixa-alvo:\n%1$s – %2$s %3$s</string>
-    <string name="settings_target_hint">Só para as cores, o gráfico e a porcentagem “na faixa”. Não afeta os alarmes do LibreLink.</string>
+    <string name="settings_target_hint">A glicose dentro desta faixa é considerada normal: aparece em verde, abaixo em rosa e acima em laranja. A faixa do gráfico e a porcentagem “na faixa” também usam isso. Os alarmes do LibreLink não mudam.</string>
     <string name="settings_about_title">Sobre o SugarBridge</string>
     <string name="settings_version">Versão %1$s</string>
     <string name="settings_about_hint">Não é um dispositivo médico: alarmes de glicose e decisões de tratamento cabem só ao LibreLink. O LibreLinkUp e o LibreView são usados por uma API não oficial, só com a sua conta e os seus dados.</string>
@@ -253,4 +253,7 @@
     <string name="target_to">Até</string>
     <string name="target_save">Salvar faixa</string>
     <string name="target_invalid">Digite dois números de %1$s a %2$s %3$s, o menor primeiro</string>
+    <string name="settings_background_intro">Sem notificação, a cada 15 minutos ou menos. Não tem relação com o modo minuto: não é preciso ativá-la para ele.</string>
+    <string name="settings_hc_manage">As permissões são alteradas no Health Connect: procure o SugarBridge lá.</string>
+    <string name="msg_hc_no_dialog">Permita aqui: SugarBridge → “Glicose no sangue”</string>
 </resources>

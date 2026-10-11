@@ -21,15 +21,15 @@
         android:strokeColor="#FFFFE7A3"
         android:strokeWidth="5"
         android:strokeAlpha="0.5"
-        android:pathData="M41,23a13,3.8 0,1 0,26 0a13,3.8 0,1 0,-26 0z" />
+        android:pathData="M41,23a13,3.8 0,0 1,26 0" />
     <path
         android:strokeColor="#FFFFC23D"
         android:strokeWidth="2.6"
-        android:pathData="M41,23a13,3.8 0,1 0,26 0a13,3.8 0,1 0,-26 0z" />
+        android:pathData="M41,23a13,3.8 0,0 1,26 0" />
     <path
         android:strokeColor="#FFFFF4CC"
         android:strokeWidth="0.8"
-        android:pathData="M41,23a13,3.8 0,1 0,26 0a13,3.8 0,1 0,-26 0z" />
+        android:pathData="M41,23a13,3.8 0,0 1,26 0" />
     <path
         android:strokeColor="#FF6E9FE6"
         android:strokeWidth="1"
@@ -171,6 +171,19 @@
             </gradient>
         </aapt:attr>
     </path>
+    <path
+        android:strokeColor="#FFFFE7A3"
+        android:strokeWidth="5"
+        android:strokeAlpha="0.5"
+        android:pathData="M67,23a13,3.8 0,0 1,-26 0" />
+    <path
+        android:strokeColor="#FFFFC23D"
+        android:strokeWidth="2.6"
+        android:pathData="M67,23a13,3.8 0,0 1,-26 0" />
+    <path
+        android:strokeColor="#FFFFF4CC"
+        android:strokeWidth="0.8"
+        android:pathData="M67,23a13,3.8 0,0 1,-26 0" />
     <path
         android:fillColor="#FFFFD25E"
         android:strokeColor="#FFF0B43C"

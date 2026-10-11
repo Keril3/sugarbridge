@@ -125,16 +125,16 @@
     <string name="settings_hc_allowed">血糖値の書き込みは許可されています ✓</string>
     <string name="settings_hc_denied">血糖値を書き込む権限がありません</string>
     <string name="settings_hc_checking">権限を確認中…</string>
-    <string name="settings_permissions">権限</string>
+    <string name="settings_permissions">書き込みを許可</string>
     <string name="settings_open_hc">Health Connect を開く</string>
     <string name="settings_open_samsung">Samsung Health を開く</string>
     <string name="settings_hc_hint">Samsung Health は Health Connect から自動で血糖値を取り込みます。点が出ない場合は、Samsung Health → 設定 → Health Connect で「血糖値」の読み取りが許可されているか確認してください。</string>
     <string name="settings_background_title">バックグラウンド同期</string>
     <string name="settings_off">オフ</string>
-    <string name="settings_background_hint">通知なし。毎回、約 15 分ごとの点を含む直近 12 時間分を取得するので、端末がスリープしていても抜けはありません。15 分は Android が許す最短の間隔です。</string>
+    <string name="settings_background_hint">通知なしでは、Android は 15 分より短い間隔を許可しません。分刻みモードと一緒に予備としてオンのままでも構いません。毎回直近 12 時間の記録を取得するので、スマホがスリープしていても抜けは出ません。</string>
     <string name="settings_live_title">分刻みモード</string>
-    <string name="settings_live_switch">血糖値をもっと頻繁に更新</string>
-    <string name="settings_live_switch_hint">15 分ごとの点だけでなく、新しい測定値がすべて Samsung Health に届きます</string>
+    <string name="settings_live_switch">オンにする</string>
+    <string name="settings_live_switch_hint">測定から 1～2 分で血糖値が Samsung Health に届きます。動作中は通知領域に通知が表示されます。</string>
     <string name="settings_live_every_minute">毎分</string>
     <string name="settings_live_every">%1$d 分ごと</string>
     <string name="settings_live_value">通知に血糖値を表示</string>
@@ -143,10 +143,10 @@
     <string name="settings_keep_awake_hint">画面オフでも間隔は延びませんが、バッテリーの減りが早くなります</string>
     <string name="settings_hide_notification">通知を完全に非表示にする</string>
     <string name="settings_battery">バッテリーの制限を解除</string>
-    <string name="settings_live_hint">15 分より短い間隔で動かすには、Android では通知付きのサービスが必要です。通知はチャンネル設定でオフにできます。モードは動き続け、アプリは実行中のアプリの一覧に残ります。</string>
-    <string name="settings_display_title">表示</string>
+    <string name="settings_live_hint">Android がこれほど頻繁な動作を許すのは、通知を表示しているアプリだけです。通知が気になる場合は上のボタンでオフにしてください。モードはそのまま動き続けます。</string>
+    <string name="settings_display_title">測定値</string>
     <string name="settings_target_range">目標範囲：\n%1$s – %2$s %3$s</string>
-    <string name="settings_target_hint">色、グラフ、「範囲内」の割合にのみ使われます。LibreLink のアラームには影響しません。</string>
+    <string name="settings_target_hint">この範囲内の血糖値を正常とみなします。範囲内は緑、下回ると桃色、上回るとオレンジで表示されます。グラフの帯と「範囲内」の割合もこれで決まります。LibreLink のアラームは変わりません。</string>
     <string name="settings_about_title">SugarBridge について</string>
     <string name="settings_version">バージョン %1$s</string>
     <string name="settings_about_hint">医療機器ではありません。血糖値のアラームと治療の判断は LibreLink のみに従ってください。LibreLinkUp と LibreView は非公式 API を通じて、ご自身のアカウントとデータでのみ利用します。</string>
@@ -253,4 +253,7 @@
     <string name="target_to">上限</string>
     <string name="target_save">範囲を保存</string>
     <string name="target_invalid">%1$s～%2$s %3$s の数値を 2 つ、小さいほうを先に入力してください</string>
+    <string name="settings_background_intro">通知なしで、15 分ごとかそれより少ない頻度で動作します。分刻みモードとは別のもので、そのためにオンにする必要はありません。</string>
+    <string name="settings_hc_manage">権限は Health Connect で変更できます。そこで SugarBridge を開いてください。</string>
+    <string name="msg_hc_no_dialog">ここで許可してください：SugarBridge →「血糖値」</string>
 </resources>

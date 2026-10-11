@@ -125,16 +125,16 @@
     <string name="settings_hc_allowed">혈당 쓰기가 허용됨 ✓</string>
     <string name="settings_hc_denied">혈당 쓰기 권한이 없음</string>
     <string name="settings_hc_checking">권한 확인 중…</string>
-    <string name="settings_permissions">권한</string>
+    <string name="settings_permissions">쓰기 허용</string>
     <string name="settings_open_hc">Health Connect 열기</string>
     <string name="settings_open_samsung">Samsung Health 열기</string>
     <string name="settings_hc_hint">Samsung Health는 Health Connect에서 혈당을 알아서 가져가요. 점이 안 보이면 Samsung Health → 설정 → Health Connect에서 ‘혈당’ 읽기가 허용되어 있는지 확인하세요.</string>
     <string name="settings_background_title">백그라운드 동기화</string>
     <string name="settings_off">끔</string>
-    <string name="settings_background_hint">알림 없음. 매번 약 15분 간격의 점이 담긴 최근 12시간을 가져오므로 휴대전화가 잠들어 있었어도 빠지는 값이 없어요. 15분은 Android가 허용하는 최소 간격이에요.</string>
+    <string name="settings_background_hint">알림이 없으면 Android는 15분보다 자주 작동하는 것을 허용하지 않아요. 분 단위 모드를 쓸 때도 예비용으로 켜 둬도 괜찮아요. 매번 최근 12시간 기록을 가져오므로 휴대폰이 잠들어 있었어도 빠지는 값이 없어요.</string>
     <string name="settings_live_title">분 단위 모드</string>
-    <string name="settings_live_switch">혈당을 더 자주 업데이트</string>
-    <string name="settings_live_switch_hint">15분마다 한 점이 아니라 새 측정값이 모두 Samsung Health로 가요</string>
+    <string name="settings_live_switch">켜기</string>
+    <string name="settings_live_switch_hint">측정 후 1~2분 안에 혈당이 Samsung Health에 들어가요. 모드가 켜져 있는 동안 알림창에 알림이 표시돼요.</string>
     <string name="settings_live_every_minute">매분</string>
     <string name="settings_live_every">%1$d분마다</string>
     <string name="settings_live_value">알림에 혈당 표시</string>
@@ -143,10 +143,10 @@
     <string name="settings_keep_awake_hint">화면이 꺼져도 간격이 늘어나지 않지만 배터리가 더 빨리 닳아요</string>
     <string name="settings_hide_notification">알림 완전히 숨기기</string>
     <string name="settings_battery">배터리 제한 해제</string>
-    <string name="settings_live_hint">15분보다 자주 실행하려면 Android는 알림이 있는 서비스를 요구해요. 채널 설정에서 알림을 끌 수 있어요. 모드는 계속 작동하고 앱은 실행 중인 앱 목록에 남아요.</string>
-    <string name="settings_display_title">표시</string>
+    <string name="settings_live_hint">Android는 알림을 표시하는 앱에만 이렇게 자주 작동하도록 허용해요. 알림이 거슬리면 위 버튼으로 끄세요. 모드는 계속 작동해요.</string>
+    <string name="settings_display_title">측정값</string>
     <string name="settings_target_range">목표 범위:\n%1$s – %2$s %3$s</string>
-    <string name="settings_target_hint">색상, 그래프, ‘범위 안’ 비율에만 쓰여요. LibreLink 알람에는 영향을 주지 않아요.</string>
+    <string name="settings_target_hint">이 범위 안의 혈당은 정상으로 봐요. 범위 안은 초록, 아래는 분홍, 위는 주황으로 표시돼요. 그래프의 띠와 ‘범위 내’ 비율도 이 값으로 계산해요. LibreLink 알람은 바뀌지 않아요.</string>
     <string name="settings_about_title">SugarBridge 정보</string>
     <string name="settings_version">버전 %1$s</string>
     <string name="settings_about_hint">의료기기가 아니에요. 혈당 알람과 치료 결정은 LibreLink만 따르세요. LibreLinkUp과 LibreView는 비공식 API로, 본인 계정과 데이터로만 사용해요.</string>
@@ -253,4 +253,7 @@
     <string name="target_to">최대</string>
     <string name="target_save">범위 저장</string>
     <string name="target_invalid">%1$s~%2$s %3$s 사이의 숫자 두 개를 작은 것부터 입력하세요</string>
+    <string name="settings_background_intro">알림 없이 15분마다 또는 더 드물게 동기화해요. 분 단위 모드와는 별개라서 그 모드를 위해 켤 필요는 없어요.</string>
+    <string name="settings_hc_manage">권한은 Health Connect에서 바꿀 수 있어요. 거기서 SugarBridge를 찾으세요.</string>
+    <string name="msg_hc_no_dialog">여기서 허용하세요: SugarBridge → ‘혈당’</string>
 </resources>

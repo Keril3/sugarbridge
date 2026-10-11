@@ -128,16 +128,16 @@
     <string name="settings_hc_allowed">Writing glucose is allowed ✓</string>
     <string name="settings_hc_denied">No permission to write glucose</string>
     <string name="settings_hc_checking">Checking the permission…</string>
-    <string name="settings_permissions">Permissions</string>
+    <string name="settings_permissions">Allow writing</string>
     <string name="settings_open_hc">Open Health Connect</string>
     <string name="settings_open_samsung">Open Samsung Health</string>
     <string name="settings_hc_hint">Samsung Health takes glucose from Health Connect by itself. No points? In Samsung Health → Settings → Health Connect, check that it may read “Blood glucose”.</string>
     <string name="settings_background_title">Background sync</string>
     <string name="settings_off">off</string>
-    <string name="settings_background_hint">Without a notification. Each run fetches the last 12 hours with a point about every 15 minutes, so nothing is missed even if the phone was asleep. 15 minutes is the minimum Android allows.</string>
+    <string name="settings_background_hint">Android allows no more than every 15 minutes without a notification. With the minute mode on, it can stay on as a backup. Each run fetches the last 12 hours, so nothing is missed even if the phone slept.</string>
     <string name="settings_live_title">Minute mode</string>
-    <string name="settings_live_switch">Update glucose more often</string>
-    <string name="settings_live_switch_hint">Every new reading reaches Samsung Health, not only a point every 15 minutes</string>
+    <string name="settings_live_switch">Turn on</string>
+    <string name="settings_live_switch_hint">Glucose reaches Samsung Health a minute or two after the sensor reads it. A notification stays in the shade while it runs.</string>
     <string name="settings_live_every_minute">every min</string>
     <string name="settings_live_every">every %1$d min</string>
     <string name="settings_live_value">Glucose in the notification</string>
@@ -146,10 +146,10 @@
     <string name="settings_keep_awake_hint">The interval doesn’t stretch while the screen is off, but the battery drains faster</string>
     <string name="settings_hide_notification">Hide the notification completely</string>
     <string name="settings_battery">Remove battery restrictions</string>
-    <string name="settings_live_hint">To run more often than every 15 minutes, Android requires a service with a notification. You can turn the notification off in its channel settings: the mode keeps working and the app stays in the list of active apps.</string>
-    <string name="settings_display_title">Display</string>
+    <string name="settings_live_hint">Android lets an app work this often only while it shows a notification. If it bothers you, turn it off with the button above; the mode keeps working.</string>
+    <string name="settings_display_title">Readings</string>
     <string name="settings_target_range">Target range:\n%1$s – %2$s %3$s</string>
-    <string name="settings_target_hint">Only for colors, the chart and the “in range” share. It doesn’t affect LibreLink alarms.</string>
+    <string name="settings_target_hint">Glucose within this range counts as normal: it is shown green, below it pink, above it orange. The chart band and the “in range” share use it too. LibreLink alarms don’t change.</string>
     <string name="settings_about_title">About SugarBridge</string>
     <string name="settings_version">Version %1$s</string>
     <string name="settings_about_hint">Not a medical device: glucose alarms and treatment decisions belong to LibreLink only. LibreLinkUp and LibreView are used through an unofficial API, with your own account and data only.</string>
@@ -256,4 +256,7 @@
     <string name="target_to">To</string>
     <string name="target_save">Save range</string>
     <string name="target_invalid">Enter two numbers from %1$s to %2$s %3$s, the lower one first</string>
+    <string name="settings_background_intro">Without a notification, every 15 minutes or less often. It is separate from the minute mode: you don’t need it for that.</string>
+    <string name="settings_hc_manage">Permissions are changed in Health Connect: find SugarBridge there.</string>
+    <string name="msg_hc_no_dialog">Allow it here: SugarBridge → “Blood glucose”</string>
 </resources>

@@ -70,14 +70,14 @@ import com.sugarbridge.app.ui.theme.Tenshi
 // The sky
 // ---------------------------------------------------------------------------------------------------------
 
-/** The background of the whole app, as on keril.art: a sky gradient and a still field of dots. */
+/** The background of the whole app, as on keril.art: a sky gradient and a still field of dots under a tint. */
 @Composable
 fun SkyBackground(modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
     val xp = LocalXp.current
     Box(modifier.fillMaxSize().background(Brush.verticalGradient(xp.sky))) {
         DotField()
-        // a 10% shade keeps the background from competing with the windows, like on the site
-        Box(Modifier.fillMaxSize().background(Color(0x1A0B2545)))
+        // a 20% tint: the shade of the site plus 10% more, so text on the sky reads well
+        Box(Modifier.fillMaxSize().background(Color(0x330B2545)))
         CompositionLocalProvider(LocalContentColor provides xp.text) {
             content()
         }
@@ -121,13 +121,17 @@ private fun DotField() {
 
 private val WindowShape = RoundedCornerShape(10.dp)
 
-/** A Windows XP style window, as on keril.art: a gradient title bar with an outlined title above the content. */
+/**
+ * A Windows XP style window, as on keril.art: a gradient title bar with an outlined title above the content.
+ * The content starts a little further from the title than its lines are from each other.
+ */
 @Composable
 fun XpWindow(
     title: String,
     modifier: Modifier = Modifier,
-    bodyPadding: PaddingValues = PaddingValues(16.dp),
+    bodyPadding: PaddingValues = PaddingValues(start = 16.dp, top = 20.dp, end = 16.dp, bottom = 16.dp),
     onBodyClick: (() -> Unit)? = null,
+    framed: Boolean = true,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val xp = LocalXp.current
@@ -136,7 +140,7 @@ fun XpWindow(
             .fillMaxWidth()
             .shadow(10.dp, WindowShape, ambientColor = xp.shadow, spotColor = xp.shadow)
             .clip(WindowShape)
-            .border(2.dp, xp.windowBorder, WindowShape)
+            .then(if (framed) Modifier.border(2.dp, xp.windowBorder, WindowShape) else Modifier)
             .background(xp.windowBody),
     ) {
         Row(
@@ -279,7 +283,7 @@ fun SwitchRow(title: String, subtitle: String?, checked: Boolean, onChange: (Boo
         Modifier.fillMaxWidth().clip(MaterialTheme.shapes.small).clickable(enabled = enabled) { onChange(!checked) }.padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(Modifier.weight(1f).alpha(if (enabled) 1f else 0.5f)) {
+        Column(Modifier.weight(1f).alpha(if (enabled) 1f else 0.5f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(title, style = MaterialTheme.typography.bodyLarge)
             if (subtitle != null) {
                 Text(subtitle, style = MaterialTheme.typography.bodySmall, color = xp.textMuted)

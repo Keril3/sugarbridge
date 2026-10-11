@@ -2,6 +2,22 @@
 
 Newest version first. A version's section becomes the release notes on GitHub.
 
+## 1.5.2 — 2026-10-11
+
+- Tenshi-chan’s ahoge now rises through her halo: the near side of the ring passes in front of it. The app
+  icon too.
+- Tighter lines everywhere, and a little more room between a window’s title and its content.
+- Messages (e.g. after “Sync now”) pop up as a small window like all the others, without the white frame;
+  a tap closes one.
+- The background is tinted a little more in both themes, so text on it reads better.
+- Clearer sync settings: the minute mode comes first, with one switch and a plain explanation; background
+  sync says right away that it is separate from the minute mode and not needed for it.
+- “Display” is now “Readings”, and the target range explains what it is for: colors, the chart band and the
+  “in range” share.
+- Fixed: “Permissions” in Settings did nothing once writing was allowed. Now “Allow writing” shows only while
+  it is missing; if Health Connect has stopped asking after two refusals, SugarBridge opens it and says
+  where to allow it.
+
 ## 1.5.1 — 2026-10-11
 
 - Fixed: the LibreView site did not open properly. The page was laid out with zero height, so its sign-in

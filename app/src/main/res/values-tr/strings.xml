@@ -125,16 +125,16 @@
     <string name="settings_hc_allowed">Şeker yazma izni var ✓</string>
     <string name="settings_hc_denied">Şeker yazma izni yok</string>
     <string name="settings_hc_checking">İzin denetleniyor…</string>
-    <string name="settings_permissions">İzinler</string>
+    <string name="settings_permissions">Yazmaya izin ver</string>
     <string name="settings_open_hc">Health Connect’i aç</string>
     <string name="settings_open_samsung">Samsung Health’i aç</string>
     <string name="settings_hc_hint">Samsung Health şekeri Health Connect’ten kendisi alır. Nokta yok mu? Samsung Health → Ayarlar → Health Connect’te “Kan şekeri” okuma izni olduğunu kontrol edin.</string>
     <string name="settings_background_title">Arka plan eşitlemesi</string>
     <string name="settings_off">kapalı</string>
-    <string name="settings_background_hint">Bildirimsiz. Her seferinde yaklaşık 15 dakikada bir nokta içeren son 12 saati alır; telefon uyusa bile hiçbir şey kaçmaz. Android’in izin verdiği en kısa süre 15 dakikadır.</string>
+    <string name="settings_background_hint">Android bildirim olmadan 15 dakikadan sık çalışmaya izin vermez. Dakika modu açıkken yedek olarak açık kalabilir. Her seferinde son 12 saat alınır, telefon uykuda olsa bile boşluk kalmaz.</string>
     <string name="settings_live_title">Dakika modu</string>
-    <string name="settings_live_switch">Şekeri daha sık güncelle</string>
-    <string name="settings_live_switch_hint">Samsung Health’e 15 dakikada bir nokta değil, her yeni ölçüm gider</string>
+    <string name="settings_live_switch">Aç</string>
+    <string name="settings_live_switch_hint">Şeker, ölçümden bir iki dakika sonra Samsung Health’e ulaşır. Mod çalıştığı sürece bildirim panelinde bir bildirim durur.</string>
     <string name="settings_live_every_minute">her dk</string>
     <string name="settings_live_every">%1$d dk’da bir</string>
     <string name="settings_live_value">Bildirimde şeker</string>
@@ -143,10 +143,10 @@
     <string name="settings_keep_awake_hint">Ekran kapalıyken aralık uzamaz, ancak pil daha hızlı biter</string>
     <string name="settings_hide_notification">Bildirimi tamamen gizle</string>
     <string name="settings_battery">Pil kısıtlamalarını kaldır</string>
-    <string name="settings_live_hint">15 dakikadan sık çalışmak için Android bildirimli bir hizmet ister. Bildirimi kanal ayarlarından kapatabilirsiniz: mod çalışmaya devam eder ve uygulama etkin uygulamalar listesinde kalır.</string>
-    <string name="settings_display_title">Görünüm</string>
+    <string name="settings_live_hint">Android bir uygulamanın bu kadar sık çalışmasına yalnızca bildirim gösterirken izin verir. Rahatsız ederse yukarıdaki düğmeyle kapatın; mod çalışmaya devam eder.</string>
+    <string name="settings_display_title">Değerler</string>
     <string name="settings_target_range">Hedef aralık:\n%1$s – %2$s %3$s</string>
-    <string name="settings_target_hint">Yalnızca renkler, grafik ve “aralıkta” oranı için. LibreLink alarmlarını etkilemez.</string>
+    <string name="settings_target_hint">Bu aralıktaki şeker normal sayılır: yeşil, altındaki pembe, üstündeki turuncu gösterilir. Grafikteki bant ve “aralıkta” oranı da buna göre hesaplanır. LibreLink alarmları değişmez.</string>
     <string name="settings_about_title">SugarBridge hakkında</string>
     <string name="settings_version">Sürüm %1$s</string>
     <string name="settings_about_hint">Tıbbi cihaz değildir: şeker alarmları ve tedavi kararları yalnızca LibreLink’e aittir. LibreLinkUp ve LibreView resmî olmayan bir API ile, yalnızca kendi hesabınız ve verilerinizle kullanılır.</string>
@@ -253,4 +253,7 @@
     <string name="target_to">En çok</string>
     <string name="target_save">Aralığı kaydet</string>
     <string name="target_invalid">%1$s ile %2$s %3$s arasında iki sayı girin, küçük olan önce</string>
+    <string name="settings_background_intro">Bildirimsiz, 15 dakikada bir veya daha seyrek. Dakika moduyla ilgisi yoktur: onun için açmanız gerekmez.</string>
+    <string name="settings_hc_manage">İzinler Health Connect’te değiştirilir: orada SugarBridge’i bulun.</string>
+    <string name="msg_hc_no_dialog">Buradan izin verin: SugarBridge → “Kan şekeri”</string>
 </resources>

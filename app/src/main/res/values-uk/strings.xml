@@ -125,16 +125,16 @@
     <string name="settings_hc_allowed">Запис цукру дозволено ✓</string>
     <string name="settings_hc_denied">Немає дозволу на запис цукру</string>
     <string name="settings_hc_checking">Перевіряю дозвіл…</string>
-    <string name="settings_permissions">Дозволи</string>
+    <string name="settings_permissions">Дозволити запис</string>
     <string name="settings_open_hc">Відкрити Health Connect</string>
     <string name="settings_open_samsung">Відкрити Samsung Health</string>
     <string name="settings_hc_hint">Samsung Health сам забирає цукор із Health Connect. Якщо точок немає — перевірте в Samsung Health → Налаштування → Health Connect, що йому дозволено читати «Рівень глюкози».</string>
     <string name="settings_background_title">Фонова синхронізація</string>
     <string name="settings_off">вимк</string>
-    <string name="settings_background_hint">Без сповіщення. Щоразу забирає історію за 12 годин: у ній точки приблизно кожні 15 хвилин, тож пропусків не буде, навіть якщо телефон спав. 15 хвилин — мінімум, який дозволяє Android.</string>
+    <string name="settings_background_hint">Частіше ніж раз на 15 хвилин без сповіщення Android не дозволяє. З увімкненим хвилинним режимом її можна лишити як запасну. Щоразу забирається історія за 12 годин, тож пропусків не буде, навіть якщо телефон спав.</string>
     <string name="settings_live_title">Хвилинний режим</string>
-    <string name="settings_live_switch">Оновлювати цукор частіше</string>
-    <string name="settings_live_switch_hint">У Samsung Health з’являється кожен новий вимір, а не лише точки раз на 15 хвилин</string>
+    <string name="settings_live_switch">Увімкнути</string>
+    <string name="settings_live_switch_hint">Цукор потрапляє в Samsung Health через 1–2 хвилини після виміру. Поки режим працює, у шторці висить сповіщення.</string>
     <string name="settings_live_every_minute">щохвилини</string>
     <string name="settings_live_every">раз на %1$d хв</string>
     <string name="settings_live_value">Цукор у сповіщенні</string>
@@ -143,10 +143,10 @@
     <string name="settings_keep_awake_hint">Інтервал не розтягується при вимкненому екрані, але батарея сідає швидше</string>
     <string name="settings_hide_notification">Приховати сповіщення зовсім</string>
     <string name="settings_battery">Зняти обмеження батареї</string>
-    <string name="settings_live_hint">Частіше ніж раз на 15 хвилин Android дає працювати у фоні лише сервісу зі сповіщенням. Сповіщення можна вимкнути в налаштуваннях каналу — режим працюватиме далі, застосунок залишиться в списку активних.</string>
-    <string name="settings_display_title">Відображення</string>
+    <string name="settings_live_hint">Так часто Android дає працювати лише застосунку зі сповіщенням. Якщо воно заважає, вимкніть його кнопкою вище — режим працюватиме далі.</string>
+    <string name="settings_display_title">Показники</string>
     <string name="settings_target_range">Цільовий діапазон:\n%1$s – %2$s %3$s</string>
-    <string name="settings_target_hint">Лише для кольорів, графіка й відсотка «у діапазоні». На тривоги LibreLink не впливає.</string>
+    <string name="settings_target_hint">Цукор у цих межах вважається нормою: він показується зеленим, нижче — рожевим, вище — помаранчевим. За ним же малюється смуга на графіку й рахується частка «в діапазоні». Тривоги LibreLink не змінюються.</string>
     <string name="settings_about_title">Про SugarBridge</string>
     <string name="settings_version">Версія %1$s</string>
     <string name="settings_about_hint">Не медичний виріб: тривоги про низький і високий цукор та рішення щодо лікування — лише за LibreLink. LibreLinkUp і LibreView використовуються через неофіційний API, лише ваш акаунт і ваші дані.</string>
@@ -253,4 +253,7 @@
     <string name="target_to">До</string>
     <string name="target_save">Зберегти діапазон</string>
     <string name="target_invalid">Введіть два числа від %1$s до %2$s %3$s, менше — першим</string>
+    <string name="settings_background_intro">Без сповіщення, раз на 15 хвилин або рідше. З хвилинним режимом не пов’язана — для нього її вмикати не треба.</string>
+    <string name="settings_hc_manage">Дозволи змінюються в Health Connect: знайдіть там SugarBridge.</string>
+    <string name="msg_hc_no_dialog">Дозвольте тут: SugarBridge → «Рівень глюкози»</string>
 </resources>

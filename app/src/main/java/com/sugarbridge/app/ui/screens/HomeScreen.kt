@@ -78,7 +78,7 @@ fun HomeScreen(vm: MainViewModel, actions: AppActions) {
     val latest = ui.sync.recent.lastOrNull()
 
     ScreenColumn(Modifier.verticalScroll(rememberScrollState())) {
-        Column(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
             OutlinedTitle(greeting().uppercase(currentLocale()), style = MaterialTheme.typography.headlineSmall.copy(letterSpacing = MaterialTheme.typography.headlineSmall.letterSpacing * 4))
             Text(stringResource(R.string.home_subtitle), style = MaterialTheme.typography.bodySmall, color = LocalXp.current.text)
         }

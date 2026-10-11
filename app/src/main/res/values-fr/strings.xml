@@ -125,16 +125,16 @@
     <string name="settings_hc_allowed">L’écriture de la glycémie est autorisée ✓</string>
     <string name="settings_hc_denied">Pas d’autorisation d’écrire la glycémie</string>
     <string name="settings_hc_checking">Vérification de l’autorisation…</string>
-    <string name="settings_permissions">Autorisations</string>
+    <string name="settings_permissions">Autoriser l’écriture</string>
     <string name="settings_open_hc">Ouvrir Health Connect</string>
     <string name="settings_open_samsung">Ouvrir Samsung Health</string>
     <string name="settings_hc_hint">Samsung Health récupère la glycémie dans Health Connect tout seul. Aucun point ? Dans Samsung Health → Réglages → Health Connect, vérifiez qu’il peut lire « Glycémie ».</string>
     <string name="settings_background_title">Synchronisation en arrière-plan</string>
     <string name="settings_off">désactivée</string>
-    <string name="settings_background_hint">Sans notification. Chaque passage récupère les 12 dernières heures, avec un point environ toutes les 15 minutes : rien ne manque, même si le téléphone dormait. 15 minutes est le minimum autorisé par Android.</string>
+    <string name="settings_background_hint">Sans notification, Android n’autorise pas plus d’une fois toutes les 15 minutes. Avec le mode minute, elle peut rester activée en secours. Chaque passage récupère les 12 dernières heures : rien ne manque, même si le téléphone dormait.</string>
     <string name="settings_live_title">Mode minute</string>
-    <string name="settings_live_switch">Mettre à jour plus souvent</string>
-    <string name="settings_live_switch_hint">Chaque nouvelle mesure arrive dans Samsung Health, pas seulement un point toutes les 15 minutes</string>
+    <string name="settings_live_switch">Activer</string>
+    <string name="settings_live_switch_hint">La glycémie arrive dans Samsung Health une à deux minutes après la mesure. Tant que le mode tourne, une notification reste dans le volet.</string>
     <string name="settings_live_every_minute">chaque min</string>
     <string name="settings_live_every">toutes les %1$d min</string>
     <string name="settings_live_value">Glycémie dans la notification</string>
@@ -143,10 +143,10 @@
     <string name="settings_keep_awake_hint">L’intervalle ne s’allonge pas écran éteint, mais la batterie se vide plus vite</string>
     <string name="settings_hide_notification">Masquer complètement la notification</string>
     <string name="settings_battery">Lever les restrictions de batterie</string>
-    <string name="settings_live_hint">Pour tourner plus souvent que toutes les 15 minutes, Android exige un service avec une notification. Vous pouvez désactiver la notification dans les réglages de son canal : le mode continue et l’appli reste dans la liste des applis actives.</string>
-    <string name="settings_display_title">Affichage</string>
+    <string name="settings_live_hint">Android ne laisse une appli travailler aussi souvent que si elle affiche une notification. Si elle vous gêne, désactivez-la avec le bouton ci-dessus : le mode continue de fonctionner.</string>
+    <string name="settings_display_title">Mesures</string>
     <string name="settings_target_range">Plage cible :\n%1$s – %2$s %3$s</string>
-    <string name="settings_target_hint">Seulement pour les couleurs, le graphique et la part « dans la cible ». Sans effet sur les alarmes de LibreLink.</string>
+    <string name="settings_target_hint">Une glycémie dans cette plage est considérée comme normale : elle s’affiche en vert, en dessous en rose, au-dessus en orange. La bande du graphique et la part « dans la plage » en dépendent aussi. Les alarmes de LibreLink ne changent pas.</string>
     <string name="settings_about_title">À propos de SugarBridge</string>
     <string name="settings_version">Version %1$s</string>
     <string name="settings_about_hint">Ce n’est pas un dispositif médical : les alarmes de glycémie et les décisions de traitement relèvent uniquement de LibreLink. LibreLinkUp et LibreView sont utilisés via une API non officielle, uniquement avec votre compte et vos données.</string>
@@ -253,4 +253,7 @@
     <string name="target_to">À</string>
     <string name="target_save">Enregistrer la plage</string>
     <string name="target_invalid">Saisissez deux nombres de %1$s à %2$s %3$s, le plus petit d’abord</string>
+    <string name="settings_background_intro">Sans notification, toutes les 15 minutes ou moins souvent. Elle est indépendante du mode minute : inutile de l’activer pour lui.</string>
+    <string name="settings_hc_manage">Les autorisations se modifient dans Health Connect : cherchez-y SugarBridge.</string>
+    <string name="msg_hc_no_dialog">Autorisez ici : SugarBridge → « Glycémie »</string>
 </resources>

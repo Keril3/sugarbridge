@@ -10,7 +10,9 @@ import android.content.res.Configuration
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
+import android.os.SystemClock
 import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -42,10 +44,21 @@ class MainActivity : ComponentActivity(), AppActions {
 
     private val vm: MainViewModel by viewModels()
 
+    private var permissionAskedAt = 0L
+
     private val healthPermission =
         registerForActivityResult(PermissionController.createRequestPermissionResultContract()) { granted ->
             vm.refreshStatus()
-            if (WRITE_GLUCOSE !in granted) vm.notify(R.string.msg_hc_denied)
+            when {
+                WRITE_GLUCOSE in granted -> Unit
+                // an answer this quick means no dialog was shown: after two refusals Health Connect stops asking,
+                // and the permission can only be given in its own settings
+                SystemClock.elapsedRealtime() - permissionAskedAt < SILENT_REFUSAL_MS -> {
+                    Toast.makeText(this, R.string.msg_hc_no_dialog, Toast.LENGTH_LONG).show()
+                    openHealthConnect()
+                }
+                else -> vm.notify(R.string.msg_hc_denied)
+            }
         }
 
     // minute mode is turned on either way: without the permission its notification just isn't visible in the shade
@@ -115,7 +128,9 @@ class MainActivity : ComponentActivity(), AppActions {
     }
 
     override fun requestHealthPermission() {
-        if (healthConnectState(this) == HealthConnectState.AVAILABLE) healthPermission.launch(setOf(WRITE_GLUCOSE))
+        if (healthConnectState(this) != HealthConnectState.AVAILABLE) return
+        permissionAskedAt = SystemClock.elapsedRealtime()
+        healthPermission.launch(setOf(WRITE_GLUCOSE))
     }
 
     override fun installHealthConnect() = open(healthConnectStoreIntent(this))
@@ -191,5 +206,10 @@ class MainActivity : ComponentActivity(), AppActions {
         } catch (e: SecurityException) {
             vm.notify(R.string.msg_not_allowed)
         }
+    }
+
+    private companion object {
+        /** Faster than anyone can read and answer the Health Connect dialog. */
+        const val SILENT_REFUSAL_MS = 1_000L
     }
 }

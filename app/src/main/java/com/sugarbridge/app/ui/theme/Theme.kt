@@ -166,22 +166,23 @@ private fun style(size: Int, line: Int, spacing: Double = 0.0) = TextStyle(
     letterSpacing = spacing.sp,
 )
 
+// Tight lines: the pixel font reads best with little space between lines
 private val XpTypography = Typography(
-    displayLarge = style(52, 60),
-    displayMedium = style(44, 52),
-    displaySmall = style(32, 40),
-    headlineLarge = style(28, 36),
-    headlineMedium = style(24, 32),
-    headlineSmall = style(20, 28, 0.5),
-    titleLarge = style(19, 26),
-    titleMedium = style(16, 22, 0.5),
-    titleSmall = style(14, 20),
-    bodyLarge = style(15, 23),
-    bodyMedium = style(13, 21),
-    bodySmall = style(12, 19),
-    labelLarge = style(14, 20),
-    labelMedium = style(12, 17),
-    labelSmall = style(11, 16),
+    displayLarge = style(52, 56),
+    displayMedium = style(44, 48),
+    displaySmall = style(32, 36),
+    headlineLarge = style(28, 32),
+    headlineMedium = style(24, 28),
+    headlineSmall = style(20, 24, 0.5),
+    titleLarge = style(19, 23),
+    titleMedium = style(16, 20, 0.5),
+    titleSmall = style(14, 18),
+    bodyLarge = style(15, 19),
+    bodyMedium = style(13, 17),
+    bodySmall = style(12, 16),
+    labelLarge = style(14, 18),
+    labelMedium = style(12, 15),
+    labelSmall = style(11, 14),
 )
 
 private val XpShapes = Shapes(

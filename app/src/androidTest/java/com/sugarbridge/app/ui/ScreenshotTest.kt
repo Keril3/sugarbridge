@@ -6,6 +6,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performClick
@@ -156,6 +157,11 @@ class ScreenshotTest {
         compose.waitUntil(10_000) { vm.ui.signedIn && vm.ui.canWrite != null }
         compose.onNodeWithText(text(R.string.tab_now)).assertExists()   // the screen really is in this language
         shot(language, "home")
+        scenario.onActivity { vm.notify(R.string.msg_nothing_new) }   // what "Sync now" says: a small window of its own
+        compose.onNodeWithTag("popup").assertExists()
+        shot(language, "popup")
+        compose.onNodeWithTag("popup").performClick()   // a tap closes it
+        compose.waitUntil(5_000) { compose.onAllNodesWithTag("popup").fetchSemanticsNodes().isEmpty() }
         compose.onNodeWithTag("mascot").performClick()   // she tilts her head, closes her eyes and smiles
         shot(language, "home_tap")
         compose.waitUntil(20_000) { vm.ui.gmi14 != null }
@@ -182,6 +188,8 @@ class ScreenshotTest {
 
         compose.onNodeWithText(text(R.string.tab_settings)).performClick()
         shot(language, "settings")
+        compose.onNodeWithText(text(R.string.settings_background_intro)).performScrollTo()
+        shot(language, "settings_sync")
         compose.onNodeWithText(text(R.string.settings_about_title)).performScrollTo()
         shot(language, "settings_bottom")
 

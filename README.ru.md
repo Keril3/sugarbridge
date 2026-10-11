@@ -131,6 +131,9 @@ Samsung Health, он подтянет новые данные.
 только сервису с уведомлением. Его можно сделать тихим (Настройки → «Сахар в уведомлении») или
 выключить совсем (кнопка «Скрыть уведомление совсем») — режим продолжит работать.
 
+**Нужна ли фоновая синхронизация для минутного режима?** Нет, они не связаны. Фоновую (раз в 15 минут или реже,
+без уведомления) можно оставить запасной: каждый раз она забирает историю за 12 часов, так что пропусков не будет.
+
 **Можно ли без Health Connect?** Нет, и не нужно: на Android 14+ это часть системы, а не отдельное
 приложение. Писать в Samsung Health напрямую можно только с ключом партнёра Samsung. Если
 Health Connect выключен или устарел, SugarBridge покажет, как это исправить.
@@ -205,14 +208,14 @@ APK в Releases собирает и подписывает GitHub Actions, ко�
    ```
 3. **Каждый выпуск:** допишите раздел версии в [CHANGELOG.md](CHANGELOG.md) (на английском), затем
    ```sh
-   git tag v1.5.1
-   git push origin v1.5.1
+   git tag v1.5.2
+   git push origin v1.5.2
    ```
    Через несколько минут в Releases появится `SugarBridge.apk` с описанием из CHANGELOG.
 
 Подписанный APK можно собрать и у себя: пропишите в `~/.gradle/gradle.properties` (вне репозитория)
 `sugarbridge.keystore`, `sugarbridge.keystorePassword`, `sugarbridge.keyAlias`, `sugarbridge.keyPassword`
-и запустите `./gradlew assembleRelease -Psugarbridge.version=1.5.1`.
+и запустите `./gradlew assembleRelease -Psugarbridge.version=1.5.2`.
 
 ## Благодарности
 

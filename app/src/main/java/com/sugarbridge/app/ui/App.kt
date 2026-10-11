@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,7 +20,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -33,6 +33,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -162,17 +163,19 @@ private fun Dock(current: Tab, onSelect: (Tab) -> Unit) {
     }
 }
 
+/** Messages pop up as a small window of their own, like every other window; a tap closes one early. */
 @Composable
 private fun TenshiSnackbarHost(state: SnackbarHostState, modifier: Modifier = Modifier) {
-    val xp = LocalXp.current
     SnackbarHost(state, modifier) { data ->
-        Snackbar(
-            data,
-            modifier = Modifier.padding(horizontal = 12.dp).border(2.dp, xp.windowBorder, RoundedCornerShape(10.dp)),
-            shape = RoundedCornerShape(10.dp),
-            containerColor = xp.windowBody,
-            contentColor = xp.text,
-        )
+        XpWindow(
+            "SugarBridge",
+            Modifier.padding(horizontal = 14.dp, vertical = 8.dp).testTag("popup"),
+            bodyPadding = PaddingValues(start = 14.dp, top = 16.dp, end = 14.dp, bottom = 14.dp),
+            onBodyClick = data::dismiss,
+            framed = false,
+        ) {
+            Text(data.visuals.message, style = MaterialTheme.typography.bodyMedium)
+        }
     }
 }
 
