@@ -24,7 +24,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.sugarbridge.app.MainViewModel
@@ -36,15 +38,17 @@ import com.sugarbridge.app.ui.components.Mascot
 import com.sugarbridge.app.ui.components.Mood
 import com.sugarbridge.app.ui.screens.HistoryScreen
 import com.sugarbridge.app.ui.screens.HomeScreen
+import com.sugarbridge.app.ui.screens.LanguageScreen
 import com.sugarbridge.app.ui.screens.LoginScreen
 import com.sugarbridge.app.ui.screens.SettingsScreen
 
-/** То, что умеет только Activity: окна разрешений, другие приложения и системные настройки. */
+/** What only the Activity can do: permission dialogs, other apps, system settings and the app language. */
 interface AppActions {
     fun requestHealthPermission()
     fun installHealthConnect()
     fun openHealthConnect()
     fun setLive(enabled: Boolean)
+    fun setLanguage(tag: String?)
     fun openLibreView()
     fun pickCsv()
     fun hideNotification()
@@ -55,14 +59,18 @@ interface AppActions {
 @Composable
 fun SugarApp(vm: MainViewModel, actions: AppActions) {
     val snackbar = remember { SnackbarHostState() }
-    LaunchedEffect(vm) { vm.messages.collect { snackbar.showSnackbar(it) } }
+    val resources = LocalResources.current
+    LaunchedEffect(vm, resources) { vm.messages.collect { snackbar.showSnackbar(it.resolve(resources)) } }
 
     AngelBackground {
-        if (!vm.ui.signedIn) {
-            LoginScreen(busy = vm.ui.signingIn, onSignIn = vm::signIn)
-            TenshiSnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).navigationBarsPadding())
-        } else {
-            Scaffold(
+        when {
+            // the very first start: the language comes before everything else
+            !vm.ui.signedIn && !vm.ui.languageChosen -> LanguageScreen(onPick = actions::setLanguage)
+            !vm.ui.signedIn -> {
+                LoginScreen(busy = vm.ui.signingIn, onSignIn = vm::signIn)
+                TenshiSnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).navigationBarsPadding())
+            }
+            else -> Scaffold(
                 containerColor = Color.Transparent,
                 bottomBar = { TenshiNavBar(vm.tab) { vm.tab = it } },
                 snackbarHost = { TenshiSnackbarHost(snackbar) },
@@ -84,16 +92,17 @@ fun SugarApp(vm: MainViewModel, actions: AppActions) {
 private fun TenshiNavBar(current: Tab, onSelect: (Tab) -> Unit) {
     NavigationBar(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f), tonalElevation = 0.dp) {
         val items = listOf(
-            Triple(Tab.NOW, R.drawable.ic_stat_tenshi, "Сейчас"),
-            Triple(Tab.HISTORY, R.drawable.ic_tab_history, "История"),
-            Triple(Tab.SETTINGS, R.drawable.ic_tab_settings, "Настройки"),
+            Triple(Tab.NOW, R.drawable.ic_stat_tenshi, R.string.tab_now),
+            Triple(Tab.HISTORY, R.drawable.ic_tab_history, R.string.tab_history),
+            Triple(Tab.SETTINGS, R.drawable.ic_tab_settings, R.string.tab_settings),
         )
         items.forEach { (tab, icon, label) ->
+            val text = stringResource(label)
             NavigationBarItem(
                 selected = current == tab,
                 onClick = { onSelect(tab) },
-                icon = { Icon(painterResource(icon), contentDescription = label) },
-                label = { Text(label) },
+                icon = { Icon(painterResource(icon), contentDescription = text) },
+                label = { Text(text) },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.primary,
                     selectedTextColor = MaterialTheme.colorScheme.primary,
@@ -118,8 +127,8 @@ private fun TenshiSnackbarHost(state: SnackbarHostState, modifier: Modifier = Mo
 }
 
 /**
- * Без Health Connect SugarBridge бесполезен: данным некуда идти. Окно не закрывается,
- * пока Health Connect не станет доступен — после установки оно исчезнет само.
+ * Without Health Connect SugarBridge is useless: the data has nowhere to go. The dialog can't be dismissed
+ * until Health Connect becomes available; after it is installed, the dialog disappears by itself.
  */
 @Composable
 private fun HealthConnectGate(state: HealthConnectState, actions: AppActions) {
@@ -128,21 +137,18 @@ private fun HealthConnectGate(state: HealthConnectState, actions: AppActions) {
         onDismissRequest = {},
         properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
         icon = { Mascot(Mood.SLEEPY, size = 88.dp) },
-        title = { Text(if (update) "Обновите Health Connect" else "Нужен Health Connect") },
+        title = { Text(stringResource(if (update) R.string.hc_update_title else R.string.hc_missing_title)) },
         text = {
             Column {
-                Text(
-                    "SugarBridge передаёт сахар в Samsung Health через Health Connect — без него данным некуда идти. " +
-                        if (update) "Установленная версия слишком старая." else "На этом телефоне он не найден или выключен."
-                )
-                Text("Это окно закроется само, как только Health Connect заработает.", Modifier.padding(top = 8.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.hc_gate_text) + " " + stringResource(if (update) R.string.hc_gate_old else R.string.hc_gate_missing))
+                Text(stringResource(R.string.hc_gate_auto), Modifier.padding(top = 8.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
         confirmButton = {
-            TextButton(onClick = actions::installHealthConnect) { Text(if (update) "Обновить" else "Установить") }
+            TextButton(onClick = actions::installHealthConnect) { Text(stringResource(if (update) R.string.hc_update else R.string.hc_install)) }
         },
         dismissButton = {
-            TextButton(onClick = actions::openHealthConnect) { Text("Настройки Health Connect") }
+            TextButton(onClick = actions::openHealthConnect) { Text(stringResource(R.string.hc_settings)) }
         },
         shape = MaterialTheme.shapes.extraLarge,
     )

@@ -1,4 +1,4 @@
-# Текст — с LF и в репозитории, и в рабочей копии (Android Studio и Gradle это понимают)
+# Text uses LF both in the repository and in the working copy (Android Studio and Gradle handle it)
 * text=auto eol=lf
 *.bat text eol=crlf
 

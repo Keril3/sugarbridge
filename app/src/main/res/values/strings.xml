@@ -1,3 +1,228 @@
-<resources>
-    <string name="app_name">SugarBridge</string>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- English is the default language. Every other values-xx folder translates all of these strings. -->
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name" translatable="false">SugarBridge</string>
+
+    <!-- Common -->
+    <string name="unit_mmol">mmol/L</string>
+    <string name="unit_mgdl">mg/dL</string>
+    <string name="level_low">below range</string>
+    <string name="level_in_range">in range ♡</string>
+    <string name="level_high">above range</string>
+    <string name="cancel">Cancel</string>
+    <string name="close">Close</string>
+    <string name="done">Done</string>
+    <string name="delete">Delete</string>
+    <string name="duration_minutes">%1$d min</string>
+    <string name="duration_hours">%1$d h</string>
+    <string name="ago_now">just now</string>
+    <string name="ago_minutes">%1$d min ago</string>
+    <string name="ago_hours">%1$d h %2$d min ago</string>
+    <string name="ago_days">%1$d d ago</string>
+
+    <!-- Tabs -->
+    <string name="tab_now">Now</string>
+    <string name="tab_history">History</string>
+    <string name="tab_settings">Settings</string>
+
+    <!-- Language -->
+    <string name="language_title">Choose a language</string>
+    <string name="language_hint">You can change it any time in Settings.</string>
+    <string name="language_system">Phone language</string>
+    <string name="language_card">Language</string>
+
+    <!-- Sign-in -->
+    <string name="login_tagline">Glucose from Libre, straight into Samsung Health ✧</string>
+    <string name="login_title">Sign in to LibreLinkUp</string>
+    <string name="login_email">Email</string>
+    <string name="login_password">Password</string>
+    <string name="login_button">Sign in</string>
+    <string name="login_hint">The LibreLinkUp account you invited from LibreLink. The password is stored encrypted on this phone and is sent only to LibreLinkUp.</string>
+
+    <!-- Now -->
+    <string name="greeting_morning">Good morning ✧</string>
+    <string name="greeting_day">Good afternoon ✧</string>
+    <string name="greeting_evening">Good evening ✧</string>
+    <string name="greeting_night">Good night ✧</string>
+    <string name="home_subtitle">Tenshi-chan is keeping an eye on your glucose</string>
+    <string name="home_permission_title">Allow writing to Health Connect</string>
+    <string name="home_permission_text">Without this permission your glucose won’t reach Samsung Health.</string>
+    <string name="home_permission_button">Allow</string>
+    <string name="home_permission_hint">Also check that Samsung Health → Settings → Health Connect is allowed to read “Blood glucose”.</string>
+    <string name="home_no_samsung_title">Samsung Health not found</string>
+    <string name="home_no_samsung_hint">Glucose will still go to Health Connect, where other apps can see it. Install Samsung Health to see the charts there.</string>
+    <string name="home_chart_title">Last 12 hours</string>
+    <string name="home_no_data">No data yet</string>
+    <string name="home_no_data_hint">Tap “Sync now” and Tenshi-chan will bring your glucose from LibreLinkUp</string>
+    <string name="home_reading_at">Reading at %1$s · %2$s</string>
+    <string name="home_stale">The data is older than 10 minutes, check LibreLink. Glucose alarms come only from there.</string>
+    <string name="stat_min">min</string>
+    <string name="stat_avg">average</string>
+    <string name="stat_max">max</string>
+    <string name="stat_in_range">in range</string>
+    <string name="percent">%1$d%%</string>
+
+    <string name="gmi_title">Estimated HbA1c (GMI)</string>
+    <string name="gmi_14_days">14 days</string>
+    <string name="gmi_90_days">90 days</string>
+    <string name="gmi_percent">%1$.1f%%</string>
+    <string name="gmi_mmol_mol" tools:ignore="PluralsCandidate">%1$d mmol/mol</string>
+    <string name="gmi_no_data">%1$s · no data</string>
+    <string name="gmi_coverage">%1$s · %2$d%% data</string>
+    <string name="gmi_low_coverage">%1$s · too little data: %2$d%%</string>
+    <string name="gmi_hint">An estimate from the average sensor glucose, not a blood test: a lab HbA1c may differ. Reliable with at least %1$d%% of the data over 14 days. Samsung Health takes HbA1c only as a manual entry, Health Connect does not carry it.</string>
+
+    <string name="sync_title">Sync</string>
+    <string name="sync_never">Not yet</string>
+    <string name="sync_last">Last: %1$s · written %2$d</string>
+    <string name="sync_error">Error: %1$s</string>
+    <string name="sync_live_every_minute">Minute mode: every minute ✧</string>
+    <string name="sync_live_every">Minute mode: every %1$d min ✧</string>
+    <string name="sync_background">In the background every %1$s, without a notification</string>
+    <string name="sync_off">Automatic sync is off</string>
+    <string name="sync_update_rate">LibreLinkUp sends a new value about every %1$s min</string>
+    <string name="sync_now">Sync now</string>
+    <string name="live_title">Minute mode</string>
+    <string name="live_subtitle">Fresh glucose in Samsung Health every minute</string>
+
+    <!-- History -->
+    <string name="history_title">Full history from LibreView ☁</string>
+    <string name="history_reading_file">Reading the history…</string>
+    <string name="history_intro">LibreLinkUp keeps only 12 hours. The full history lives in LibreView: download it and choose which days to send to Samsung Health.</string>
+    <string name="history_open_libreview">Open LibreView</string>
+    <string name="history_pick_csv">Choose a downloaded CSV</string>
+    <string name="history_step_1">1. Sign in with your LibreLink account, the one in the sensor app, not LibreLinkUp.</string>
+    <string name="history_step_2">2. “Glucose History” → “Download glucose data”.</string>
+    <string name="history_step_3">3. Tick “I’m not a robot” and tap “Download”. SugarBridge picks up the file by itself.</string>
+    <string name="history_step_browser">Downloaded the CSV in a browser? Open it with SugarBridge or choose it with the button above.</string>
+    <string name="history_loaded">%1$s · readings: %2$d</string>
+    <string name="history_loaded_range">From %1$s to %2$s · values in %3$s</string>
+    <string name="history_loaded_range_skipped">From %1$s to %2$s · values in %3$s · rows skipped: %4$d</string>
+    <string name="history_other_file">Another file</string>
+    <string name="history_period">Period</string>
+    <string name="history_all">All history</string>
+    <string name="history_last_days">%1$d d</string>
+    <string name="history_period_summary">Days: %1$d · readings: %2$d · average %3$s %4$s · in range %5$d%%</string>
+    <string name="history_period_gmi" tools:ignore="PluralsCandidate">Estimated HbA1c (GMI) for the period: %1$.1f%% · %2$d mmol/mol</string>
+    <string name="history_period_gmi_low" tools:ignore="PluralsCandidate">Estimated HbA1c (GMI) for the period: %1$.1f%% · %2$d mmol/mol · too little data (%3$d%%)</string>
+    <string name="history_days">Days</string>
+    <string name="history_select_new">New</string>
+    <string name="history_select_all">All</string>
+    <string name="history_select_none">None</string>
+    <string name="history_day_summary">Readings: %1$d · avg %2$s · %3$s–%4$s</string>
+    <string name="history_day_in_range">%1$d%% in range</string>
+    <string name="history_in_hc">✓ in HC</string>
+    <string name="history_partly">partly</string>
+    <string name="history_select_prompt">Tick the days you want in Samsung Health</string>
+    <string name="history_selected">Days: %1$d · readings: %2$d</string>
+    <string name="history_write">Write to Health Connect</string>
+    <string name="history_pick_title">Which days to sync</string>
+    <string name="history_delete_title">Delete from Health Connect?</string>
+    <string name="history_delete_text">All SugarBridge glucose records for the selected days (%1$d) will disappear from Health Connect and Samsung Health, both those from LibreView and those from LibreLinkUp. Your data in LibreView stays untouched.</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_check">Check connection</string>
+    <string name="settings_sign_out">Sign out</string>
+    <string name="settings_hc_title">Health Connect and Samsung Health</string>
+    <string name="settings_hc_allowed">Writing glucose is allowed ✓</string>
+    <string name="settings_hc_denied">No permission to write glucose</string>
+    <string name="settings_hc_checking">Checking the permission…</string>
+    <string name="settings_permissions">Permissions</string>
+    <string name="settings_open_hc">Open Health Connect</string>
+    <string name="settings_open_samsung">Open Samsung Health</string>
+    <string name="settings_hc_hint">Samsung Health takes glucose from Health Connect by itself. No points? In Samsung Health → Settings → Health Connect, check that it may read “Blood glucose”.</string>
+    <string name="settings_background_title">Background sync</string>
+    <string name="settings_off">off</string>
+    <string name="settings_background_hint">Without a notification. Each run fetches the last 12 hours with a point about every 15 minutes, so nothing is missed even if the phone was asleep. 15 minutes is the minimum Android allows.</string>
+    <string name="settings_live_title">Minute mode</string>
+    <string name="settings_live_switch">Update glucose more often</string>
+    <string name="settings_live_switch_hint">Every new reading reaches Samsung Health, not only a point every 15 minutes</string>
+    <string name="settings_live_every_minute">every min</string>
+    <string name="settings_live_every">every %1$d min</string>
+    <string name="settings_live_value">Glucose in the notification</string>
+    <string name="settings_live_value_hint">A number in the status bar and in the notification shade. Turn it off to make the notification quiet and move it to the bottom of the shade</string>
+    <string name="settings_keep_awake">Keep the phone awake</string>
+    <string name="settings_keep_awake_hint">The interval doesn’t stretch while the screen is off, but the battery drains faster</string>
+    <string name="settings_hide_notification">Hide the notification completely</string>
+    <string name="settings_battery">Remove battery restrictions</string>
+    <string name="settings_live_hint">To run more often than every 15 minutes, Android requires a service with a notification. You can turn the notification off in its channel settings: the mode keeps working and the app stays in the list of active apps.</string>
+    <string name="settings_display_title">Display</string>
+    <string name="settings_target_range">Target range: %1$s – %2$s %3$s</string>
+    <string name="settings_target_hint">Only for colors, the chart and the “in range” share. It doesn’t affect LibreLink alarms.</string>
+    <string name="settings_about_title">About SugarBridge</string>
+    <string name="settings_version">Version %1$s</string>
+    <string name="settings_about_hint">Not a medical device: glucose alarms and treatment decisions belong to LibreLink only. LibreLinkUp and LibreView are used through an unofficial API, with your own account and data only.</string>
+
+    <!-- Health Connect is missing -->
+    <string name="hc_update_title">Update Health Connect</string>
+    <string name="hc_missing_title">Health Connect is needed</string>
+    <string name="hc_gate_text">SugarBridge sends glucose to Samsung Health through Health Connect. Without it the data has nowhere to go.</string>
+    <string name="hc_gate_old">The installed version is too old.</string>
+    <string name="hc_gate_missing">It is missing or turned off on this phone.</string>
+    <string name="hc_gate_auto">This window closes by itself as soon as Health Connect works.</string>
+    <string name="hc_update">Update</string>
+    <string name="hc_install">Install</string>
+    <string name="hc_settings">Health Connect settings</string>
+
+    <!-- Snackbar messages -->
+    <string name="msg_hc_denied">Without the Health Connect permission there is nowhere to write glucose</string>
+    <string name="msg_no_app">No app found to open this</string>
+    <string name="msg_not_allowed">Android didn’t allow opening this</string>
+    <string name="msg_nothing_new">No new readings, everything is already in Health Connect ♡</string>
+    <string name="msg_written">Written to Health Connect: %1$d ✧</string>
+    <string name="msg_already_there">already there: %1$d</string>
+    <string name="msg_future_skipped">skipped as future: %1$d, check the time zone</string>
+    <string name="msg_sign_in_again">The LibreLinkUp password didn’t work, please sign in again</string>
+    <string name="msg_error">Error: %1$s</string>
+    <string name="msg_signed_in">Signed in ♡</string>
+    <string name="msg_sign_in_failed">Couldn’t sign in: %1$s</string>
+    <string name="msg_check_ok">LibreLinkUp is online: readings in 12 hours: %1$d, the latest is %2$s at %3$s (region %4$s)</string>
+    <string name="msg_file_unreadable">Couldn’t open the file</string>
+    <string name="msg_file_lost">The file from LibreView got lost, please try again</string>
+    <string name="msg_no_glucose">There are no glucose readings in the file. You need the “Glucose data” export from LibreView</string>
+    <string name="msg_parse_failed">Couldn’t read the file: %1$s</string>
+    <string name="msg_allow_hc_first">First allow SugarBridge to write to Health Connect</string>
+    <string name="msg_write_failed">Write error: %1$s</string>
+    <string name="msg_deleted">Days deleted from Health Connect: %1$d</string>
+    <string name="msg_delete_failed">Couldn’t delete: %1$s</string>
+
+    <!-- Errors -->
+    <string name="error_wrong_credentials">wrong email or password</string>
+    <string name="error_login">sign-in failed: %1$s</string>
+    <string name="error_login_step">open the LibreLinkUp app, confirm the “%1$s” step there and sign in again</string>
+    <string name="error_rate_limited">too many requests, LibreLinkUp asks to wait %1$d s</string>
+    <string name="error_no_connections">LibreLinkUp has no connections: invite yourself from LibreLink</string>
+    <string name="error_api_changed">LibreLinkUp asks for app version %1$s, which is already sent: the API seems to have changed</string>
+    <string name="error_server">LibreLinkUp answered with code %1$d</string>
+    <string name="error_network">no connection to LibreLinkUp</string>
+    <string name="error_no_health_connect">Health Connect is not available on this phone</string>
+    <string name="error_no_permission">no permission to write glucose to Health Connect</string>
+    <string name="error_signed_out">sign in to LibreLinkUp first</string>
+
+    <!-- Minute mode notification -->
+    <string name="notif_sign_in_again">The LibreLinkUp password didn’t work: open SugarBridge and sign in again</string>
+    <string name="notif_sign_in">Sign in to LibreLinkUp in SugarBridge</string>
+    <string name="notif_problem">SugarBridge: %1$s</string>
+    <string name="notif_wait">LibreLinkUp asks to wait</string>
+    <string name="notif_offline">No connection to LibreLinkUp</string>
+    <string name="notif_failed">Sync failed</string>
+    <string name="notif_value_text">at %1$s · %2$s</string>
+    <string name="notif_watching">SugarBridge is keeping an eye on your glucose ✧</string>
+    <string name="notif_every_minute">Updates every minute</string>
+    <string name="notif_every">Updates every %1$d min</string>
+    <string name="notif_stop">Stop</string>
+    <string name="channel_live">Current glucose</string>
+    <string name="channel_live_description">Glucose in the status bar and the notification shade in minute mode</string>
+    <string name="channel_quiet">Background work</string>
+    <string name="channel_quiet_description">The quiet notification of minute mode. You can turn it off, the mode keeps working</string>
+
+    <!-- LibreView window -->
+    <string name="libreview_hint">Sign in with your LibreLink account (not LibreLinkUp) → “Glucose History” → “Download glucose data” → “I’m not a robot” → “Download”. SugarBridge picks up the file by itself.</string>
+    <string name="libreview_fetching">Picking up the file…</string>
+    <string name="libreview_download_failed">Couldn’t download: %1$s</string>
+    <string name="libreview_bad_link">Unknown file link</string>
+    <string name="libreview_bad_data">The file came in an unknown form</string>
+    <string name="libreview_no_glucose">The file arrived, but it has no glucose readings. You need the “Glucose data” export</string>
+    <string name="libreview_read_failed">Couldn’t pick up the file: %1$s</string>
 </resources>

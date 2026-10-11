@@ -12,10 +12,10 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 import org.json.JSONObject
 
-/** Логин, пароль и сохранённая сессия LibreLinkUp. */
+/** LibreLinkUp email, password and the saved session. */
 data class Account(val email: String, val password: String, val session: Session? = null)
 
-/** Хранит аккаунт в SharedPreferences, зашифрованным ключом из Android Keystore. */
+/** Keeps the account in SharedPreferences, encrypted with a key from the Android Keystore. */
 class AccountStore(context: Context) {
     private val prefs = context.getSharedPreferences("account", Context.MODE_PRIVATE)
 
@@ -25,7 +25,7 @@ class AccountStore(context: Context) {
             json.put("region", it.region).put("token", it.token).put("accountId", it.accountId)
         }
         val cipher = Cipher.getInstance(TRANSFORMATION)
-        cipher.init(Cipher.ENCRYPT_MODE, key())   // вектор инициализации (IV) шифр создаёт сам
+        cipher.init(Cipher.ENCRYPT_MODE, key())   // the cipher creates the initialization vector (IV) itself
         val encrypted = cipher.doFinal(json.toString().toByteArray())
         prefs.edit {
             putString("iv", Base64.encodeToString(cipher.iv, Base64.NO_WRAP))
@@ -47,7 +47,7 @@ class AccountStore(context: Context) {
             }
             Account(json.getString("email"), json.getString("password"), session)
         } catch (e: Exception) {
-            null   // расшифровать не вышло (например, ключ пропал) — просто войдём заново
+            null   // couldn't decrypt (e.g. the key is gone): just sign in again
         }
     }
 
@@ -55,7 +55,7 @@ class AccountStore(context: Context) {
         prefs.edit { clear() }
     }
 
-    /** Ключ AES живёт внутри Android Keystore и никогда не покидает телефон. */
+    /** The AES key lives inside the Android Keystore and never leaves the phone. */
     private fun key(): SecretKey {
         val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
         (keyStore.getKey(KEY_ALIAS, null) as? SecretKey)?.let { return it }

@@ -16,20 +16,18 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
-/** Итог одной синхронизации: сколько записано, последний замер и все замеры за 12 часов. */
+/** The outcome of one sync: how many were written, the latest reading and all readings for 12 hours. */
 class SyncResult(val written: Int, val latest: Reading?, val readings: List<Reading>)
 
-/** Фон, минутный сервис и кнопка на экране не должны синхронизировать одновременно. */
+/** The background job, the minute service and the button on screen must not sync at the same time. */
 private val syncMutex = Mutex()
 
-/** Забирает замеры из LibreLinkUp и пишет в Health Connect те, которых там ещё нет. */
+/** Fetches readings from LibreLinkUp and writes the ones Health Connect doesn't have yet. */
 suspend fun syncOnce(context: Context): SyncResult = syncMutex.withLock {
-    check(healthConnectState(context) == HealthConnectState.AVAILABLE) { "Health Connect недоступен на этом телефоне" }
+    if (healthConnectState(context) != HealthConnectState.AVAILABLE) throw SyncBlocked(Problem.Code.NO_HEALTH_CONNECT)
     val hc = HealthConnectClient.getOrCreate(context)
-    check(WRITE_GLUCOSE in hc.permissionController.getGrantedPermissions()) {
-        "Нет разрешения на запись сахара в Health Connect"
-    }
-    val libre = Libre.client(context) ?: throw IllegalStateException("Сначала войдите в LibreLinkUp")
+    if (WRITE_GLUCOSE !in hc.permissionController.getGrantedPermissions()) throw SyncBlocked(Problem.Code.NO_PERMISSION)
+    val libre = Libre.client(context) ?: throw SyncBlocked(Problem.Code.SIGNED_OUT)
     val readings = withContext(Dispatchers.IO) { libre.readings() }
 
     val store = SyncStore(context)
@@ -37,33 +35,33 @@ suspend fun syncOnce(context: Context): SyncResult = syncMutex.withLock {
     val now = Instant.now()
     val fresh = state.fresh(readings, now)
     if (fresh.isNotEmpty()) {
-        // за 12 часов замеров заметно меньше 1000 — это лимит Health Connect на одну запись
+        // 12 hours hold far fewer than 1000 readings, the Health Connect limit for one insert
         hc.insertRecords(fresh.map { it.toRecord() })
     }
-    // порядок важен: сначала запись, потом состояние; при сбое между ними повтор безопасен благодаря ключам
+    // the order matters: first the records, then the state; if it fails in between, the record ids make a retry safe
     store.saveState(state.after(fresh, now))
     store.saveSuccess(readings, fresh.size)
     SyncResult(fresh.size, readings.lastOrNull(), readings)
 }
 
-/** То же, но ошибка запоминается, чтобы главный экран мог её показать. */
+/** The same, but a failure is remembered so the home screen can show it. */
 suspend fun syncAndRecord(context: Context): SyncResult = try {
     syncOnce(context)
 } catch (e: CancellationException) {
     throw e
 } catch (e: Exception) {
-    SyncStore(context).saveError(e.message ?: e.javaClass.simpleName)
+    SyncStore(context).saveError(Problem.of(e))
     throw e
 }
 
-/** Что показать на главном экране: последние замеры, когда была удачная синхронизация, ошибка. */
+/** What the home screen shows: the latest readings, the last successful sync and the error. */
 data class SyncSnapshot(
     val recent: List<Reading> = emptyList(),
     val lastOkAt: Instant? = null,
     val lastWritten: Int = 0,
-    val error: String? = null,
+    val error: Problem? = null,
     val errorAt: Instant? = null,
-    val updateMinutes: Double? = null,   // как часто LibreLinkUp на деле присылает новое значение
+    val updateMinutes: Double? = null,   // how often LibreLinkUp actually delivers a new value
 )
 
 class SyncStore(context: Context) {
@@ -71,7 +69,7 @@ class SyncStore(context: Context) {
 
     fun state(): SyncState = SyncState(
         written = decodeKeys(prefs.getString("written", null)),
-        // last_synced остался от версии из гайда: всё, что не новее его, уже записано со старыми ключами
+        // last_synced is left from the version in the guide: everything not newer than it was written with the old ids
         floor = prefs.getLong("floor", prefs.getLong("last_synced", 0)),
     )
 
@@ -79,7 +77,7 @@ class SyncStore(context: Context) {
         prefs.edit { putString("written", encodeKeys(state.written)).putLong("floor", state.floor) }
     }
 
-    /** После удаления из Health Connect эти минуты снова можно записать. */
+    /** After deleting from Health Connect these minutes can be written again. */
     fun forget(from: Instant, to: Instant) = saveState(state().forget(from, to))
 
     fun saveSuccess(readings: List<Reading>, written: Int) {
@@ -94,11 +92,11 @@ class SyncStore(context: Context) {
         }
     }
 
-    fun saveError(message: String) {
-        prefs.edit { putString("error", message).putLong("error_at", System.currentTimeMillis()) }
+    fun saveError(problem: Problem) {
+        prefs.edit { putString("error", problem.encode()).putLong("error_at", System.currentTimeMillis()) }
     }
 
-    /** При выходе из аккаунта: замеры и ошибки на экране больше не нужны, а записанные минуты помним. */
+    /** On sign-out: the readings and errors on screen are no longer needed, the written minutes are kept. */
     fun clearDisplay() {
         prefs.edit {
             listOf("recent", "ok_at", "ok_written", "seen", "error", "error_at").forEach { remove(it) }
@@ -109,7 +107,7 @@ class SyncStore(context: Context) {
         recent = decodeReadings(prefs.getString("recent", null)),
         lastOkAt = prefs.getLong("ok_at", 0).takeIf { it > 0 }?.let(Instant::ofEpochMilli),
         lastWritten = prefs.getInt("ok_written", 0),
-        error = prefs.getString("error", null),
+        error = prefs.getString("error", null)?.let(Problem::decode),
         errorAt = prefs.getLong("error_at", 0).takeIf { it > 0 }?.let(Instant::ofEpochMilli),
         updateMinutes = typicalUpdateMinutes(seen().map(Instant::ofEpochSecond)),
     )

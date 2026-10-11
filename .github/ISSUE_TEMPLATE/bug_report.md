@@ -1,25 +1,26 @@
 ---
-name: Баг-репорт
-about: Что-то работает не так, как ожидалось
+name: Bug report
+about: Something doesn't work as expected
 title: ""
 labels: bug
 ---
 
-**Версия SugarBridge:** (Настройки → «О SugarBridge» или имя файла APK)
-**Телефон и Android:** например, Samsung Galaxy S24, Android 15, One UI 7
+**SugarBridge version:** (Settings → "About SugarBridge", or the APK file name)
+**Phone and Android:** e.g. Samsung Galaxy S24, Android 15, One UI 7
+**App language:**
 
-## Шаги
+## Steps
 1.
 2.
 3.
 
-## Ожидаемый результат
+## Expected result
 
-## Фактический результат
+## Actual result
 
 ## Logcat
-Android Studio → Logcat, фильтр `tag:SugarSync`. Перед отправкой уберите email и всё личное.
+Android Studio → Logcat, filter `tag:SugarSync`. Remove your email and anything personal before posting.
 
 ```
-вставьте сюда
+paste here
 ```

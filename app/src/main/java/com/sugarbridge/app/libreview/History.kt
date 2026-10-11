@@ -9,7 +9,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import kotlin.math.roundToInt
 
-/** Один день истории: сколько замеров, разброс, доля в целевом диапазоне и сколько уже есть в Health Connect. */
+/** One day of history: how many readings, the spread, the share in range and how many are already in Health Connect. */
 data class DaySummary(
     val date: LocalDate,
     val count: Int,
@@ -24,7 +24,7 @@ data class DaySummary(
 
 fun Reading.localDate(zone: ZoneId): LocalDate = time.atZone(zone).toLocalDate()
 
-/** Дни по порядку; existing — минуты, на которые в Health Connect уже есть запись SugarBridge. */
+/** Days in order; existing holds the minutes that already have a SugarBridge record in Health Connect. */
 fun summarizeDays(
     readings: List<Reading>,
     zone: ZoneId,
@@ -48,11 +48,11 @@ fun summarizeDays(
 fun readingsOnDays(readings: List<Reading>, days: Set<LocalDate>, zone: ZoneId): List<Reading> =
     readings.filter { it.localDate(zone) in days }
 
-/** Начало дня и начало следующего дня в часовом поясе телефона. */
+/** The start of the day and of the next day in the phone's time zone. */
 fun dayBounds(date: LocalDate, zone: ZoneId): Pair<Instant, Instant> =
     date.atStartOfDay(zone).toInstant() to date.plusDays(1).atStartOfDay(zone).toInstant()
 
-/** Подряд идущие дни склеиваются в один промежуток: удалять из Health Connect удобнее кусками. */
+/** Consecutive days are merged into one range: deleting from Health Connect is easier in chunks. */
 fun contiguousRanges(days: Collection<LocalDate>): List<ClosedRange<LocalDate>> {
     val sorted = days.toSortedSet()
     val out = ArrayList<ClosedRange<LocalDate>>()

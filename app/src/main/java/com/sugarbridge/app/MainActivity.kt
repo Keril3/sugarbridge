@@ -22,6 +22,7 @@ import com.sugarbridge.app.health.healthConnectSettingsIntent
 import com.sugarbridge.app.health.healthConnectState
 import com.sugarbridge.app.health.healthConnectStoreIntent
 import com.sugarbridge.app.libreview.LibreViewActivity
+import com.sugarbridge.app.settings.setAppLanguage
 import com.sugarbridge.app.sync.LiveSyncService
 import com.sugarbridge.app.sync.createNotificationChannels
 import com.sugarbridge.app.sync.scheduleSync
@@ -36,10 +37,10 @@ class MainActivity : ComponentActivity(), AppActions {
     private val healthPermission =
         registerForActivityResult(PermissionController.createRequestPermissionResultContract()) { granted ->
             vm.refreshStatus()
-            if (WRITE_GLUCOSE !in granted) vm.notify("Без разрешения Health Connect сахар записывать некуда")
+            if (WRITE_GLUCOSE !in granted) vm.notify(R.string.msg_hc_denied)
         }
 
-    // минутный режим включаем в любом случае: без разрешения его уведомление просто не видно в шторке
+    // minute mode is turned on either way: without the permission its notification just isn't visible in the shade
     private val notificationPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {
             vm.updateSettings { it.copy(liveEnabled = true) }
@@ -56,8 +57,8 @@ class MainActivity : ComponentActivity(), AppActions {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        createNotificationChannels(this)
-        scheduleSync(this)   // безопасно вызывать при каждом запуске
+        createNotificationChannels(this)   // also renames the channels after a language change
+        scheduleSync(this)   // safe to call on every start
         if (savedInstanceState == null) handleIntent(intent)
         setContent {
             SugarTheme { SugarApp(vm, this) }
@@ -74,7 +75,7 @@ class MainActivity : ComponentActivity(), AppActions {
         vm.refreshStatus()
     }
 
-    /** CSV, открытый через SugarBridge из браузера, файлового менеджера или «Поделиться». */
+    /** A CSV opened with SugarBridge from a browser, a file manager or "Share". */
     private fun handleIntent(intent: Intent?) {
         val uri = when (intent?.action) {
             Intent.ACTION_VIEW -> intent.data
@@ -101,12 +102,18 @@ class MainActivity : ComponentActivity(), AppActions {
         }
     }
 
+    /** null follows the phone. If the language really changes, Android recreates this screen in it. */
+    override fun setLanguage(tag: String?) {
+        vm.languageChosen()
+        setAppLanguage(this, tag)
+    }
+
     override fun openLibreView() = libreView.launch(Intent(this, LibreViewActivity::class.java))
 
     override fun pickCsv() =
         csvPicker.launch(arrayOf("text/*", "application/csv", "application/vnd.ms-excel", "application/octet-stream"))
 
-    /** Настройки канала уведомления: там его можно выключить, минутный режим продолжит работать. */
+    /** The notification channel settings: the notification can be turned off there, minute mode keeps working. */
     override fun hideNotification() {
         val channel = if (vm.ui.settings.liveShowValue) LiveSyncService.CHANNEL_LIVE else LiveSyncService.CHANNEL_QUIET
         open(
@@ -116,7 +123,7 @@ class MainActivity : ComponentActivity(), AppActions {
         )
     }
 
-    @SuppressLint("BatteryLife")   // приложение не для Google Play, а минутному режиму сон мешает
+    @SuppressLint("BatteryLife")   // the app is not for Google Play, and sleep gets in the way of minute mode
     override fun requestBatteryUnrestricted() =
         open(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, "package:$packageName".toUri()))
 
@@ -128,9 +135,9 @@ class MainActivity : ComponentActivity(), AppActions {
         try {
             startActivity(intent)
         } catch (e: ActivityNotFoundException) {
-            vm.notify("Не нашлось приложения, чтобы это открыть")
+            vm.notify(R.string.msg_no_app)
         } catch (e: SecurityException) {
-            vm.notify("Android не дал это открыть")
+            vm.notify(R.string.msg_not_allowed)
         }
     }
 }

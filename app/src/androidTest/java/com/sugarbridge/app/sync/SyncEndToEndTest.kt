@@ -10,6 +10,9 @@ import android.os.SystemClock
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.sugarbridge.app.MainActivity
+import com.sugarbridge.app.R
+import com.sugarbridge.app.resourcesIn
+import com.sugarbridge.app.useAppLanguage
 import com.sugarbridge.app.glucose.GlucoseUnit
 import com.sugarbridge.app.glucose.formatGlucose
 import com.sugarbridge.app.health.HealthConnectState
@@ -33,8 +36,8 @@ import java.time.Instant
 import kotlinx.coroutines.runBlocking
 
 /**
- * Вся цепочка на устройстве: поддельный LibreLinkUp → синхронизация → Health Connect,
- * и минутный режим с сахаром в уведомлении.
+ * The whole chain on a device: a fake LibreLinkUp → sync → Health Connect,
+ * and minute mode with glucose in the notification, in two languages.
  */
 @RunWith(AndroidJUnit4::class)
 class SyncEndToEndTest {
@@ -51,10 +54,10 @@ class SyncEndToEndTest {
 
     @Before
     fun setUp() {
-        assumeTrue("Health Connect недоступен", healthConnectState(context) == HealthConnectState.AVAILABLE)
+        assumeTrue("Health Connect is not available", healthConnectState(context) == HealthConnectState.AVAILABLE)
         instrumentation.uiAutomation.grantRuntimePermission(context.packageName, WRITE_GLUCOSE)
         instrumentation.uiAutomation.grantRuntimePermission(context.packageName, Manifest.permission.POST_NOTIFICATIONS)
-        cloud = FakeCloud(start = Instant.now().minusSeconds(180))   // последний замер — 3,5 минуты назад
+        cloud = FakeCloud(start = Instant.now().minusSeconds(180))   // the latest reading is 3.5 minutes old
         Libre.signOut(context)
         Libre.transportForTests = cloud
         Libre.signIn(context, "e2e@example.com", "secret")
@@ -71,15 +74,16 @@ class SyncEndToEndTest {
         Libre.signOut(context)
         Libre.transportForTests = null
         clearSyncState()
+        useAppLanguage(context, null)
     }
 
     @Test
     fun everyReadingIsWrittenOnce() = runBlocking {
         val first = syncOnce(context)
-        assertEquals(49, first.written)   // 48 точек истории + текущий замер
+        assertEquals(49, first.written)   // 48 history points + the current reading
         assertEquals(0, syncOnce(context).written)
 
-        cloud.tick(60, 120.0)   // через минуту — новый замер
+        cloud.tick(60, 120.0)   // a new reading a minute later
         val third = syncOnce(context)
         assertEquals(1, third.written)
         assertEquals(120.0, third.latest!!.mgDl, 0.0)
@@ -89,35 +93,44 @@ class SyncEndToEndTest {
         assertEquals(1, snapshot.lastWritten)
         assertEquals(50, snapshot.recent.size)
 
-        // часы датчика спешат: замер «из будущего» Health Connect отверг бы вместе со всей пачкой
+        // the sensor clock runs ahead: Health Connect would reject a reading "from the future" with the whole batch
         cloud.tick(600, 130.0)
         val fourth = syncOnce(context)
         assertEquals(0, fourth.written)
-        assertEquals(130.0, fourth.latest!!.mgDl, 0.0)   // на экране он всё равно виден
+        assertEquals(130.0, fourth.latest!!.mgDl, 0.0)   // it is still shown on screen
     }
 
     @Test
-    fun liveModeShowsGlucoseThenGoesQuiet() {
+    fun liveModeShowsGlucoseThenGoesQuietInEnglish() = liveModeShowsGlucoseThenGoesQuiet("en")
+
+    @Test
+    fun liveModeShowsGlucoseThenGoesQuietInRussian() = liveModeShowsGlucoseThenGoesQuiet("ru")
+
+    private fun liveModeShowsGlucoseThenGoesQuiet(language: String) {
+        useAppLanguage(context, language)
+        val res = resourcesIn(context, language)
         SettingsStore(context).save(AppSettings(backgroundMinutes = 0, liveEnabled = true, liveShowValue = true, liveKeepAwake = false))
-        // приложение на экране — Android разрешает запустить сервис; MainActivity запустит его сама
-        // без ActivityScenario: он ждёт простоя главного потока, а анимации на эмуляторе не дают его дождаться
+        // with the app on screen Android allows starting the service; MainActivity starts it by itself.
+        // No ActivityScenario: it waits for the main thread to go idle, and animations on the emulator never let it
         context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
 
-        val withValue = waitForNotification { it.contains(LiveSyncService.CHANNEL_LIVE) && it.contains("ммоль/л") }
-        assertTrue(withValue, withValue.contains(formatGlucose(115.0, GlucoseUnit.MMOL)))
+        val unit = res.getString(R.string.unit_mmol)
+        val withValue = waitForNotification { it.contains(LiveSyncService.CHANNEL_LIVE) && it.contains(unit) }
+        assertTrue(withValue, withValue.contains(formatGlucose(115.0, GlucoseUnit.MMOL, res.configuration.locales[0])))
+        assertTrue(withValue, withValue.contains(res.getString(R.string.level_in_range)))
         Thread.sleep(1500)
-        saveScreenshot("statusbar")   // сахар числом в строке состояния
-        screenshotOfShade("notification")
+        saveScreenshot(language, "statusbar")   // glucose as a number in the status bar
+        screenshotOfShade(language, "notification")
 
         SettingsStore(context).update { it.copy(liveShowValue = false) }
         LiveSyncService.reload(context)
         val quiet = waitForNotification { it.contains(LiveSyncService.CHANNEL_QUIET) }
-        assertTrue(quiet, quiet.contains("присматривает"))
+        assertTrue(quiet, quiet.contains(res.getString(R.string.notif_watching)))
 
         instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_HOME").close()
     }
 
-    /** Ждёт уведомление сервиса и отдаёт «канал | заголовок | текст». */
+    /** Waits for the service notification and returns "channel | title | text". */
     private fun waitForNotification(matches: (String) -> Boolean): String {
         val manager = context.getSystemService(NotificationManager::class.java)
         val deadline = SystemClock.uptimeMillis() + 30_000
@@ -130,20 +143,20 @@ class SyncEndToEndTest {
             if (last != null && matches(last)) return last
             Thread.sleep(250)
         }
-        throw AssertionError("нет нужного уведомления; последнее: $last")
+        throw AssertionError("no matching notification; the last one: $last")
     }
 
-    private fun screenshotOfShade(name: String) {
+    private fun screenshotOfShade(language: String, name: String) {
         instrumentation.uiAutomation.executeShellCommand("cmd statusbar expand-notifications").close()
         Thread.sleep(2000)
-        saveScreenshot(name)
+        saveScreenshot(language, name)
         instrumentation.uiAutomation.executeShellCommand("cmd statusbar collapse").close()
         Thread.sleep(500)
     }
 
-    private fun saveScreenshot(name: String) {
+    private fun saveScreenshot(language: String, name: String) {
         val bitmap = instrumentation.uiAutomation.takeScreenshot()
-        val dir = File(context.filesDir, "shots").apply { mkdirs() }
+        val dir = File(context.filesDir, "shots/$language").apply { mkdirs() }
         File(dir, "$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
 }

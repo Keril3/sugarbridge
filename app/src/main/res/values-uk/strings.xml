@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Common -->
+    <string name="unit_mmol">ммоль/л</string>
+    <string name="unit_mgdl">мг/дл</string>
+    <string name="level_low">нижче діапазону</string>
+    <string name="level_in_range">у діапазоні ♡</string>
+    <string name="level_high">вище діапазону</string>
+    <string name="cancel">Скасувати</string>
+    <string name="close">Закрити</string>
+    <string name="done">Готово</string>
+    <string name="delete">Видалити</string>
+    <string name="duration_minutes">%1$d хв</string>
+    <string name="duration_hours">%1$d год</string>
+    <string name="ago_now">щойно</string>
+    <string name="ago_minutes">%1$d хв тому</string>
+    <string name="ago_hours">%1$d год %2$d хв тому</string>
+    <string name="ago_days">%1$d дн. тому</string>
+
+    <!-- Tabs -->
+    <string name="tab_now">Зараз</string>
+    <string name="tab_history">Історія</string>
+    <string name="tab_settings">Налаштування</string>
+
+    <!-- Language -->
+    <string name="language_title">Оберіть мову</string>
+    <string name="language_hint">Її можна змінити будь-коли в налаштуваннях.</string>
+    <string name="language_system">Мова телефона</string>
+    <string name="language_card">Мова</string>
+
+    <!-- Sign-in -->
+    <string name="login_tagline">Цукор із Libre — просто в Samsung Health ✧</string>
+    <string name="login_title">Вхід у LibreLinkUp</string>
+    <string name="login_email">Email</string>
+    <string name="login_password">Пароль</string>
+    <string name="login_button">Увійти</string>
+    <string name="login_hint">Акаунт LibreLinkUp, який ви запросили з LibreLink. Пароль зберігається на телефоні в зашифрованому вигляді й надсилається лише до LibreLinkUp.</string>
+
+    <!-- Now -->
+    <string name="greeting_morning">Доброго ранку ✧</string>
+    <string name="greeting_day">Доброго дня ✧</string>
+    <string name="greeting_evening">Доброго вечора ✧</string>
+    <string name="greeting_night">Доброї ночі ✧</string>
+    <string name="home_subtitle">Тенсі-тян наглядає за цукром</string>
+    <string name="home_permission_title">Дозвольте запис у Health Connect</string>
+    <string name="home_permission_text">Без цього дозволу цукор не потрапить у Samsung Health.</string>
+    <string name="home_permission_button">Дозволити</string>
+    <string name="home_permission_hint">І перевірте, що в Samsung Health → Налаштування → Health Connect дозволено читати «Рівень глюкози».</string>
+    <string name="home_no_samsung_title">Samsung Health не знайдено</string>
+    <string name="home_no_samsung_hint">Цукор однаково потраплятиме в Health Connect — його побачать й інші застосунки. Встановіть Samsung Health, щоб дивитися графіки там.</string>
+    <string name="home_chart_title">Останні 12 годин</string>
+    <string name="home_no_data">Поки немає даних</string>
+    <string name="home_no_data_hint">Натисніть «Синхронізувати зараз» — Тенсі-тян принесе цукор із LibreLinkUp</string>
+    <string name="home_reading_at">Вимір о %1$s · %2$s</string>
+    <string name="home_stale">Дані старші за 10 хвилин — загляньте в LibreLink. Тривоги про цукор приходять лише звідти.</string>
+    <string name="stat_min">мін</string>
+    <string name="stat_avg">середнє</string>
+    <string name="stat_max">макс</string>
+    <string name="stat_in_range">у діапазоні</string>
+    <string name="percent">%1$d%%</string>
+
+    <string name="gmi_title">Розрахунковий HbA1c (GMI)</string>
+    <string name="gmi_14_days">14 днів</string>
+    <string name="gmi_90_days">90 днів</string>
+    <string name="gmi_percent">%1$.1f %%</string>
+    <string name="gmi_mmol_mol">%1$d ммоль/моль</string>
+    <string name="gmi_no_data">%1$s · немає даних</string>
+    <string name="gmi_coverage">%1$s · даних %2$d %%</string>
+    <string name="gmi_low_coverage">%1$s · замало даних: %2$d %%</string>
+    <string name="gmi_hint">Оцінка за середньою глюкозою з датчика, а не аналіз крові: лабораторний HbA1c може відрізнятися. Надійна, коли даних щонайменше %1$d %% за 14 днів. У Samsung Health HbA1c вносять лише вручну — Health Connect цей показник не передає.</string>
+
+    <string name="sync_title">Синхронізація</string>
+    <string name="sync_never">Ще не було</string>
+    <string name="sync_last">Остання: %1$s · записано %2$d</string>
+    <string name="sync_error">Помилка: %1$s</string>
+    <string name="sync_live_every_minute">Хвилинний режим: щохвилини ✧</string>
+    <string name="sync_live_every">Хвилинний режим: раз на %1$d хв ✧</string>
+    <string name="sync_background">У фоні раз на %1$s, без сповіщення</string>
+    <string name="sync_off">Автоматичну синхронізацію вимкнено</string>
+    <string name="sync_update_rate">LibreLinkUp надсилає нове значення приблизно раз на %1$s хв</string>
+    <string name="sync_now">Синхронізувати зараз</string>
+    <string name="live_title">Хвилинний режим</string>
+    <string name="live_subtitle">Свіжий цукор у Samsung Health щохвилини</string>
+
+    <!-- History -->
+    <string name="history_title">Уся історія з LibreView ☁</string>
+    <string name="history_reading_file">Читаю історію…</string>
+    <string name="history_intro">LibreLinkUp пам’ятає лише 12 годин. Уся історія зберігається в LibreView: завантажте її й оберіть, які дні надіслати в Samsung Health.</string>
+    <string name="history_open_libreview">Відкрити LibreView</string>
+    <string name="history_pick_csv">Обрати завантажений CSV</string>
+    <string name="history_step_1">1. Увійдіть акаунтом LibreLink — тим, що в застосунку з датчиком, а не LibreLinkUp.</string>
+    <string name="history_step_2">2. «Історія глюкози» → «Завантажити дані про глюкозу».</string>
+    <string name="history_step_3">3. Позначте «Я не робот» і натисніть «Завантажити» — SugarBridge сам забере файл.</string>
+    <string name="history_step_browser">Завантажили CSV у браузері? Відкрийте його через SugarBridge або оберіть кнопкою вище.</string>
+    <string name="history_loaded">%1$s · вимірів: %2$d</string>
+    <string name="history_loaded_range">З %1$s по %2$s · у файлі %3$s</string>
+    <string name="history_loaded_range_skipped">З %1$s по %2$s · у файлі %3$s · пропущено рядків: %4$d</string>
+    <string name="history_other_file">Інший файл</string>
+    <string name="history_period">Період</string>
+    <string name="history_all">Уся історія</string>
+    <string name="history_last_days">%1$d дн.</string>
+    <string name="history_period_summary">Днів: %1$d · вимірів: %2$d · середнє %3$s %4$s · у діапазоні %5$d%%</string>
+    <string name="history_period_gmi">Розрахунковий HbA1c (GMI) за період: %1$.1f %% · %2$d ммоль/моль</string>
+    <string name="history_period_gmi_low">Розрахунковий HbA1c (GMI) за період: %1$.1f %% · %2$d ммоль/моль · замало даних (%3$d %%)</string>
+    <string name="history_days">Дні</string>
+    <string name="history_select_new">Нові</string>
+    <string name="history_select_all">Усі</string>
+    <string name="history_select_none">Жодного</string>
+    <string name="history_day_summary">Вимірів: %1$d · сер. %2$s · %3$s–%4$s</string>
+    <string name="history_day_in_range">%1$d%% у діапазоні</string>
+    <string name="history_in_hc">✓ у HC</string>
+    <string name="history_partly">частково</string>
+    <string name="history_select_prompt">Позначте дні, потрібні в Samsung Health</string>
+    <string name="history_selected">Днів: %1$d · вимірів: %2$d</string>
+    <string name="history_write">Записати в Health Connect</string>
+    <string name="history_pick_title">Які дні синхронізувати</string>
+    <string name="history_delete_title">Видалити з Health Connect?</string>
+    <string name="history_delete_text">Усі записи цукру від SugarBridge за вибрані дні (%1$d) зникнуть із Health Connect і Samsung Health — і з історії LibreView, і отримані через LibreLinkUp. Дані в LibreView залишаться без змін.</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Налаштування</string>
+    <string name="settings_check">Перевірити зв’язок</string>
+    <string name="settings_sign_out">Вийти</string>
+    <string name="settings_hc_title">Health Connect і Samsung Health</string>
+    <string name="settings_hc_allowed">Запис цукру дозволено ✓</string>
+    <string name="settings_hc_denied">Немає дозволу на запис цукру</string>
+    <string name="settings_hc_checking">Перевіряю дозвіл…</string>
+    <string name="settings_permissions">Дозволи</string>
+    <string name="settings_open_hc">Відкрити Health Connect</string>
+    <string name="settings_open_samsung">Відкрити Samsung Health</string>
+    <string name="settings_hc_hint">Samsung Health сам забирає цукор із Health Connect. Якщо точок немає — перевірте в Samsung Health → Налаштування → Health Connect, що йому дозволено читати «Рівень глюкози».</string>
+    <string name="settings_background_title">Фонова синхронізація</string>
+    <string name="settings_off">вимк</string>
+    <string name="settings_background_hint">Без сповіщення. Щоразу забирає історію за 12 годин: у ній точки приблизно кожні 15 хвилин, тож пропусків не буде, навіть якщо телефон спав. 15 хвилин — мінімум, який дозволяє Android.</string>
+    <string name="settings_live_title">Хвилинний режим</string>
+    <string name="settings_live_switch">Оновлювати цукор частіше</string>
+    <string name="settings_live_switch_hint">У Samsung Health з’являється кожен новий вимір, а не лише точки раз на 15 хвилин</string>
+    <string name="settings_live_every_minute">щохвилини</string>
+    <string name="settings_live_every">раз на %1$d хв</string>
+    <string name="settings_live_value">Цукор у сповіщенні</string>
+    <string name="settings_live_value_hint">Число в рядку стану й у шторці. Вимкніть — сповіщення стане тихим і сховається вниз шторки</string>
+    <string name="settings_keep_awake">Не давати телефону засинати</string>
+    <string name="settings_keep_awake_hint">Інтервал не розтягується при вимкненому екрані, але батарея сідає швидше</string>
+    <string name="settings_hide_notification">Приховати сповіщення зовсім</string>
+    <string name="settings_battery">Зняти обмеження батареї</string>
+    <string name="settings_live_hint">Частіше ніж раз на 15 хвилин Android дає працювати у фоні лише сервісу зі сповіщенням. Сповіщення можна вимкнути в налаштуваннях каналу — режим працюватиме далі, застосунок залишиться в списку активних.</string>
+    <string name="settings_display_title">Відображення</string>
+    <string name="settings_target_range">Цільовий діапазон: %1$s – %2$s %3$s</string>
+    <string name="settings_target_hint">Лише для кольорів, графіка й відсотка «у діапазоні». На тривоги LibreLink не впливає.</string>
+    <string name="settings_about_title">Про SugarBridge</string>
+    <string name="settings_version">Версія %1$s</string>
+    <string name="settings_about_hint">Не медичний виріб: тривоги про низький і високий цукор та рішення щодо лікування — лише за LibreLink. LibreLinkUp і LibreView використовуються через неофіційний API, лише ваш акаунт і ваші дані.</string>
+
+    <!-- Health Connect is missing -->
+    <string name="hc_update_title">Оновіть Health Connect</string>
+    <string name="hc_missing_title">Потрібен Health Connect</string>
+    <string name="hc_gate_text">SugarBridge передає цукор у Samsung Health через Health Connect — без нього даним нікуди йти.</string>
+    <string name="hc_gate_old">Встановлена версія застаріла.</string>
+    <string name="hc_gate_missing">На цьому телефоні його не знайдено або вимкнено.</string>
+    <string name="hc_gate_auto">Це вікно закриється само, щойно Health Connect запрацює.</string>
+    <string name="hc_update">Оновити</string>
+    <string name="hc_install">Встановити</string>
+    <string name="hc_settings">Налаштування Health Connect</string>
+
+    <!-- Snackbar messages -->
+    <string name="msg_hc_denied">Без дозволу Health Connect цукор записувати нікуди</string>
+    <string name="msg_no_app">Не знайшлося застосунку, щоб це відкрити</string>
+    <string name="msg_not_allowed">Android не дозволив це відкрити</string>
+    <string name="msg_nothing_new">Нових вимірів немає — усе вже в Health Connect ♡</string>
+    <string name="msg_written">Записано в Health Connect: %1$d ✧</string>
+    <string name="msg_already_there">уже були: %1$d</string>
+    <string name="msg_future_skipped">з майбутнього пропущено: %1$d — перевірте часовий пояс</string>
+    <string name="msg_sign_in_again">Пароль LibreLinkUp не підійшов — увійдіть знову</string>
+    <string name="msg_error">Помилка: %1$s</string>
+    <string name="msg_signed_in">Вхід виконано ♡</string>
+    <string name="msg_sign_in_failed">Не вдалося увійти: %1$s</string>
+    <string name="msg_check_ok">LibreLinkUp на зв’язку: вимірів за 12 годин — %1$d, останній %2$s о %3$s (регіон %4$s)</string>
+    <string name="msg_file_unreadable">Не вдалося відкрити файл</string>
+    <string name="msg_file_lost">Файл із LibreView загубився, спробуйте ще раз</string>
+    <string name="msg_no_glucose">У файлі немає вимірів глюкози. Потрібне вивантаження «Дані про глюкозу» з LibreView</string>
+    <string name="msg_parse_failed">Не вдалося прочитати файл: %1$s</string>
+    <string name="msg_allow_hc_first">Спершу дозвольте SugarBridge запис у Health Connect</string>
+    <string name="msg_write_failed">Помилка запису: %1$s</string>
+    <string name="msg_deleted">Видалено з Health Connect днів: %1$d</string>
+    <string name="msg_delete_failed">Не вдалося видалити: %1$s</string>
+
+    <!-- Errors -->
+    <string name="error_wrong_credentials">неправильний email або пароль</string>
+    <string name="error_login">вхід не вдався: %1$s</string>
+    <string name="error_login_step">відкрийте застосунок LibreLinkUp, підтвердьте там крок «%1$s» і увійдіть знову</string>
+    <string name="error_rate_limited">забагато запитів, LibreLinkUp просить зачекати %1$d с</string>
+    <string name="error_no_connections">у LibreLinkUp немає підключень: запросіть себе з LibreLink</string>
+    <string name="error_api_changed">LibreLinkUp вимагає версію застосунку %1$s, а її вже вказано — схоже, API змінився</string>
+    <string name="error_server">LibreLinkUp відповів кодом %1$d</string>
+    <string name="error_network">немає зв’язку з LibreLinkUp</string>
+    <string name="error_no_health_connect">Health Connect недоступний на цьому телефоні</string>
+    <string name="error_no_permission">немає дозволу на запис цукру в Health Connect</string>
+    <string name="error_signed_out">спершу увійдіть у LibreLinkUp</string>
+
+    <!-- Minute mode notification -->
+    <string name="notif_sign_in_again">Пароль LibreLinkUp не підійшов: відкрийте SugarBridge і увійдіть знову</string>
+    <string name="notif_sign_in">Увійдіть у LibreLinkUp у застосунку SugarBridge</string>
+    <string name="notif_problem">SugarBridge: %1$s</string>
+    <string name="notif_wait">LibreLinkUp просить зачекати</string>
+    <string name="notif_offline">Немає зв’язку з LibreLinkUp</string>
+    <string name="notif_failed">Синхронізація не вдалася</string>
+    <string name="notif_value_text">о %1$s · %2$s</string>
+    <string name="notif_watching">SugarBridge наглядає за цукром ✧</string>
+    <string name="notif_every_minute">Оновлення щохвилини</string>
+    <string name="notif_every">Оновлення раз на %1$d хв</string>
+    <string name="notif_stop">Зупинити</string>
+    <string name="channel_live">Поточний цукор</string>
+    <string name="channel_live_description">Цукор у рядку стану й у шторці в хвилинному режимі</string>
+    <string name="channel_quiet">Фонова робота</string>
+    <string name="channel_quiet_description">Тихе сповіщення хвилинного режиму. Його можна вимкнути — режим працюватиме далі</string>
+
+    <!-- LibreView window -->
+    <string name="libreview_hint">Увійдіть акаунтом LibreLink (не LibreLinkUp) → «Історія глюкози» → «Завантажити дані про глюкозу» → «Я не робот» → «Завантажити». Файл SugarBridge забере сам.</string>
+    <string name="libreview_fetching">Забираю файл…</string>
+    <string name="libreview_download_failed">Не вдалося завантажити: %1$s</string>
+    <string name="libreview_bad_link">Незрозуміле посилання на файл</string>
+    <string name="libreview_bad_data">Файл прийшов у незрозумілому вигляді</string>
+    <string name="libreview_no_glucose">Файл отримано, але вимірів глюкози в ньому немає. Потрібне вивантаження «Дані про глюкозу»</string>
+    <string name="libreview_read_failed">Не вдалося забрати файл: %1$s</string>
+</resources>

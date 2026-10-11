@@ -8,22 +8,22 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-// Так LibreLinkUp пишет время: "10/8/2026 6:01:00 PM" — месяц/день/год, 12-часовой формат
+// How LibreLinkUp writes time: "10/8/2026 6:01:00 PM", month/day/year in the 12-hour format
 val LIBRE_TIME: DateTimeFormatter = DateTimeFormatter.ofPattern("M/d/yyyy h:mm:ss a", Locale.US)
 
 fun parseReading(item: JSONObject): Reading {
-    // FactoryTimestamp — время в UTC, Timestamp — местное время телефона с LibreLink
+    // FactoryTimestamp is UTC, Timestamp is the local time of the phone with LibreLink
     val utc = LocalDateTime.parse(item.getString("FactoryTimestamp"), LIBRE_TIME)
     return Reading(
         time = utc.toInstant(ZoneOffset.UTC),
         mgDl = item.getDouble("ValueInMgPerDl"),
-        trend = item.optInt("TrendArrow", 0),   // тренд есть только у текущего значения
+        trend = item.optInt("TrendArrow", 0),   // only the current value has a trend
     )
 }
 
-/** Ответ /graph → история за ~12 часов плюс текущее значение, без повторов, по времени. */
+/** The /graph answer → ~12 hours of history plus the current value, without repeats, by time. */
 fun parseGraph(data: JSONObject): List<Reading> {
-    val byTime = sortedMapOf<Instant, Reading>()   // словарь, сразу упорядоченный по времени
+    val byTime = sortedMapOf<Instant, Reading>()   // a map kept sorted by time
     val history = data.optJSONArray("graphData")
     if (history != null) {
         for (i in 0 until history.length()) {
@@ -34,7 +34,7 @@ fun parseGraph(data: JSONObject): List<Reading> {
     val current = data.optJSONObject("connection")?.optJSONObject("glucoseMeasurement")
     if (current != null) {
         val r = parseReading(current)
-        byTime[r.time] = r   // у текущего значения есть тренд, оно важнее записи из истории
+        byTime[r.time] = r   // the current value has a trend, so it wins over the history entry
     }
     return byTime.values.toList()
 }

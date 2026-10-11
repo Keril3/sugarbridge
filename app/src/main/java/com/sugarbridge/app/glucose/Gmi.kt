@@ -5,18 +5,18 @@ import java.time.Instant
 import kotlin.math.roundToInt
 
 /**
- * Расчётный HbA1c — GMI (Glucose Management Indicator, Bergenstal и др., Diabetes Care, 2018):
- * GMI (%) = 3,31 + 0,02392 × средняя глюкоза (мг/дл). Это оценка по данным датчика, а не анализ крови:
- * лабораторный HbA1c может отличаться от неё на 0,5 % и больше.
+ * Estimated HbA1c: GMI (Glucose Management Indicator, Bergenstal et al., Diabetes Care, 2018):
+ * GMI (%) = 3.31 + 0.02392 × mean glucose (mg/dL). It is an estimate from sensor data, not a blood test:
+ * a lab HbA1c may differ from it by 0.5% or more.
  */
 fun gmiPercent(meanMgDl: Double): Double = 3.31 + 0.02392 * meanMgDl
 
-/** HbA1c в ммоль/моль (единицы IFCC) из процентов (NGSP). */
+/** HbA1c in mmol/mol (IFCC units) from percent (NGSP). */
 fun hba1cMmolPerMol(percent: Double): Int = ((percent - 2.15) * 10.929).roundToInt()
 
 /**
- * Итог за период. coverage — доля 15-минутных отрезков, где были данные. По международному
- * консенсусу оценке можно доверять, если данных хотя бы 70 % за 14 дней и больше.
+ * The result for a period. coverage is the share of 15-minute slots that had data. By the international
+ * consensus the estimate can be trusted with at least 70% of the data over 14 days or more.
  */
 data class GmiResult(val days: Int, val meanMgDl: Double, val coverage: Double) {
     val percent: Double get() = gmiPercent(meanMgDl)
@@ -29,8 +29,8 @@ data class GmiResult(val days: Int, val meanMgDl: Double, val coverage: Double) 
 }
 
 /**
- * Средняя глюкоза по 15-минутным отрезкам: сначала среднее внутри отрезка, потом по отрезкам.
- * Так минутные замеры из минутного режима весят столько же, сколько точки раз в 15 минут.
+ * Mean glucose over 15-minute slots: first the mean within a slot, then over the slots.
+ * This way readings from minute mode weigh as much as points every 15 minutes.
  */
 class GlucoseBins(private val from: Instant, private val to: Instant) {
     private val count = ((Duration.between(from, to).seconds + BIN_SECONDS - 1) / BIN_SECONDS).toInt().coerceAtLeast(1)
@@ -44,7 +44,7 @@ class GlucoseBins(private val from: Instant, private val to: Instant) {
         hits[bin]++
     }
 
-    /** null — данных нет совсем. */
+    /** null when there is no data at all. */
     fun result(): GmiResult? {
         var filled = 0
         var total = 0.0
@@ -64,6 +64,6 @@ class GlucoseBins(private val from: Instant, private val to: Instant) {
     }
 }
 
-/** GMI за промежуток по готовому списку замеров (например, из выгрузки LibreView). */
+/** GMI for a period from a list of readings (e.g. from a LibreView export). */
 fun estimateGmi(readings: List<Reading>, from: Instant, to: Instant): GmiResult? =
     GlucoseBins(from, to).apply { readings.forEach { add(it.time, it.mgDl) } }.result()

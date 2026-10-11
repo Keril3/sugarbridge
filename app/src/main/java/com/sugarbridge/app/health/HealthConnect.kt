@@ -27,8 +27,8 @@ val WRITE_GLUCOSE = HealthPermission.getWritePermission(BloodGlucoseRecord::clas
 enum class HealthConnectState { AVAILABLE, UPDATE_REQUIRED, UNAVAILABLE }
 
 /**
- * На Android 14+ Health Connect встроен в систему и почти всегда доступен. Остальные состояния —
- * на случай отключённого или устаревшего модуля: без Health Connect данным некуда идти.
+ * On Android 14+ Health Connect is part of the system and almost always available. The other states cover
+ * a disabled or outdated module: without Health Connect the data has nowhere to go.
  */
 fun healthConnectState(context: Context): HealthConnectState = when (HealthConnectClient.getSdkStatus(context)) {
     HealthConnectClient.SDK_AVAILABLE -> HealthConnectState.AVAILABLE
@@ -36,7 +36,7 @@ fun healthConnectState(context: Context): HealthConnectState = when (HealthConne
     else -> HealthConnectState.UNAVAILABLE
 }
 
-/** Health Connect в Google Play, а если Play нет — та же страница в браузере. */
+/** Health Connect in Google Play or, without Play, the same page in a browser. */
 fun healthConnectStoreIntent(context: Context): Intent {
     val market = Intent(
         Intent.ACTION_VIEW,
@@ -49,7 +49,7 @@ fun healthConnectStoreIntent(context: Context): Intent {
     }
 }
 
-/** Экран Health Connect с данными и разрешениями. */
+/** The Health Connect screen with data and permissions. */
 fun healthConnectSettingsIntent(): Intent = Intent(HealthConnectClient.ACTION_HEALTH_CONNECT_SETTINGS)
 
 fun isInstalled(context: Context, packageName: String): Boolean = try {
@@ -62,21 +62,21 @@ fun isInstalled(context: Context, packageName: String): Boolean = try {
 suspend fun hasGlucosePermission(context: Context): Boolean =
     WRITE_GLUCOSE in HealthConnectClient.getOrCreate(context).permissionController.getGrantedPermissions()
 
-// какой именно датчик (Libre 1, 2 или 3), LibreLinkUp не сообщает — пишем общее название
+// LibreLinkUp doesn't tell which sensor it is (Libre 1, 2 or 3), so the common name is written
 private val LIBRE_DEVICE = Device(type = Device.TYPE_UNKNOWN, manufacturer = "Abbott", model = "FreeStyle Libre")
 
 fun Reading.toRecord() = BloodGlucoseRecord(
     time = time,
     zoneOffset = ZoneId.systemDefault().rules.getOffset(time),
-    // ключ из минуты замера: повторная запись того же замера не создаст дубль
+    // an id from the reading's minute: writing the same reading again won't create a duplicate
     metadata = Metadata.autoRecorded(device = LIBRE_DEVICE, clientRecordId = recordIdFor(time)),
     level = BloodGlucose.milligramsPerDeciliter(mgDl),
     specimenSource = BloodGlucoseRecord.SPECIMEN_SOURCE_INTERSTITIAL_FLUID,
 )
 
 /**
- * Минуты, на которые SugarBridge уже записал сахар. Свои записи Health Connect отдаёт
- * без разрешения на чтение и без ограничения в 30 дней (Android 14+).
+ * Minutes for which SugarBridge has already written glucose. Health Connect returns an app's own records
+ * without the read permission and without the 30-day limit (Android 14+).
  */
 suspend fun ownMinuteKeys(context: Context, from: Instant, to: Instant): Set<Long> {
     val keys = HashSet<Long>()
@@ -84,7 +84,7 @@ suspend fun ownMinuteKeys(context: Context, from: Instant, to: Instant): Set<Lon
     return keys
 }
 
-/** Все замеры, которые SugarBridge записал в Health Connect за промежуток: время и мг/дл. */
+/** All readings SugarBridge wrote to Health Connect within a period: time and mg/dL. */
 suspend fun forEachOwnGlucose(context: Context, from: Instant, to: Instant, action: (Instant, Double) -> Unit) {
     val hc = HealthConnectClient.getOrCreate(context)
     var page: String? = null
@@ -103,7 +103,7 @@ suspend fun forEachOwnGlucose(context: Context, from: Instant, to: Instant, acti
     } while (page != null)
 }
 
-/** Запись пачками: Health Connect принимает не больше 1000 записей за раз. */
+/** Writes in batches: Health Connect takes at most 1000 records at a time. */
 suspend fun insertReadings(context: Context, readings: List<Reading>, onProgress: (Int) -> Unit = {}) {
     val hc = HealthConnectClient.getOrCreate(context)
     var done = 0
@@ -114,7 +114,7 @@ suspend fun insertReadings(context: Context, readings: List<Reading>, onProgress
     }
 }
 
-/** Удаляет сахар за промежуток. Health Connect даёт удалить только записи самого SugarBridge. */
+/** Deletes glucose within a period. Health Connect only lets SugarBridge delete its own records. */
 suspend fun deleteOwnGlucose(context: Context, from: Instant, to: Instant) {
     HealthConnectClient.getOrCreate(context).deleteRecords(BloodGlucoseRecord::class, TimeRangeFilter.between(from, to))
 }

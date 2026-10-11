@@ -3,15 +3,15 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
-// Версия: при выпуске берётся из git-тега (./gradlew -Psugarbridge.version=1.2.0), иначе — эта.
-// versionCode растёт вместе с ней: 1.2.3 → 10203.
-val appVersion = providers.gradleProperty("sugarbridge.version").getOrElse("1.2.0")
+// The version: a release takes it from the git tag (./gradlew -Psugarbridge.version=1.3.0), otherwise this one.
+// versionCode grows with it: 1.2.3 → 10203.
+val appVersion = providers.gradleProperty("sugarbridge.version").getOrElse("1.3.0")
 val appVersionCode = (appVersion.substringBefore('-').split('.').map { it.toIntOrNull() ?: 0 } + listOf(0, 0, 0))
     .take(3)
     .let { (major, minor, patch) -> major * 10_000 + minor * 100 + patch }
 
-// Ключ подписи release: переменные окружения (GitHub Actions) или ~/.gradle/gradle.properties на своём
-// компьютере. В репозитории ключа нет и быть не должно — см. README, «Выпуск новой версии».
+// The release signing key: environment variables (GitHub Actions) or ~/.gradle/gradle.properties on your own
+// computer. The key is not in the repository and must never be, see the README, "Releasing a new version".
 fun secret(env: String, property: String): String? =
     providers.environmentVariable(env).orElse(providers.gradleProperty(property)).orNull
 
@@ -47,9 +47,9 @@ android {
     buildTypes {
         release {
             if (releaseKeystore != null) signingConfig = signingConfigs.getByName("release")
-            // R8 выключен: частичная оптимизация из шаблона Android Studio (packageScope) собирала APK,
-            // который падал при запуске (IllegalAccessError в kotlin.collections). Без R8 release ведёт
-            // себя так же, как проверенный тестами debug; лишние мегабайты для личного приложения не важны.
+            // R8 is off: the partial optimization from the Android Studio template (packageScope) built an APK
+            // that crashed on start (IllegalAccessError in kotlin.collections). Without R8 the release behaves
+            // exactly like the tested debug build; a few extra megabytes don't matter for a personal app.
             optimization {
                 enable = false
             }
@@ -76,7 +76,7 @@ dependencies {
     implementation(libs.androidx.health.connect.client)
     implementation(libs.androidx.work.runtime)
     testImplementation(libs.junit)
-    testImplementation(libs.json)  // настоящий org.json вместо заглушек android.jar в тестах на компьютере
+    testImplementation(libs.json)  // the real org.json instead of the android.jar stubs in JVM tests
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)

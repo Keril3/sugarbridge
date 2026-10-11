@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Для Android 11 и старше; приложению нужен Android 14+, но правила держим одинаковыми -->
+<!-- For Android 11 and older; the app needs Android 14+, but the rules are kept the same -->
 <full-backup-content>
     <exclude domain="sharedpref" path="account.xml" />
     <exclude domain="sharedpref" path="sync.xml" />

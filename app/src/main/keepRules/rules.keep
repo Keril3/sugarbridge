@@ -1,6 +1,6 @@
-# Правила R8. Сейчас R8 для release выключен (см. app/build.gradle.kts), но если его включить:
+# R8 rules. R8 is currently off for release (see app/build.gradle.kts), but in case it is turned on:
 
-# окно LibreView вызывает эти методы из JavaScript по имени — их нельзя переименовывать и удалять
+# the LibreView window calls these methods from JavaScript by name: they must not be renamed or removed
 -keepclassmembers class * {
     @android.webkit.JavascriptInterface <methods>;
 }

@@ -23,28 +23,28 @@ class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
 
     override suspend fun doWork(): Result = try {
         val result = syncAndRecord(applicationContext)
-        Log.i(TAG, "записано: ${result.written}")
+        Log.i(TAG, "written: ${result.written}")
         Result.success()
-    } catch (e: CancellationException) {   // WorkManager сам остановил задачу — это не ошибка
+    } catch (e: CancellationException) {   // WorkManager stopped the job itself: not an error
         throw e
-    } catch (e: LoginFailed) {              // пароль не подошёл: повторять нельзя
-        Log.e(TAG, e.message ?: "вход не удался")
-        Libre.signOut(applicationContext)   // дальше синхронизация молчит, пока вы не войдёте заново
+    } catch (e: LoginFailed) {              // the password didn't work: no retries
+        Log.e(TAG, e.message ?: "sign-in failed")
+        Libre.signOut(applicationContext)   // the sync stays quiet until you sign in again
         Result.failure()
-    } catch (e: RateLimited) {              // LibreLinkUp просит подождать — WorkManager повторит позже
+    } catch (e: RateLimited) {              // LibreLinkUp asks to wait: WorkManager retries later
         Log.w(TAG, e.message ?: "429")
         Result.retry()
-    } catch (e: LibreError) {               // например, в LibreLinkUp нет подключений
-        Log.e(TAG, e.message ?: "ошибка LibreLinkUp")
+    } catch (e: LibreError) {               // e.g. LibreLinkUp has no connections
+        Log.e(TAG, e.message ?: "LibreLinkUp error")
         Result.failure()
-    } catch (e: IOException) {              // нет сети или сбой сервера — повторим позже
-        Log.w(TAG, "сеть: ${e.message}")
+    } catch (e: IOException) {              // no network or a server failure: retry later
+        Log.w(TAG, "network: ${e.message}")
         Result.retry()
-    } catch (e: IllegalStateException) {    // нет разрешения Health Connect или не выполнен вход
-        Log.e(TAG, e.message ?: "ошибка")
+    } catch (e: IllegalStateException) {    // no Health Connect permission or nobody signed in
+        Log.e(TAG, e.message ?: "error")
         Result.failure()
-    } catch (e: Exception) {                // что-то неожиданное, например отказ Health Connect
-        Log.e(TAG, "синхронизация упала", e)
+    } catch (e: Exception) {                // something unexpected, e.g. Health Connect refused
+        Log.e(TAG, "sync crashed", e)
         Result.failure()
     }
 
@@ -52,13 +52,13 @@ class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
         const val TAG = "SugarSync"
         const val WORK_NAME = "sugarbridge-sync"
 
-        // Так задача называлась, пока SyncWorker лежал в пакете com.sugarbridge.app. WorkManager хранит имя
-        // класса, и обновить ту задачу на класс из нового пакета нельзя — её отменяем, новую создаём заново.
+        // The job's name while SyncWorker lived in the com.sugarbridge.app package. WorkManager stores the class
+        // name, and that job can't be switched to the class in the new package: it is cancelled and a new one created.
         const val LEGACY_WORK_NAME = "sugar-sync"
     }
 }
 
-/** Планирует фоновую синхронизацию по настройкам. Безопасно вызывать сколько угодно раз. */
+/** Schedules the background sync from the settings. Safe to call any number of times. */
 fun scheduleSync(context: Context, settings: AppSettings = SettingsStore(context).load()) {
     val workManager = WorkManager.getInstance(context)
     workManager.cancelUniqueWork(SyncWorker.LEGACY_WORK_NAME)
@@ -66,10 +66,10 @@ fun scheduleSync(context: Context, settings: AppSettings = SettingsStore(context
         workManager.cancelUniqueWork(SyncWorker.WORK_NAME)
         return
     }
-    // 15 минут — минимум для WorkManager
+    // 15 minutes is the WorkManager minimum
     val request = PeriodicWorkRequestBuilder<SyncWorker>(settings.backgroundMinutes.toLong(), TimeUnit.MINUTES)
         .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
         .build()
-    // UPDATE: уже запланированная задача получает новый интервал, отсчёт времени не сбрасывается
+    // UPDATE: an already scheduled job gets the new interval without resetting its timer
     workManager.enqueueUniquePeriodicWork(SyncWorker.WORK_NAME, ExistingPeriodicWorkPolicy.UPDATE, request)
 }

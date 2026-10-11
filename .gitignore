@@ -16,7 +16,7 @@ local.properties
 *.apk
 .kotlin/
 
-# Ключи подписи и пароли — никогда в git
+# Signing keys and passwords never go into git
 *.jks
 *.keystore
 keystore.properties

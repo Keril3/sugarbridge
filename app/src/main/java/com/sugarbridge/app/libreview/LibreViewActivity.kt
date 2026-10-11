@@ -31,10 +31,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
+import com.sugarbridge.app.R
 import com.sugarbridge.app.libre.Libre
 import com.sugarbridge.app.ui.components.AngelBackground
 import com.sugarbridge.app.ui.components.Hint
@@ -50,9 +52,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * Сайт LibreView внутри приложения. Выгрузку данных LibreView защищает капчей «Я не робот»,
- * поэтому скачать историю без человека нельзя. Зато можно поймать файл, который человек скачал:
- * обычную ссылку, data: или blob: — сайт часто собирает CSV прямо в браузере.
+ * The LibreView site inside the app. LibreView protects the data export with an "I'm not a robot" captcha,
+ * so the history can't be downloaded without a person. But the file the person downloads can be caught:
+ * a plain link, data: or blob: (the site often builds the CSV right in the browser).
  */
 class LibreViewActivity : ComponentActivity() {
 
@@ -68,7 +70,7 @@ class LibreViewActivity : ComponentActivity() {
         web = WebView(this).apply {
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
-            // «; wv» в User-Agent некоторые сайты принимают за встроенный браузер и упрощают страницу
+            // some sites take "; wv" in the User-Agent for an embedded browser and simplify the page
             settings.userAgentString = settings.userAgentString.replace("; wv", "")
             addJavascriptInterface(CsvBridge(), "SugarBridgeCsv")
             webViewClient = object : WebViewClient() {
@@ -96,25 +98,22 @@ class LibreViewActivity : ComponentActivity() {
             }
             setDownloadListener { url, _, _, _, _ -> download(url) }
         }
-        CookieManager.getInstance().setAcceptThirdPartyCookies(web, true)   // капча живёт на другом домене
-        val testPage = intent.getStringExtra(EXTRA_TEST_HTML)   // только для инструментального теста
+        CookieManager.getInstance().setAcceptThirdPartyCookies(web, true)   // the captcha lives on another domain
+        val testPage = intent.getStringExtra(EXTRA_TEST_HTML)   // only for the instrumented test
         val site = libreViewSite(Libre.client(this)?.region, Locale.getDefault().country)
         if (testPage != null) web.loadDataWithBaseURL(site, testPage, "text/html", "utf-8", null) else web.loadUrl(site)
         onBackPressedDispatcher.addCallback(this) { if (web.canGoBack()) web.goBack() else finish() }
 
         setContent {
             SugarTheme {
-                AngelBackground(halo = false) {   // нимб в углу мешал бы кнопке «Закрыть»
+                AngelBackground(halo = false) {   // the halo in the corner would get in the way of the Close button
                     Column(Modifier.fillMaxSize().safeDrawingPadding()) {
                         Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                             Text("LibreView", style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f).padding(start = 8.dp))
-                            TextButton(onClick = ::finish) { Text("Закрыть") }
+                            TextButton(onClick = ::finish) { Text(stringResource(R.string.close)) }
                         }
                         TenshiCard(Modifier.padding(horizontal = 12.dp)) {
-                            Hint(
-                                "Войдите аккаунтом LibreLink (не LibreLinkUp) → «История глюкозы» → «Загрузить данные о глюкозе» → " +
-                                    "«Я не робот» → «Загрузить». Файл SugarBridge заберёт сам."
-                            )
+                            Hint(stringResource(R.string.libreview_hint))
                             status?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary) }
                         }
                         if (pageProgress in 1..99) {
@@ -133,7 +132,7 @@ class LibreViewActivity : ComponentActivity() {
     }
 
     private fun download(url: String) {
-        status = "Забираю файл…"
+        status = getString(R.string.libreview_fetching)
         when {
             url.startsWith("blob:") -> web.evaluateJavascript(readBlob(url), null)
             url.startsWith("data:") -> acceptDataUrl(url)
@@ -142,10 +141,10 @@ class LibreViewActivity : ComponentActivity() {
                 val cookies = CookieManager.getInstance().getCookie(url)
                 lifecycleScope.launch {
                     val bytes = withContext(Dispatchers.IO) { runCatching { fetch(url, userAgent, cookies) } }
-                    bytes.onSuccess(::accept).onFailure { status = "Не удалось скачать: ${it.message}" }
+                    bytes.onSuccess(::accept).onFailure { status = getString(R.string.libreview_download_failed, it.message.orEmpty()) }
                 }
             }
-            else -> status = "Непонятная ссылка на файл"
+            else -> status = getString(R.string.libreview_bad_link)
         }
     }
 
@@ -156,18 +155,18 @@ class LibreViewActivity : ComponentActivity() {
         conn.connectTimeout = 20_000
         conn.readTimeout = 60_000
         try {
-            if (conn.responseCode != 200) error("сервер ответил кодом ${conn.responseCode}")
+            if (conn.responseCode != 200) error("HTTP ${conn.responseCode}")
             return conn.inputStream.use { it.readBytes() }
         } finally {
             conn.disconnect()
         }
     }
 
-    /** data:[тип][;base64],содержимое */
+    /** data:[type][;base64],content */
     private fun acceptDataUrl(dataUrl: String) {
         val comma = dataUrl.indexOf(',')
         if (comma < 0) {
-            status = "Файл пришёл в непонятном виде"
+            status = getString(R.string.libreview_bad_data)
             return
         }
         val meta = dataUrl.substring(0, comma)
@@ -180,14 +179,14 @@ class LibreViewActivity : ComponentActivity() {
         accept(bytes)
     }
 
-    /** Проверяем, что это и правда выгрузка глюкозы, и отдаём файл главному экрану. */
+    /** Checks that this really is a glucose export and hands the file to the main screen. */
     private fun accept(bytes: ByteArray) {
         lifecycleScope.launch {
             val found = withContext(Dispatchers.Default) {
                 runCatching { LibreViewCsv.parse(LibreViewCsv.decode(bytes)).readings.size }.getOrDefault(0)
             }
             if (found == 0) {
-                status = "Файл получен, но замеров глюкозы в нём нет. Нужна выгрузка «Данные о глюкозе»"
+                status = getString(R.string.libreview_no_glucose)
                 return@launch
             }
             val file = File(cacheDir, "libreview.csv")
@@ -200,13 +199,13 @@ class LibreViewActivity : ComponentActivity() {
     private inner class CsvBridge {
         @JavascriptInterface
         fun onData(dataUrl: String) {
-            if (!trusted(pageHost)) return   // файлы принимаем только со страниц LibreView
+            if (!trusted(pageHost)) return   // files are accepted only from LibreView pages
             runOnUiThread { acceptDataUrl(dataUrl) }
         }
 
         @JavascriptInterface
         fun onError(message: String) {
-            runOnUiThread { status = "Не удалось забрать файл: $message" }
+            runOnUiThread { status = getString(R.string.libreview_read_failed, message) }
         }
     }
 
@@ -217,7 +216,7 @@ class LibreViewActivity : ComponentActivity() {
         private fun trusted(host: String?): Boolean =
             host != null && listOf("libreview.com", "libreview.io", "libreview.ru").any { host == it || host.endsWith(".$it") }
 
-        /** Сайт может сразу «отозвать» blob после клика — держим ссылку на него ещё минуту. */
+        /** The site may revoke the blob right after the click: keep a reference to it for another minute. */
         private const val KEEP_BLOBS = """
             (function () {
               if (window.__sbBlobs) return;
@@ -243,7 +242,7 @@ class LibreViewActivity : ComponentActivity() {
                   blob.then(function (b) {
                     var reader = new FileReader();
                     reader.onloadend = function () { SugarBridgeCsv.onData(reader.result); };
-                    reader.onerror = function () { SugarBridgeCsv.onError('не прочитался'); };
+                    reader.onerror = function () { SugarBridgeCsv.onError('read failed'); };
                     reader.readAsDataURL(b);
                   }).catch(function (e) { SugarBridgeCsv.onError(String(e)); });
                 })($quoted);

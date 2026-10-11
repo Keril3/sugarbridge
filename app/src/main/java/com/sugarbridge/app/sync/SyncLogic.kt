@@ -5,44 +5,44 @@ import java.time.Duration
 import java.time.Instant
 
 /**
- * Номер минуты замера. Один и тот же замер приходит из LibreLinkUp с секундами ("12:07:28"),
- * а из CSV LibreView — без них ("12:07"). По минуте они совпадают, поэтому дублей не будет.
+ * The number of the reading's minute. The same reading comes from LibreLinkUp with seconds ("12:07:28")
+ * and from the LibreView CSV without them ("12:07"). Their minutes match, so there are no duplicates.
  */
 fun minuteKey(time: Instant): Long = Math.floorDiv(time.epochSecond, 60L)
 
-/** Ключ записи в Health Connect: повторная запись с тем же ключом обновляет запись, а не создаёт дубль. */
+/** The Health Connect record id: writing again with the same id updates the record instead of duplicating it. */
 fun recordIdFor(time: Instant): String = "libre-m${minuteKey(time)}"
 
-/** Не больше одного замера на минуту; при совпадении автоматический замер важнее сканирования. */
+/** At most one reading per minute; on a clash an automatic reading wins over a scan. */
 fun onePerMinute(readings: List<Reading>): List<Reading> =
     readings.groupBy { minuteKey(it.time) }
         .map { (_, same) -> same.firstOrNull { !it.scan } ?: same.first() }
         .sortedBy { it.time }
 
 /**
- * Что уже записано в Health Connect: минуты за последние ~13 часов и «пол» —
- * замеры не новее него считаются обработанными (так переносится старый last_synced).
+ * What is already written to Health Connect: the minutes of the last ~13 hours and a "floor":
+ * readings not newer than it count as done (this is how the old last_synced carries over).
  */
 data class SyncState(val written: Set<Long> = emptySet(), val floor: Long = 0) {
 
     /**
-     * Замеры, которых ещё нет в Health Connect. Замеры «из будущего» ждут своего времени:
-     * Health Connect их не принимает и отбрасывает всю пачку, а время замера идёт от часов датчика,
-     * которые могут спешить относительно телефона.
+     * Readings not yet in Health Connect. Readings "from the future" wait for their time:
+     * Health Connect rejects them together with the whole batch, and a reading's time comes from the sensor's
+     * clock, which may run ahead of the phone.
      */
     fun fresh(readings: List<Reading>, now: Instant): List<Reading> =
         onePerMinute(readings).filter {
             it.time.epochSecond > floor && minuteKey(it.time) !in written && !it.time.isAfter(now)
         }
 
-    /** Состояние после записи: добавляем минуты, забываем то, что старше окна истории LibreLinkUp. */
+    /** The state after writing: add the minutes, forget whatever is older than the LibreLinkUp history window. */
     fun after(newlyWritten: List<Reading>, now: Instant, keep: Duration = KEEP): SyncState {
         val horizon = now.minus(keep).epochSecond
         val keys = (written + newlyWritten.map { minuteKey(it.time) }).filterTo(HashSet()) { it * 60 >= horizon }
         return SyncState(keys, maxOf(floor, horizon))
     }
 
-    /** После удаления записей из Health Connect эти минуты можно записать снова. */
+    /** After records are deleted from Health Connect, these minutes can be written again. */
     fun forget(from: Instant, to: Instant): SyncState {
         val a = minuteKey(from)
         val b = minuteKey(to)
@@ -50,7 +50,7 @@ data class SyncState(val written: Set<Long> = emptySet(), val floor: Long = 0) {
     }
 
     companion object {
-        val KEEP: Duration = Duration.ofHours(13)   // LibreLinkUp отдаёт историю за 12 часов
+        val KEEP: Duration = Duration.ofHours(13)   // LibreLinkUp returns 12 hours of history
     }
 }
 
@@ -59,7 +59,7 @@ fun encodeKeys(keys: Set<Long>): String = keys.sorted().joinToString(",")
 fun decodeKeys(text: String?): Set<Long> =
     text.orEmpty().split(',').mapNotNullTo(HashSet()) { it.trim().toLongOrNull() }
 
-/** Компактная запись замеров в настройки: "epochSecond:мг/дл:тренд;...". */
+/** A compact form of readings for the preferences: "epochSecond:mgdl:trend;...". */
 fun encodeReadings(readings: List<Reading>): String =
     readings.joinToString(";") { "${it.time.epochSecond}:${it.mgDl}:${it.trend}" }
 
@@ -73,8 +73,8 @@ fun decodeReadings(text: String?): List<Reading> =
     }
 
 /**
- * Как часто LibreLinkUp на самом деле присылает новое текущее значение: медиана интервалов, мин.
- * Паузы длиннее 20 минут (телефон спал, не было сети) не считаем. null — данных пока мало.
+ * How often LibreLinkUp actually delivers a new current value: the median interval in minutes.
+ * Gaps longer than 20 minutes (the phone slept, no network) are ignored. null while there is too little data.
  */
 fun typicalUpdateMinutes(seen: List<Instant>): Double? {
     val gaps = seen.distinct().sorted().zipWithNext { a, b -> Duration.between(a, b).seconds / 60.0 }

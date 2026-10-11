@@ -8,6 +8,7 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.content.res.Configuration
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -23,16 +24,16 @@ import com.sugarbridge.app.MainActivity
 import com.sugarbridge.app.R
 import com.sugarbridge.app.glucose.GlucoseLevel
 import com.sugarbridge.app.glucose.Reading
-import com.sugarbridge.app.glucose.arrow
 import com.sugarbridge.app.glucose.formatGlucose
 import com.sugarbridge.app.glucose.levelOf
+import com.sugarbridge.app.glucose.text
 import com.sugarbridge.app.libre.Libre
 import com.sugarbridge.app.libre.LoginFailed
 import com.sugarbridge.app.libre.RateLimited
 import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.settings.SettingsStore
+import com.sugarbridge.app.ui.clockFormat
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -45,64 +46,70 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
- * Минутный режим: сервис переднего плана раз в N минут синхронизирует и показывает сахар в уведомлении.
- * Без такого сервиса Android не даёт работать в фоне чаще раза в 15 минут, а у сервиса обязано быть
- * уведомление. Его можно сделать тихим (без сахара) или совсем выключить в настройках канала.
+ * Minute mode: a foreground service that syncs every N minutes and shows glucose in a notification.
+ * Without such a service Android doesn't allow background work more often than every 15 minutes, and the
+ * service must have a notification. It can be made quiet (no glucose) or turned off in the channel settings.
  */
 class LiveSyncService : Service() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var loop: Job? = null
     private var keepAwake: PowerManager.WakeLock? = null
-    @Volatile private var hidden = false            // уведомление смахнули — не возвращаем его до смены настроек
+    @Volatile private var hidden = false            // the notification was swiped away: don't bring it back until settings change
     @Volatile private var lastPosted: String? = null
-    @Volatile private var lastSyncAt = 0L           // SystemClock.elapsedRealtime() последнего запроса
+    @Volatile private var lastSyncAt = 0L           // SystemClock.elapsedRealtime() of the last request
     @Volatile private var latest: Reading? = null
-    @Volatile private var problem: Problem? = null  // последняя ошибка, пока не будет удачной синхронизации
-
-    private class Problem(val title: String, val text: String?)
+    @Volatile private var problem: Problem? = null  // the last failure, until a sync succeeds
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
-            ACTION_STOP -> {   // кнопка «Остановить» в уведомлении
+            ACTION_STOP -> {   // the "Stop" button in the notification
                 SettingsStore(this).update { it.copy(liveEnabled = false) }
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 stopSelf()
                 return START_NOT_STICKY
             }
-            ACTION_DISMISSED -> {   // уведомление смахнули (Android 14+ это позволяет) — сервис продолжает работать
+            ACTION_DISMISSED -> {   // the notification was swiped away (Android 14+ allows it); the service keeps working
                 hidden = true
                 return START_STICKY
             }
         }
         val settings = SettingsStore(this).load()
-        if (!settings.liveEnabled) {   // например, система перезапустила сервис, а режим уже выключили
+        if (!settings.liveEnabled) {   // e.g. the system restarted the service, but the mode has been turned off
             stopSelf()
             return START_NOT_STICKY
         }
-        if (intent?.action == ACTION_RELOAD) {   // поменяли настройки — применяем сразу
+        if (intent?.action == ACTION_RELOAD) {   // settings changed: apply them right away
             hidden = false
             lastPosted = null
             loop?.cancel()
             loop = null
         }
         createNotificationChannels(this)
-        if (latest == null) latest = SyncStore(this).snapshot().recent.lastOrNull()   // сразу показать последнее известное
+        if (latest == null) latest = SyncStore(this).snapshot().recent.lastOrNull()   // show the last known value at once
         try {
             startForeground(NOTIFICATION_ID, render(settings).second, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
         } catch (e: Exception) {
-            // Android может запретить запуск из фона. Не страшно: останется фоновая синхронизация
-            Log.e(SyncWorker.TAG, "startForeground не удался", e)
+            // Android may refuse a start from the background. No harm: the background sync stays
+            Log.e(SyncWorker.TAG, "startForeground failed", e)
             stopSelf()
             return START_NOT_STICKY
         }
         if (loop?.isActive != true) {
-            Log.i(SyncWorker.TAG, "минутный режим: раз в ${settings.liveMinutes} мин, сахар в уведомлении: ${settings.liveShowValue}")
+            Log.i(SyncWorker.TAG, "minute mode: every ${settings.liveMinutes} min, glucose in the notification: ${settings.liveShowValue}")
             loop = scope.launch { runLoop() }
         }
         return START_STICKY
+    }
+
+    /** The app language changed: rename the channels and redraw the notification in it. */
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        createNotificationChannels(this)
+        lastPosted = null
+        post(SettingsStore(this).load())
     }
 
     override fun onDestroy() {
@@ -112,7 +119,7 @@ class LiveSyncService : Service() {
     }
 
     private suspend fun runLoop() {
-        // после перезапуска цикла не опрашиваем LibreLinkUp чаще раза в минуту
+        // after the loop restarts, don't poll LibreLinkUp more often than once a minute
         val sinceLast = SystemClock.elapsedRealtime() - lastSyncAt
         if (lastSyncAt > 0 && sinceLast < MIN_GAP_MS) delay(MIN_GAP_MS - sinceLast)
         while (currentCoroutineContext().isActive) {
@@ -124,33 +131,33 @@ class LiveSyncService : Service() {
                 val result = withSyncWakeLock(settings) { syncAndRecord(this) }
                 latest = result.latest ?: latest
                 problem = null
-                Log.i(SyncWorker.TAG, "минутный режим: записано ${result.written}")
+                Log.i(SyncWorker.TAG, "minute mode: written ${result.written}")
             } catch (e: CancellationException) {
-                throw e   // сервис остановили — выходим из цикла
+                throw e   // the service was stopped: leave the loop
             } catch (e: LoginFailed) {
-                Libre.signOut(this)   // неверный пароль не повторяем, иначе можно нарваться на блокировку
-                finish("Пароль LibreLinkUp не подошёл: откройте SugarBridge и войдите заново")
+                Libre.signOut(this)   // a wrong password is not retried, or the account could get locked
+                finish(getString(R.string.notif_sign_in_again))
                 return
-            } catch (e: IllegalStateException) {
-                if (Libre.client(this) == null) {   // не выполнен вход — опрашивать нечего
-                    finish("Войдите в LibreLinkUp в приложении SugarBridge")
+            } catch (e: SyncBlocked) {
+                if (e.code == Problem.Code.SIGNED_OUT) {   // nobody is signed in: nothing to poll
+                    finish(getString(R.string.notif_sign_in))
                     return
                 }
-                problem = Problem("SugarBridge: ${e.message}", null)
+                problem = Problem.of(e)
             } catch (e: RateLimited) {
-                pause = maxOf(pause, e.retryAfter * 1000L)   // ждём столько, сколько попросили
-                problem = Problem("LibreLinkUp просит подождать", e.message)
+                pause = maxOf(pause, e.retryAfter * 1000L)   // wait as long as asked
+                problem = Problem.of(e)
             } catch (e: Exception) {
-                problem = Problem("Нет связи с LibreLinkUp", e.message)
+                problem = Problem.of(e)
             }
-            problem?.let { Log.w(SyncWorker.TAG, "минутный режим: ${it.title} ${it.text.orEmpty()}") }
-            settings = SettingsStore(this).load()   // пока шёл запрос, настройки могли поменять
+            problem?.let { Log.w(SyncWorker.TAG, "minute mode: ${it.code} ${it.detail.orEmpty()}") }
+            settings = SettingsStore(this).load()   // settings may have changed during the request
             post(settings)
             delay(pause)
         }
     }
 
-    /** Сервис останавливается, а уведомление с подсказкой остаётся. */
+    /** The service stops, the notification with the hint stays. */
     private fun finish(message: String) {
         val notification = builder(CHANNEL_LIVE, message, null).setOngoing(false).build()
         getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notification)
@@ -161,38 +168,47 @@ class LiveSyncService : Service() {
     private fun post(settings: AppSettings) {
         if (hidden) return
         val (key, notification) = render(settings)
-        if (key == lastPosted) return   // ничего не поменялось — не дёргаем систему
+        if (key == lastPosted) return   // nothing changed: don't bother the system
         lastPosted = key
         getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notification)
     }
 
-    /** Уведомление по текущему состоянию и ключ, по которому видно, изменилось ли оно. */
+    /** The notification for the current state and a key that shows whether it changed. */
     private fun render(s: AppSettings): Pair<String, Notification> {
         val channel = if (s.liveShowValue) CHANNEL_LIVE else CHANNEL_QUIET
-        problem?.let { p ->   // об ошибке говорим и в тихом режиме
-            return "problem|$channel|${p.title}|${p.text}" to builder(channel, p.title, p.text).build()
+        problem?.let { p ->   // failures are reported in the quiet mode too
+            val (title, text) = describe(p)
+            return "problem|$channel|$title|$text" to builder(channel, title, text).build()
         }
         val r = latest
         if (s.liveShowValue && r != null) {
             val value = formatGlucose(r.mgDl, s.unit)
-            val title = listOf(value, s.unit.label, r.arrow).filter { it.isNotEmpty() }.joinToString(" ")
-            val time = r.time.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("HH:mm"))
-            val mood = when (levelOf(r.mgDl, s.lowMgDl, s.highMgDl)) {
-                GlucoseLevel.LOW -> "ниже диапазона"
-                GlucoseLevel.IN_RANGE -> "в диапазоне ♡"
-                GlucoseLevel.HIGH -> "выше диапазона"
+            val title = r.text(getString(s.unit.label), s.unit)
+            val time = r.time.atZone(ZoneId.systemDefault()).format(clockFormat(this))
+            val level = when (levelOf(r.mgDl, s.lowMgDl, s.highMgDl)) {
+                GlucoseLevel.LOW -> R.string.level_low
+                GlucoseLevel.IN_RANGE -> R.string.level_in_range
+                GlucoseLevel.HIGH -> R.string.level_high
             }
-            val text = "в $time · $mood"
+            val text = getString(R.string.notif_value_text, time, getString(level))
             return "value|$title|$text" to builder(channel, title, text, value).build()
         }
-        val every = if (s.liveMinutes == 1) "каждую минуту" else "раз в ${s.liveMinutes} мин"
-        val title = "SugarBridge присматривает за сахаром ✧"
-        return "quiet|$channel|$every" to builder(channel, title, "Обновление $every").build()
+        val every = if (s.liveMinutes == 1) getString(R.string.notif_every_minute) else getString(R.string.notif_every, s.liveMinutes)
+        return "quiet|$channel|$every" to builder(channel, getString(R.string.notif_watching), every).build()
+    }
+
+    /** Title and text of the notification about a failure, in the current language. */
+    private fun describe(p: Problem): Pair<String, String?> = when (p.code) {
+        Problem.Code.NO_HEALTH_CONNECT, Problem.Code.NO_PERMISSION, Problem.Code.SIGNED_OUT ->
+            getString(R.string.notif_problem, p.text(resources)) to null
+        Problem.Code.RATE_LIMITED -> getString(R.string.notif_wait) to p.text(resources)
+        Problem.Code.NETWORK, Problem.Code.SERVER -> getString(R.string.notif_offline) to p.text(resources)
+        else -> getString(R.string.notif_failed) to p.text(resources)
     }
 
     private fun builder(channel: String, title: String, text: String?, value: String? = null): Notification.Builder {
         val openApp = Intent(this, MainActivity::class.java)
-            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)   // не плодить копии экрана
+            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)   // don't stack copies of the screen
         val open = PendingIntent.getActivity(this, 0, openApp, PendingIntent.FLAG_IMMUTABLE)
         val stop = PendingIntent.getService(this, 1, action(ACTION_STOP), PendingIntent.FLAG_IMMUTABLE)
         val dismissed = PendingIntent.getService(this, 2, action(ACTION_DISMISSED), PendingIntent.FLAG_IMMUTABLE)
@@ -204,15 +220,15 @@ class LiveSyncService : Service() {
             .setDeleteIntent(dismissed)
             .setOngoing(true)
             .setShowWhen(false)
-            .setOnlyAlertOnce(true)   // обновлять молча, без звука и вибрации
+            .setOnlyAlertOnce(true)   // update silently, without sound or vibration
             .setColor(0xFFF06FA4.toInt())
             .setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
-            .addAction(Notification.Action.Builder(null, "Остановить", stop).build())
+            .addAction(Notification.Action.Builder(null, getString(R.string.notif_stop), stop).build())
     }
 
     private fun action(name: String) = Intent(this, LiveSyncService::class.java).setAction(name)
 
-    /** Значение сахара прямо в строке состояния: значок рисуется из текста, система красит его в свой цвет. */
+    /** The glucose value right in the status bar: the icon is drawn from text, the system tints it. */
     private fun valueIcon(value: String): Icon {
         val size = 96
         val bitmap = createBitmap(size, size)
@@ -230,20 +246,20 @@ class LiveSyncService : Service() {
         return Icon.createWithBitmap(bitmap)
     }
 
-    /** «Не давать телефону засыпать»: процессор не уходит в сон, и пауза между опросами не растягивается. */
+    /** "Keep the phone awake": the CPU doesn't sleep, so the pause between polls doesn't stretch. */
     private fun holdWakeLock(s: AppSettings) {
         if (s.liveKeepAwake) {
             val lock = keepAwake ?: getSystemService(PowerManager::class.java)
                 .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "SugarBridge:live")
                 .apply { setReferenceCounted(false) }
                 .also { keepAwake = it }
-            lock.acquire((s.liveMinutes + 5) * 60_000L)   // продлевается на каждом круге цикла
+            lock.acquire((s.liveMinutes + 5) * 60_000L)   // extended on every round of the loop
         } else {
             keepAwake?.let { if (it.isHeld) it.release() }
         }
     }
 
-    /** Без постоянной блокировки сна держим процессор хотя бы на время самого запроса. */
+    /** Without the permanent wake lock, keep the CPU awake at least for the request itself. */
     private suspend fun <T> withSyncWakeLock(s: AppSettings, block: suspend () -> T): T {
         if (s.liveKeepAwake) return block()
         val lock = getSystemService(PowerManager::class.java).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "SugarBridge:sync")
@@ -256,8 +272,8 @@ class LiveSyncService : Service() {
     }
 
     companion object {
-        // «live» был у версии из гайда с важностью LOW: у таких уведомлений нет значка в строке состояния,
-        // а важность готового канала приложение поменять не может — поэтому новый id
+        // "live" was used by the version from the guide with LOW importance: such notifications get no status bar icon,
+        // and an app can't change the importance of an existing channel, hence the new id
         const val CHANNEL_LIVE = "glucose"
         internal const val LEGACY_CHANNEL = "live"
         const val CHANNEL_QUIET = "quiet"
@@ -269,7 +285,7 @@ class LiveSyncService : Service() {
 
         fun start(context: Context) = send(context, null)
 
-        /** Применить новые настройки к уже работающему сервису (или запустить его). */
+        /** Applies new settings to the running service, or starts it. */
         fun reload(context: Context) = send(context, ACTION_RELOAD)
 
         fun stop(context: Context) {
@@ -280,20 +296,23 @@ class LiveSyncService : Service() {
             try {
                 context.startForegroundService(Intent(context, LiveSyncService::class.java).setAction(action))
             } catch (e: Exception) {
-                Log.e(SyncWorker.TAG, "не удалось запустить минутный режим", e)
+                Log.e(SyncWorker.TAG, "couldn't start minute mode", e)
             }
         }
     }
 }
 
-/** Каналы уведомлений минутного режима. Создаём и при запуске приложения: без канала нельзя открыть его настройки. */
+/**
+ * Notification channels of minute mode. Also created when the app starts: a channel's settings can't be opened
+ * before it exists. Creating them again renames them to the current language.
+ */
 fun createNotificationChannels(context: Context) {
     val manager = context.getSystemService(NotificationManager::class.java)
     manager.deleteNotificationChannel(LiveSyncService.LEGACY_CHANNEL)
-    // обычная важность — иначе Android не покажет число в строке состояния; звук и вибрацию выключаем
+    // default importance, or Android won't show the number in the status bar; sound and vibration are off
     manager.createNotificationChannel(
-        NotificationChannel(LiveSyncService.CHANNEL_LIVE, "Текущий сахар", NotificationManager.IMPORTANCE_DEFAULT).apply {
-            description = "Сахар в строке состояния и в шторке в минутном режиме"
+        NotificationChannel(LiveSyncService.CHANNEL_LIVE, context.getString(R.string.channel_live), NotificationManager.IMPORTANCE_DEFAULT).apply {
+            description = context.getString(R.string.channel_live_description)
             setSound(null, null)
             enableVibration(false)
             enableLights(false)
@@ -301,8 +320,8 @@ fun createNotificationChannels(context: Context) {
         }
     )
     manager.createNotificationChannel(
-        NotificationChannel(LiveSyncService.CHANNEL_QUIET, "Фоновая работа", NotificationManager.IMPORTANCE_MIN).apply {
-            description = "Тихое уведомление минутного режима. Его можно выключить — режим продолжит работать"
+        NotificationChannel(LiveSyncService.CHANNEL_QUIET, context.getString(R.string.channel_quiet), NotificationManager.IMPORTANCE_MIN).apply {
+            description = context.getString(R.string.channel_quiet_description)
             setShowBadge(false)
         }
     )

@@ -13,23 +13,23 @@ import java.time.format.DateTimeParseException
 import java.time.format.ResolverStyle
 import java.util.Locale
 
-/** Итог разбора выгрузки LibreView. */
+/** The result of parsing a LibreView export. */
 class CsvImport(
-    val readings: List<Reading>,   // по времени, не больше одного замера на минуту
-    val unit: GlucoseUnit,         // в каких единицах был файл
-    val glucoseRows: Int,          // строк с глюкозой в файле
-    val skippedRows: Int,          // из них не удалось разобрать (время или значение)
+    val readings: List<Reading>,   // by time, at most one reading per minute
+    val unit: GlucoseUnit,         // the unit of the file
+    val glucoseRows: Int,          // glucose rows in the file
+    val skippedRows: Int,          // of them, rows that couldn't be parsed (time or value)
 )
 
 /**
- * Выгрузка «Загрузить данные о глюкозе» с сайта LibreView. Обычно это строка с именем и датой,
- * строка заголовков и данные: устройство, серийный номер, время устройства, тип записи
- * (0 — автоматический замер, 1 — сканирование), уровень глюкозы, … Язык заголовков, разделитель,
- * формат даты и единицы зависят от настроек аккаунта, поэтому всё это определяется по самому файлу.
+ * The "Download glucose data" export from the LibreView site. Usually a row with the name and date,
+ * a header row and the data: device, serial number, device timestamp, record type
+ * (0 = automatic reading, 1 = scan), glucose, … The header language, the separator, the date format
+ * and the unit depend on the account settings, so all of them are detected from the file itself.
  */
 object LibreViewCsv {
 
-    /** Байты файла → текст. LibreView отдаёт UTF-8; если файл пересохранили в Excel на русской Windows — это windows-1251. */
+    /** File bytes → text. LibreView sends UTF-8; a file re-saved by Excel on a Russian Windows is windows-1251. */
     fun decode(bytes: ByteArray): String {
         val utf8 = bytes.toString(Charsets.UTF_8)
         return if ('\uFFFD' in utf8) String(bytes, Charset.forName("windows-1251")) else utf8
@@ -50,7 +50,7 @@ object LibreViewCsv {
                 0 -> row.getOrNull(columns.historic)
                 1 -> row.getOrNull(columns.scan)
                 null -> row.getOrNull(columns.historic)?.takeIf { it.isNotBlank() } ?: row.getOrNull(columns.scan)
-                else -> null   // инсулин, еда, заметки и прочее — не глюкоза
+                else -> null   // insulin, food, notes and the like are not glucose
             }
             if (value.isNullOrBlank()) null else Raw(row.getOrNull(columns.time).orEmpty(), value, type == 1)
         }
@@ -65,7 +65,7 @@ object LibreViewCsv {
             val number = numbers[i]
             val time = formatter?.let { parseTime(normalizeTime(r.time), it) }
             val mgDl = number?.let { if (unit == GlucoseUnit.MMOL) it * MGDL_PER_MMOL else it }
-            if (time == null || mgDl == null || mgDl !in 10.0..600.0) {   // Libre измеряет 40–500 мг/дл
+            if (time == null || mgDl == null || mgDl !in 10.0..600.0) {   // Libre measures 40–500 mg/dL
                 skipped++
             } else {
                 readings += Reading(time.atZone(zone).toInstant(), Math.round(mgDl * 10) / 10.0, 0, r.scan)
@@ -74,7 +74,7 @@ object LibreViewCsv {
         return CsvImport(onePerMinute(readings), unit, raw.size, skipped)
     }
 
-    /** Разделитель — тот из ",", ";" и табуляции, что чаще встречается вне кавычек в начале файла. */
+    /** The separator is whichever of ",", ";" and tab occurs most often outside quotes at the start of the file. */
     internal fun detectSeparator(text: String): Char {
         val counts = mutableMapOf(',' to 0, ';' to 0, '\t' to 0)
         var quoted = false
@@ -85,7 +85,7 @@ object LibreViewCsv {
         return counts.maxByOrNull { it.value }?.takeIf { it.value > 0 }?.key ?: ','
     }
 
-    /** Строки CSV с учётом кавычек: внутри них бывают разделители, "" и переносы строк (в заметках). */
+    /** CSV rows with quotes handled: quoted cells may hold separators, "" and line breaks (in notes). */
     internal fun records(text: String, separator: Char): List<List<String>> {
         val out = ArrayList<List<String>>()
         var row = ArrayList<String>()
@@ -129,24 +129,25 @@ object LibreViewCsv {
         return out.filter { r -> r.any { it.isNotBlank() } }
     }
 
-    /** "6,4", "6.4", " 115 " → число; "HI", "LO" и пустое → null. */
+    /** "6,4", "6.4", " 115 " → a number; "HI", "LO" and empty → null. */
     internal fun parseNumber(text: String): Double? =
         text.trim().replace("\u00A0", "").replace(" ", "").replace(',', '.').toDoubleOrNull()?.takeIf { it > 0 }
 
-    /** Если единицы не написаны в заголовке: ммоль/л редко бывают больше 35, мг/дл — почти всегда больше. */
+    /** If the header doesn't name the unit: mmol/L is rarely above 35, mg/dL almost always is. */
     private fun guessUnit(values: List<Double>): GlucoseUnit {
         if (values.isEmpty()) return GlucoseUnit.MMOL
         val median = values.sorted()[values.size / 2]
         return if (median > 35) GlucoseUnit.MGDL else GlucoseUnit.MMOL
     }
 
-    // Корни слов, а не слова целиком: «Отметка времени устройства» не содержит ни «метка», ни «время»
-    private val TIME_WORDS = listOf("timestamp", "time", "метк", "врем")
-    private val GLUCOSE_WORDS = listOf("glucose", "глюкоз")
-    private val TYPE_WORDS = listOf("record type", "type", "тип")
-    private val DEVICE_WORDS = listOf("device", "serial", "устройств", "серийн")
+    // Word stems rather than whole words, in the languages LibreView exports in: the Russian header for the device
+    // timestamp, for example, contains the words for "label" and "time" only in inflected forms
+    private val TIME_WORDS = listOf("timestamp", "time", "zeit", "horodat", "tiempo", "hora", "метк", "врем", "час", "時刻", "时间", "시간")
+    private val GLUCOSE_WORDS = listOf("glucose", "glukose", "glucosa", "glicemia", "glicose", "glyc", "glukoz", "глюкоз", "グルコース", "葡萄糖", "혈당")
+    private val TYPE_WORDS = listOf("record type", "type", "typ", "tipo", "tür", "тип", "種類", "类型", "유형")
+    private val DEVICE_WORDS = listOf("device", "serial", "gerät", "appareil", "dispositivo", "cihaz", "устройств", "серийн", "пристр", "デバイス", "设备", "장치")
 
-    /** Насколько строка похожа на заголовок таблицы. У строки с именем и датой выгрузки балл ниже. */
+    /** How much a row looks like the table header. The row with the export name and date scores lower. */
     private fun headerScore(row: List<String>): Int {
         if (row.size < 4) return 0
         val cells = row.map { it.lowercase(Locale.ROOT) }
@@ -163,8 +164,8 @@ object LibreViewCsv {
                     cells.indexOfFirst { cell -> words.any { it in cell } }.takeIf { it >= 0 } ?: fallback
                 val time = find(2, *TIME_WORDS.toTypedArray())
                 val type = find(3, *TYPE_WORDS.toTypedArray())
-                val historic = find(4, "historic", "истор", "хронолог", "автомат")
-                val scan = find(5, "scan", "скан")
+                val historic = find(4, "histor", "histór", "verlauf", "storico", "geçmiş", "истор", "хронолог", "автомат", "履歴", "历史", "기록")
+                val scan = find(5, "scan", "tarama", "скан", "スキャン", "扫描", "스캔")
                 val unitText = listOfNotNull(cells.getOrNull(historic), cells.getOrNull(scan)).joinToString(" ")
                 val unit = when {
                     "mg/dl" in unitText || "мг/дл" in unitText -> GlucoseUnit.MGDL
@@ -176,7 +177,7 @@ object LibreViewCsv {
         }
     }
 
-    // Порядок важен: при неоднозначных датах (все дни ≤ 12) выигрывает формат, стоящий раньше.
+    // The order matters: with ambiguous dates (all days ≤ 12) the earlier format wins.
     private val TWENTY_FOUR_HOUR = listOf(
         "d-M-uuuu H:mm[:ss]", "d.M.uuuu H:mm[:ss]", "d/M/uuuu H:mm[:ss]",
         "uuuu-M-d H:mm[:ss]", "uuuu-M-d'T'H:mm[:ss]", "uuuu/M/d H:mm[:ss]", "uuuu.M.d H:mm[:ss]",
@@ -196,7 +197,7 @@ object LibreViewCsv {
 
     private fun normalizeTime(text: String) = text.trim().replace('\u00A0', ' ').replace(Regex("\\s+"), " ")
 
-    /** Формат, который подходит к наибольшему числу строк (проверяем на выборке до 400 строк). */
+    /** The format that fits the most rows (checked on a sample of up to 400 rows). */
     private fun pickFormatter(times: List<String>): DateTimeFormatter? {
         val nonEmpty = times.filter { it.isNotEmpty() }
         if (nonEmpty.isEmpty()) return null

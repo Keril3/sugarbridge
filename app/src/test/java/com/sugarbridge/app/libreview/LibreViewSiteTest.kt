@@ -8,7 +8,7 @@ class LibreViewSiteTest {
     @Test
     fun russianAccountsUseLibreViewRu() {
         assertEquals("https://www.libreview.ru/", libreViewSite("ru", "DE"))
-        assertEquals("https://www.libreview.com/", libreViewSite("eu", "RU"))   // регион аккаунта важнее страны
+        assertEquals("https://www.libreview.com/", libreViewSite("eu", "RU"))   // the account region beats the country
         assertEquals("https://www.libreview.com/", libreViewSite("us", "US"))
     }
 

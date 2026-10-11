@@ -65,7 +65,7 @@ import kotlin.math.PI
 import kotlin.math.sin
 import kotlin.random.Random
 
-/** Фон всего приложения: пастельное небо, облака внизу и мерцающие звёздочки. */
+/** The background of the whole app: a pastel sky, clouds at the bottom and twinkling stars. */
 @Composable
 fun AngelBackground(modifier: Modifier = Modifier, halo: Boolean = true, content: @Composable BoxScope.() -> Unit) {
     val night = LocalNight.current
@@ -76,7 +76,7 @@ fun AngelBackground(modifier: Modifier = Modifier, halo: Boolean = true, content
     }
     Box(modifier.fillMaxSize().background(Brush.verticalGradient(sky))) {
         SkyDecor(night, halo)
-        // у полупрозрачного фона Compose не угадает цвет текста — задаём сами, иначе ночью текст чёрный
+        // Compose can't guess the text color over a translucent background: set it, or the text is black at night
         CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onBackground) {
             content()
         }
@@ -102,16 +102,16 @@ private fun SkyDecor(night: Boolean, halo: Boolean) {
     } else {
         listOf(Color.White, Color(0xFFFFE08A), Color(0xFFFFB3D2))
     }
-    // свой слой: мерцание перерисовывает только звёзды, а не весь экран
+    // own layer: twinkling redraws only the stars, not the whole screen
     Canvas(Modifier.fillMaxSize().graphicsLayer()) {
-        // облака внизу
+        // clouds at the bottom
         val cloud = if (night) Color.White.copy(alpha = 0.04f) else Color.White.copy(alpha = 0.7f)
         val w = size.width
         val h = size.height
         listOf(0.05f to 0.10f, 0.30f to 0.13f, 0.58f to 0.11f, 0.85f to 0.14f).forEach { (x, r) ->
             drawCircle(cloud, radius = w * r, center = Offset(w * x, h + w * r * 0.35f))
         }
-        // большой бледный нимб в углу
+        // a big pale halo in the corner
         if (halo) drawOval(
             color = (if (night) Tenshi.Halo.copy(alpha = 0.10f) else Tenshi.Halo.copy(alpha = 0.22f)),
             topLeft = Offset(w * 0.62f, h * 0.035f),
@@ -126,7 +126,7 @@ private fun SkyDecor(night: Boolean, halo: Boolean) {
     }
 }
 
-/** Четырёхлучевая звёздочка с вогнутыми гранями ✧. */
+/** A four-pointed star with concave sides ✧. */
 fun DrawScope.sparkle(center: Offset, radius: Float, color: Color) {
     val (x, y) = center
     val path = Path().apply {
@@ -140,7 +140,7 @@ fun DrawScope.sparkle(center: Offset, radius: Float, color: Color) {
     drawPath(path, color)
 }
 
-/** Карточка: полупрозрачная, с радужной каёмкой и розовой тенью. */
+/** A card: translucent, with a rainbow border and a pink shadow. */
 @Composable
 fun TenshiCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
     val shape = MaterialTheme.shapes.large
@@ -158,7 +158,7 @@ fun TenshiCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.(
     }
 }
 
-/** Заголовок карточки со звёздочкой. */
+/** A card title with a little star. */
 @Composable
 fun CardTitle(text: String, modifier: Modifier = Modifier) {
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
@@ -168,7 +168,7 @@ fun CardTitle(text: String, modifier: Modifier = Modifier) {
     }
 }
 
-/** Главная кнопка: «пилюля» с градиентом сакура → лаванда → небо. */
+/** The main button: a pill with a sakura → lavender → sky gradient. */
 @Composable
 fun GradientButton(
     text: String,
@@ -197,7 +197,7 @@ fun GradientButton(
     }
 }
 
-/** Второстепенная кнопка-«пилюля» с контуром. */
+/** A secondary outlined pill button. */
 @Composable
 fun SoftButton(
     text: String,
@@ -218,17 +218,17 @@ fun SoftButton(
     }
 }
 
-/** Кнопки в ряд; не помещаются — переносятся целиком на следующую строку. */
+/** Buttons in a row; whatever doesn't fit wraps to the next line as a whole. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ButtonRow(content: @Composable () -> Unit) {
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) { content() }
 }
 
-/** Ряд вариантов-«конфеток», один выбран. */
+/** A row of candy-like options, one of them selected. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun <T> ChoiceRow(options: List<T>, selected: T, label: (T) -> String, onSelect: (T) -> Unit, enabled: Boolean = true) {
+fun <T> ChoiceRow(options: List<T>, selected: T, label: @Composable (T) -> String, onSelect: (T) -> Unit, enabled: Boolean = true) {
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         options.forEach { option ->
             FilterChip(
@@ -246,7 +246,7 @@ fun <T> ChoiceRow(options: List<T>, selected: T, label: (T) -> String, onSelect:
     }
 }
 
-/** Строка настройки с переключателем. */
+/** A settings row with a switch. */
 @Composable
 fun SwitchRow(title: String, subtitle: String?, checked: Boolean, onChange: (Boolean) -> Unit, enabled: Boolean = true) {
     Row(
@@ -269,7 +269,7 @@ fun SwitchRow(title: String, subtitle: String?, checked: Boolean, onChange: (Boo
     }
 }
 
-/** Цветная «пилюля» с подписью, например «в диапазоне ♡». */
+/** A colored pill with a label, e.g. "in range ♡". */
 @Composable
 fun Pill(text: String, color: Color, modifier: Modifier = Modifier) {
     Box(
@@ -279,11 +279,11 @@ fun Pill(text: String, color: Color, modifier: Modifier = Modifier) {
     }
 }
 
-/** Стрелка тренда, нарисованная, а не символом: 1 — вниз … 3 — вправо … 5 — вверх. */
+/** The trend arrow, drawn rather than a character: 1 = down … 3 = right … 5 = up. */
 @Composable
 fun TrendArrow(trend: Int, color: Color, size: Dp = 40.dp) {
     if (trend !in 1..5) return
-    val angle = (3 - trend) * 45f   // 3 — горизонтально, каждый шаг — 45°
+    val angle = (3 - trend) * 45f   // 3 is horizontal, each step is 45°
     Canvas(Modifier.size(size).rotate(angle)) {
         val s = this.size.minDimension
         val stroke = Stroke(width = s * 0.13f, cap = StrokeCap.Round, join = StrokeJoin.Round)
@@ -297,7 +297,7 @@ fun TrendArrow(trend: Int, color: Color, size: Dp = 40.dp) {
     }
 }
 
-/** Тонкий разделитель-«ленточка». */
+/** A thin ribbon divider. */
 @Composable
 fun RibbonDivider(modifier: Modifier = Modifier) {
     Box(
@@ -306,13 +306,13 @@ fun RibbonDivider(modifier: Modifier = Modifier) {
     )
 }
 
-/** Подпись мелким серым текстом. */
+/** A caption in small grey text. */
 @Composable
 fun Hint(text: String, modifier: Modifier = Modifier) {
     Text(text, modifier, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
-/** Отступ снизу, чтобы последний элемент не прятался под панелью вкладок. */
+/** Bottom space so the last item doesn't hide under the tab bar. */
 @Composable
 fun BottomSpace() = Spacer(Modifier.height(24.dp))
 

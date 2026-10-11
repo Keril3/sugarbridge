@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-   Облачный бэкап выключен (allowBackup="false"), а перенос на новый телефон Android 12+ делает всё равно.
-   Аккаунт зашифрован ключом, который остаётся на старом телефоне, а список записанных минут
-   относится к Health Connect старого телефона — переносить их бессмысленно.
+   Cloud backup is off (allowBackup="false"), but Android 12+ moves data to a new phone anyway.
+   The account is encrypted with a key that stays on the old phone, and the list of written minutes
+   belongs to the old phone's Health Connect, so moving them makes no sense.
 -->
 <data-extraction-rules>
     <cloud-backup>

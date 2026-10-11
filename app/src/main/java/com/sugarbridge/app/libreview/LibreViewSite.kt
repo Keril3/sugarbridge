@@ -1,8 +1,8 @@
 package com.sugarbridge.app.libreview
 
 /**
- * Сайт LibreView для выгрузки истории. У российских аккаунтов он свой (libreview.ru), у остальных —
- * libreview.com. Регион берём из входа в LibreLinkUp, а до входа — по стране телефона.
+ * The LibreView site for the history export. Russian accounts have their own (libreview.ru), everyone else
+ * uses libreview.com. The region comes from the LibreLinkUp sign-in, or from the phone's country before it.
  */
 fun libreViewSite(region: String?, country: String): String {
     val russian = region?.equals("ru", ignoreCase = true) ?: country.equals("RU", ignoreCase = true)

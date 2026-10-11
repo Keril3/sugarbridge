@@ -4,19 +4,19 @@ import android.content.Context
 import androidx.core.content.edit
 import com.sugarbridge.app.glucose.GlucoseUnit
 
-/** Настройки приложения. Пороги диапазона хранятся в мг/дл, показываются в выбранных единицах. */
+/** App settings. The range bounds are stored in mg/dL and shown in the chosen unit. */
 data class AppSettings(
-    val backgroundMinutes: Int = 15,     // фоновая синхронизация через WorkManager; 0 — выключена
-    val liveEnabled: Boolean = false,    // минутный режим: сервис переднего плана
-    val liveMinutes: Int = 1,            // как часто сервис спрашивает LibreLinkUp
-    val liveShowValue: Boolean = true,   // сахар в уведомлении и в строке состояния
-    val liveKeepAwake: Boolean = true,   // не давать процессору засыпать между опросами
+    val backgroundMinutes: Int = 15,     // background sync through WorkManager; 0 = off
+    val liveEnabled: Boolean = false,    // minute mode: a foreground service
+    val liveMinutes: Int = 1,            // how often the service asks LibreLinkUp
+    val liveShowValue: Boolean = true,   // glucose in the notification and the status bar
+    val liveKeepAwake: Boolean = true,   // keep the CPU from sleeping between polls
     val unit: GlucoseUnit = GlucoseUnit.MMOL,
-    val lowMgDl: Double = 70.0,          // 3,9 ммоль/л
-    val highMgDl: Double = 180.0,        // 10,0 ммоль/л
+    val lowMgDl: Double = 70.0,          // 3.9 mmol/L
+    val highMgDl: Double = 180.0,        // 10.0 mmol/L
 ) {
     companion object {
-        val BACKGROUND_CHOICES = listOf(15, 30, 60, 180, 0)   // 15 минут — минимум WorkManager
+        val BACKGROUND_CHOICES = listOf(15, 30, 60, 180, 0)   // 15 minutes is the WorkManager minimum
         val LIVE_CHOICES = listOf(1, 2, 5, 10)
     }
 }
@@ -52,6 +52,11 @@ class SettingsStore(context: Context) {
     }
 
     fun update(change: (AppSettings) -> AppSettings): AppSettings = change(load()).also(::save)
+
+    /** The language screen is shown once, on the first start. The language itself is kept by Android. */
+    var languageChosen: Boolean
+        get() = prefs.getBoolean("language_chosen", false)
+        set(value) = prefs.edit { putBoolean("language_chosen", value) }
 
     companion object {
         const val NAME = "settings"

@@ -11,7 +11,7 @@ import java.time.Instant
 
 class LibreClientTest {
 
-    // порядок серверов как на телефоне в России; от страны компьютера, где идут тесты, ничего не зависит
+    // the server order as on a phone in Russia; nothing depends on the country of the computer running the tests
     private val ruFirst = listOf("ru", "us")
     private val worldFirst = listOf("us", "ru")
 
@@ -22,7 +22,7 @@ class LibreClientTest {
         startRegions: List<String> = ruFirst,
     ) = LibreClient("me@example.com", password, http = fake, session = session, startRegions = startRegions)
 
-    // --- шаг 3: вход ---
+    // --- signing in ---
 
     @Test
     fun loginCreatesSessionWithTokenAndHashedUserId() {
@@ -33,13 +33,13 @@ class LibreClientTest {
 
     @Test
     fun sha256IsLowercaseHex() {
-        // это значение можно сверить с любым онлайн-калькулятором SHA-256
+        // this value can be checked with any online SHA-256 calculator
         assertEquals("2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824", sha256("hello"))
     }
 
     @Test
     fun loginFollowsRegionRedirect() {
-        // телефон не из России: мировой сервер сам говорит, в каком регионе аккаунт
+        // a phone outside Russia: the world server itself tells which region the account is in
         val fake = FakeLibreView(home = "api-eu.libreview.io")
         val c = client(fake, startRegions = worldFirst)
         c.login()
@@ -49,9 +49,9 @@ class LibreClientTest {
     }
 
     @Test
-    fun wrongPasswordGivesLoginFailed() {
-        val e = assertThrows(LoginFailed::class.java) { client(FakeLibreView(), password = "wrong").login() }
-        assertTrue(e.message, e.message!!.contains("неверный email или пароль"))
+    fun wrongPasswordGivesWrongCredentials() {
+        val e = assertThrows(WrongCredentials::class.java) { client(FakeLibreView(), password = "wrong").login() }
+        assertEquals("incorrect username/password", e.serverMessage)
     }
 
     @Test
@@ -62,7 +62,7 @@ class LibreClientTest {
         assertEquals(listOf(c.session), saved)
     }
 
-    // --- шаг 4: замеры ---
+    // --- readings ---
 
     @Test
     fun readingsAreParsedAndSorted() {
@@ -97,11 +97,11 @@ class LibreClientTest {
         val c = LibreClient("me@example.com", "secret", http = fake, onLogin = { saved.add(it) }, startRegions = ruFirst)
         c.readings()
         fake.expireNext = true
-        fake.values.add(118.0)   // пришёл новый замер
+        fake.values.add(118.0)   // a new reading arrived
         val readings = c.readings()
         assertEquals(118.0, readings.last().mgDl, 0.0)
         assertEquals(2, fake.logins)
-        assertEquals("T0KEN-2", saved.last().token)   // новую сессию приложение сохранит
+        assertEquals("T0KEN-2", saved.last().token)   // the app will save the new session
     }
 
     @Test
@@ -118,11 +118,10 @@ class LibreClientTest {
     fun noConnectionsGivesClearError() {
         val fake = FakeLibreView()
         fake.connections = JSONArray()
-        val e = assertThrows(LibreError::class.java) { client(fake).readings() }
-        assertTrue(e.message!!.contains("нет подключений"))
+        assertThrows(NoConnections::class.java) { client(fake).readings() }
     }
 
-    // «Попробуйте сами» из шага 4: один ответ 500 → IOException
+    // a single 500 answer → ServerError, an IOException
     @Test
     fun serverErrorGivesIOException() {
         val fake = FakeLibreView()
@@ -136,11 +135,12 @@ class LibreClientTest {
             }
         }
         val c = client(flaky, session = Session("ru", "T0KEN-1", sha256("user-42")))
-        assertThrows(IOException::class.java) { c.readings() }
-        assertEquals(115.0, c.readings().last().mgDl, 0.0)   // следующий запрос уже проходит
+        val e = assertThrows(IOException::class.java) { c.readings() }
+        assertEquals(500, (e as ServerError).code)
+        assertEquals(115.0, c.readings().last().mgDl, 0.0)   // the next request goes through
     }
 
-    // --- Abbott поднял минимальную версию приложения ---
+    // --- Abbott raised the minimum app version ---
 
     @Test
     fun loginUpgradesVersionWhenServerAsks() {
@@ -150,7 +150,7 @@ class LibreClientTest {
         val c = LibreClient("me@example.com", "secret", http = fake, onVersion = { remembered.add(it) }, startRegions = ruFirst)
         c.login()
         assertEquals("4.17.0", c.version)
-        assertEquals(listOf("4.17.0"), remembered)   // приложение запомнит и в следующий раз начнёт с неё
+        assertEquals(listOf("4.17.0"), remembered)   // the app remembers it and starts with it next time
         assertEquals(Session("ru", "T0KEN-1", sha256("user-42")), c.session)
     }
 
@@ -166,8 +166,8 @@ class LibreClientTest {
 
     @Test
     fun brokenVersionCheckIsNotTreatedAsWrongPassword() {
-        // если сервер просит ту же версию снова и снова, это не «неверный пароль»:
-        // фоновая задача не должна выкидывать из аккаунта
+        // if the server asks for the same version again and again, it is not a "wrong password":
+        // the background job must not sign the user out
         val fake = FakeLibreView()
         fake.minVersion = DEFAULT_LLU_VERSION
         fake.alwaysAskVersion = true
@@ -182,11 +182,11 @@ class LibreClientTest {
         assertEquals(0, compareVersions("4.16.0", "4.16"))
     }
 
-    // --- российский и мировой серверы Abbott ---
+    // --- the Russian and the world Abbott servers ---
 
     @Test
     fun foreignAccountOnRussianPhone() {
-        // российский сервер аккаунт не знает → мировой → переадресация в регион аккаунта
+        // the Russian server doesn't know the account → the world one → a redirect to the account's region
         val fake = FakeLibreView(home = "api-de.libreview.io")
         val c = client(fake, startRegions = ruFirst)
         c.login()
@@ -208,18 +208,16 @@ class LibreClientTest {
     @Test
     fun wrongPasswordIsTriedOnceOnEachServer() {
         val fake = FakeLibreView(home = "api-eu.libreview.io")
-        val e = assertThrows(LoginFailed::class.java) { client(fake, password = "wrong").login() }
-        assertTrue(e.message, e.message!!.contains("неверный email или пароль"))
+        assertThrows(WrongCredentials::class.java) { client(fake, password = "wrong").login() }
         assertEquals(listOf("api.libreview.ru", "api.libreview.io", "api-eu.libreview.io"), fake.loginHosts)
     }
 
     @Test
     fun termsStepStopsAtTheRightServer() {
-        // аккаунт нашёлся, но надо принять условия: другой сервер не поможет, второй раз не входим
+        // the account was found, but the terms must be accepted: another server won't help, no second attempt
         val fake = FakeLibreView(home = "api.libreview.ru").apply { step = "tou" }
         val e = assertThrows(LoginStepRequired::class.java) { client(fake).login() }
         assertEquals("tou", e.step)
-        assertTrue(e.message!!.contains("«tou»"))
         assertEquals(1, fake.logins)
     }
 
@@ -233,7 +231,7 @@ class LibreClientTest {
 
     @Test
     fun knownRegionIsNotGuessedAgain() {
-        // регион известен по прошлому входу: при повторном входе (сменили пароль) другие серверы не трогаем
+        // the region is known from the last sign-in: signing in again (the password changed) leaves the other servers alone
         val fake = FakeLibreView(home = "api-eu.libreview.io")
         val c = client(fake, password = "changed", session = Session("eu", "OLD", sha256("user-42")))
         assertThrows(LoginFailed::class.java) { c.login() }

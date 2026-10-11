@@ -25,15 +25,16 @@ import com.sugarbridge.app.glucose.GlucoseUnit
 import com.sugarbridge.app.glucose.Reading
 import com.sugarbridge.app.glucose.formatGlucose
 import com.sugarbridge.app.glucose.levelOf
+import com.sugarbridge.app.ui.currentLocale
+import com.sugarbridge.app.ui.rememberClockFormat
 import com.sugarbridge.app.ui.theme.Nunito
 import com.sugarbridge.app.ui.theme.Tenshi
 import com.sugarbridge.app.ui.theme.color
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
-/** График последних замеров с полосой целевого диапазона. */
+/** A chart of the latest readings with the target range band. */
 @Composable
 fun GlucoseChart(
     readings: List<Reading>,
@@ -46,14 +47,15 @@ fun GlucoseChart(
     val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
     val gridColor = MaterialTheme.colorScheme.outlineVariant
     val labelStyle = remember(labelColor) { TextStyle(color = labelColor, fontSize = 10.sp, fontFamily = Nunito) }
-    val hours = remember { DateTimeFormatter.ofPattern("HH:mm") }
+    val locale = currentLocale()
+    val hours = rememberClockFormat()
 
     Canvas(modifier.fillMaxWidth().height(170.dp)) {
         if (readings.size < 2) return@Canvas
         val left = 4.dp.toPx()
-        val right = size.width - 34.dp.toPx()   // справа подписи порогов
+        val right = size.width - 34.dp.toPx()   // range bound labels on the right
         val top = 8.dp.toPx()
-        val bottom = size.height - 18.dp.toPx() // снизу подписи часов
+        val bottom = size.height - 18.dp.toPx() // hour labels at the bottom
 
         val start = readings.first().time
         val end = maxOf(readings.last().time, start.plus(Duration.ofHours(1)))
@@ -64,7 +66,7 @@ fun GlucoseChart(
         fun x(t: Instant) = left + (right - left) * Duration.between(start, t).seconds / span
         fun y(mg: Double) = (bottom - (bottom - top) * ((mg - yMin) / (yMax - yMin))).toFloat()
 
-        // полоса целевого диапазона и её границы
+        // the target range band and its bounds
         drawRect(
             Tenshi.InRange.copy(alpha = 0.10f),
             topLeft = Offset(left, y(highMgDl)),
@@ -73,11 +75,11 @@ fun GlucoseChart(
         val dash = PathEffect.dashPathEffect(floatArrayOf(6.dp.toPx(), 5.dp.toPx()))
         listOf(lowMgDl, highMgDl).forEach { mg ->
             drawLine(Tenshi.InRange.copy(alpha = 0.45f), Offset(left, y(mg)), Offset(right, y(mg)), 1.dp.toPx(), pathEffect = dash)
-            val text = measurer.measure(formatGlucose(mg, unit), labelStyle)
+            val text = measurer.measure(formatGlucose(mg, unit, locale), labelStyle)
             drawText(text, topLeft = Offset(right + 6.dp.toPx(), y(mg) - text.size.height / 2))
         }
 
-        // подписи времени каждые 3 часа
+        // time labels every 3 hours
         val zone = ZoneId.systemDefault()
         var tick = start.atZone(zone).withMinute(0).withSecond(0).withNano(0).plusHours(1)
         while (!tick.toInstant().isAfter(end)) {
@@ -90,7 +92,7 @@ fun GlucoseChart(
             tick = tick.plusHours(1)
         }
 
-        // линия и заливка под ней
+        // the line and the fill under it
         val line = Path()
         readings.forEachIndexed { i, r ->
             if (i == 0) line.moveTo(x(r.time), y(r.mgDl)) else line.lineTo(x(r.time), y(r.mgDl))
@@ -108,7 +110,7 @@ fun GlucoseChart(
             style = Stroke(3.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round),
         )
 
-        // последний замер — точка с сиянием цвета уровня
+        // the latest reading: a dot glowing in the color of its level
         val last = readings.last()
         val color = levelOf(last.mgDl, lowMgDl, highMgDl).color()
         val at = Offset(x(last.time), y(last.mgDl))

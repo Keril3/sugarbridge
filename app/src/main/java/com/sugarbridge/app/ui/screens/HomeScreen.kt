@@ -21,8 +21,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sugarbridge.app.MainViewModel
+import com.sugarbridge.app.R
 import com.sugarbridge.app.UiState
 import com.sugarbridge.app.glucose.GlucoseLevel
 import com.sugarbridge.app.glucose.GmiResult
@@ -31,6 +34,7 @@ import com.sugarbridge.app.glucose.formatGlucose
 import com.sugarbridge.app.glucose.levelOf
 import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.ui.AppActions
+import com.sugarbridge.app.ui.ago
 import com.sugarbridge.app.ui.components.BottomSpace
 import com.sugarbridge.app.ui.components.CardTitle
 import com.sugarbridge.app.ui.components.GlucoseChart
@@ -43,14 +47,15 @@ import com.sugarbridge.app.ui.components.ScreenColumn
 import com.sugarbridge.app.ui.components.SwitchRow
 import com.sugarbridge.app.ui.components.TenshiCard
 import com.sugarbridge.app.ui.components.TrendArrow
+import com.sugarbridge.app.ui.currentLocale
+import com.sugarbridge.app.ui.minutesText
+import com.sugarbridge.app.ui.rememberClockFormat
 import com.sugarbridge.app.ui.theme.Tenshi
 import com.sugarbridge.app.ui.theme.color
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalTime
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
 
@@ -60,7 +65,7 @@ fun HomeScreen(vm: MainViewModel, actions: AppActions) {
     val s = ui.settings
     var now by remember { mutableStateOf(Instant.now()) }
     LaunchedEffect(Unit) {
-        while (true) {   // «N мин назад» обновляется само
+        while (true) {   // "N min ago" updates by itself
             delay(20_000)
             now = Instant.now()
         }
@@ -71,26 +76,26 @@ fun HomeScreen(vm: MainViewModel, actions: AppActions) {
         Spacer(Modifier.height(4.dp))
         Column {
             Text(greeting(), style = MaterialTheme.typography.headlineSmall.copy(brush = Brush.linearGradient(Tenshi.Rainbow)))
-            Text("Тэнси-тян присматривает за сахаром", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.home_subtitle), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         if (ui.canWrite == false) {
             TenshiCard {
-                CardTitle("Разрешите запись в Health Connect")
-                Text("Без этого разрешения сахар не попадёт в Samsung Health.", style = MaterialTheme.typography.bodyMedium)
-                GradientButton("Разрешить", onClick = actions::requestHealthPermission, modifier = Modifier.fillMaxWidth())
-                Hint("И проверьте, что в Samsung Health → Настройки → Health Connect разрешено читать «Уровень глюкозы».")
+                CardTitle(stringResource(R.string.home_permission_title))
+                Text(stringResource(R.string.home_permission_text), style = MaterialTheme.typography.bodyMedium)
+                GradientButton(stringResource(R.string.home_permission_button), onClick = actions::requestHealthPermission, modifier = Modifier.fillMaxWidth())
+                Hint(stringResource(R.string.home_permission_hint))
             }
         }
         if (!ui.samsungHealth) {
             TenshiCard {
-                CardTitle("Samsung Health не найден")
-                Hint("Сахар всё равно будет попадать в Health Connect — его увидят и другие приложения. Установите Samsung Health, чтобы смотреть графики там.")
+                CardTitle(stringResource(R.string.home_no_samsung_title))
+                Hint(stringResource(R.string.home_no_samsung_hint))
             }
         }
         GlucoseHero(latest, s, now)
         if (ui.sync.recent.size >= 2) {
             TenshiCard {
-                CardTitle("Последние 12 часов")
+                CardTitle(stringResource(R.string.home_chart_title))
                 GlucoseChart(ui.sync.recent, s.lowMgDl, s.highMgDl, s.unit)
                 DayStats(ui.sync.recent, s)
             }
@@ -101,15 +106,28 @@ fun HomeScreen(vm: MainViewModel, actions: AppActions) {
     }
 }
 
-private fun greeting(): String = when (LocalTime.now().hour) {
-    in 5..11 -> "Доброе утро ✧"
-    in 12..17 -> "Добрый день ✧"
-    in 18..22 -> "Добрый вечер ✧"
-    else -> "Доброй ночи ✧"
-}
+@Composable
+private fun greeting(): String = stringResource(
+    when (LocalTime.now().hour) {
+        in 5..11 -> R.string.greeting_morning
+        in 12..17 -> R.string.greeting_day
+        in 18..22 -> R.string.greeting_evening
+        else -> R.string.greeting_night
+    }
+)
+
+@Composable
+fun levelText(level: GlucoseLevel): String = stringResource(
+    when (level) {
+        GlucoseLevel.LOW -> R.string.level_low
+        GlucoseLevel.IN_RANGE -> R.string.level_in_range
+        GlucoseLevel.HIGH -> R.string.level_high
+    }
+)
 
 @Composable
 private fun GlucoseHero(latest: Reading?, s: AppSettings, now: Instant) {
+    val locale = currentLocale()
     TenshiCard {
         Row(verticalAlignment = Alignment.CenterVertically) {
             val level = latest?.let { levelOf(it.mgDl, s.lowMgDl, s.highMgDl) }
@@ -123,38 +141,31 @@ private fun GlucoseHero(latest: Reading?, s: AppSettings, now: Instant) {
             Spacer(Modifier.width(10.dp))
             Column(Modifier.weight(1f)) {
                 if (latest == null || level == null) {
-                    Text("Пока нет данных", style = MaterialTheme.typography.titleLarge)
-                    Hint("Нажмите «Синхронизировать» — Тэнси-тян принесёт сахар из LibreLinkUp")
+                    Text(stringResource(R.string.home_no_data), style = MaterialTheme.typography.titleLarge)
+                    Hint(stringResource(R.string.home_no_data_hint))
                 } else {
                     val color = level.color()
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            formatGlucose(latest.mgDl, s.unit),
+                            formatGlucose(latest.mgDl, s.unit, locale),
                             style = MaterialTheme.typography.displayMedium.copy(brush = Brush.verticalGradient(listOf(color.copy(alpha = 0.75f), color))),
                         )
                         Spacer(Modifier.width(4.dp))
                         TrendArrow(latest.trend, color, 36.dp)
                     }
-                    Text(s.unit.label, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(s.unit.label), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(Modifier.height(6.dp))
-                    Pill(
-                        when (level) {
-                            GlucoseLevel.LOW -> "ниже диапазона"
-                            GlucoseLevel.IN_RANGE -> "в диапазоне ♡"
-                            GlucoseLevel.HIGH -> "выше диапазона"
-                        },
-                        color,
-                    )
+                    Pill(levelText(level), color)
                 }
             }
         }
         if (latest != null) {
-            val time = latest.time.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("HH:mm"))
+            val time = latest.time.atZone(ZoneId.systemDefault()).format(rememberClockFormat())
             val age = Duration.between(latest.time, now)
-            Hint("Замер в $time · ${ago(age)}")
+            Hint(stringResource(R.string.home_reading_at, time, ago(age)))
             if (age > Duration.ofMinutes(10)) {
                 Text(
-                    "Данные старше 10 минут — загляните в LibreLink. Тревоги о сахаре приходят только оттуда.",
+                    stringResource(R.string.home_stale),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error,
                 )
@@ -163,16 +174,17 @@ private fun GlucoseHero(latest: Reading?, s: AppSettings, now: Instant) {
     }
 }
 
-/** Мин / среднее / макс и время в диапазоне за показанный период. */
+/** Min / average / max and time in range over the shown period. */
 @Composable
 private fun DayStats(readings: List<Reading>, s: AppSettings) {
+    val locale = currentLocale()
     val values = readings.map { it.mgDl }
     val inRange = (100.0 * readings.count { levelOf(it.mgDl, s.lowMgDl, s.highMgDl) == GlucoseLevel.IN_RANGE } / readings.size).roundToInt()
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Stat("мин", formatGlucose(values.min(), s.unit))
-        Stat("среднее", formatGlucose(values.average(), s.unit))
-        Stat("макс", formatGlucose(values.max(), s.unit))
-        Stat("в диапазоне", "$inRange%")
+        Stat(stringResource(R.string.stat_min), formatGlucose(values.min(), s.unit, locale))
+        Stat(stringResource(R.string.stat_avg), formatGlucose(values.average(), s.unit, locale))
+        Stat(stringResource(R.string.stat_max), formatGlucose(values.max(), s.unit, locale))
+        Stat(stringResource(R.string.stat_in_range), stringResource(R.string.percent, inRange))
     }
 }
 
@@ -184,20 +196,16 @@ private fun Stat(label: String, value: String) {
     }
 }
 
-/** Расчётный HbA1c (GMI) за 14 и 90 дней — по всем замерам SugarBridge в Health Connect. */
+/** Estimated HbA1c (GMI) for 14 and 90 days, from all SugarBridge readings in Health Connect. */
 @Composable
 private fun GmiCard(days14: GmiResult?, days90: GmiResult?) {
     TenshiCard {
-        CardTitle("Расчётный HbA1c (GMI)")
+        CardTitle(stringResource(R.string.gmi_title))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-            GmiStat("14 дней", days14)
-            GmiStat("90 дней", days90)
+            GmiStat(stringResource(R.string.gmi_14_days), days14)
+            GmiStat(stringResource(R.string.gmi_90_days), days90)
         }
-        Hint(
-            "Оценка по средней глюкозе с датчика, а не анализ крови: лабораторный HbA1c может отличаться. " +
-                "Надёжна, когда данных хотя бы 70 % за 14 дней. В Samsung Health HbA1c вносится только вручную — " +
-                "Health Connect этот показатель не передаёт."
-        )
+        Hint(stringResource(R.string.gmi_hint, (GmiResult.MIN_COVERAGE * 100).roundToInt()))
     }
 }
 
@@ -205,19 +213,19 @@ private fun GmiCard(days14: GmiResult?, days90: GmiResult?) {
 private fun GmiStat(label: String, gmi: GmiResult?) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            if (gmi == null) "—" else String.format(Locale.getDefault(), "%.1f %%", gmi.percent),
+            if (gmi == null) "—" else stringResource(R.string.gmi_percent, gmi.percent),
             style = MaterialTheme.typography.headlineSmall,
             color = if (gmi?.enough == true) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
         )
         if (gmi != null) {
-            Text("${gmi.mmolPerMol} ммоль/моль", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.gmi_mmol_mol, gmi.mmolPerMol), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        val coverage = gmi?.let { (it.coverage * 100).roundToInt() }
+        val coverage = gmi?.let { (it.coverage * 100).roundToInt() } ?: 0
         Text(
             when {
-                gmi == null -> "$label · нет данных"
-                gmi.enough -> "$label · данных $coverage %"
-                else -> "$label · мало данных: $coverage %"
+                gmi == null -> stringResource(R.string.gmi_no_data, label)
+                gmi.enough -> stringResource(R.string.gmi_coverage, label, coverage)
+                else -> stringResource(R.string.gmi_low_coverage, label, coverage)
             },
             style = MaterialTheme.typography.labelSmall,
             color = if (gmi?.enough == true) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error,
@@ -229,50 +237,43 @@ private fun GmiStat(label: String, gmi: GmiResult?) {
 private fun SyncCard(ui: UiState, now: Instant, vm: MainViewModel, actions: AppActions) {
     val s = ui.settings
     TenshiCard {
-        CardTitle("Синхронизация")
+        CardTitle(stringResource(R.string.sync_title))
         val last = ui.sync.lastOkAt
         Text(
-            if (last == null) "Ещё не было" else "Последняя: ${ago(Duration.between(last, now))} · записано ${ui.sync.lastWritten}",
+            if (last == null) stringResource(R.string.sync_never) else stringResource(R.string.sync_last, ago(Duration.between(last, now)), ui.sync.lastWritten),
             style = MaterialTheme.typography.bodyMedium,
         )
         val error = ui.sync.error
         if (error != null && (last == null || ui.sync.errorAt?.isAfter(last) == true)) {
-            Text("Ошибка: $error", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+            Text(
+                stringResource(R.string.sync_error, error.text(LocalResources.current)),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+            )
         }
         Hint(
             when {
-                s.liveEnabled -> "Минутный режим: " + if (s.liveMinutes == 1) "каждую минуту ✧" else "раз в ${s.liveMinutes} мин ✧"
-                s.backgroundMinutes > 0 -> "В фоне раз в ${minutesText(s.backgroundMinutes)}, без уведомления"
-                else -> "Автоматическая синхронизация выключена"
+                s.liveEnabled && s.liveMinutes == 1 -> stringResource(R.string.sync_live_every_minute)
+                s.liveEnabled -> stringResource(R.string.sync_live_every, s.liveMinutes)
+                s.backgroundMinutes > 0 -> stringResource(R.string.sync_background, minutesText(s.backgroundMinutes))
+                else -> stringResource(R.string.sync_off)
             }
         )
         ui.sync.updateMinutes?.let { minutes ->
-            Hint("LibreLinkUp присылает новое значение примерно раз в ${String.format(Locale.getDefault(), "%.1f", minutes)} мин")
+            Hint(stringResource(R.string.sync_update_rate, String.format(currentLocale(), "%.1f", minutes)))
         }
         GradientButton(
-            "Синхронизировать сейчас",
+            stringResource(R.string.sync_now),
             onClick = { vm.syncNow() },
             enabled = ui.canWrite == true,
             loading = ui.syncing,
             modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
         )
         SwitchRow(
-            "Минутный режим",
-            "Свежий сахар в Samsung Health каждую минуту",
+            stringResource(R.string.live_title),
+            stringResource(R.string.live_subtitle),
             checked = s.liveEnabled,
             onChange = actions::setLive,
         )
     }
 }
-
-fun ago(d: Duration): String {
-    val minutes = d.toMinutes()
-    return when {
-        minutes < 1 -> "только что"
-        minutes < 60 -> "$minutes мин назад"
-        minutes < 24 * 60 -> "${minutes / 60} ч ${minutes % 60} мин назад"
-        else -> "${minutes / (24 * 60)} дн назад"
-    }
-}
-
-fun minutesText(minutes: Int): String = if (minutes < 60) "$minutes мин" else "${minutes / 60} ч"

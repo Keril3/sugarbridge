@@ -4,7 +4,6 @@ import com.sugarbridge.app.libre.parseReading
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import java.time.ZoneId
 import java.util.Locale
 
 class ReadingTest {
@@ -21,22 +20,22 @@ class ReadingTest {
         assertEquals(10.0, parseReading(item("10/8/2026 6:01:00 PM", 180)).mmol, 0.0)
     }
 
-    // --- шаг 5: текст для экрана ---
+    // --- text for messages and the notification ---
 
     @Test
-    fun textShowsLocalTimeArrowAndComma() {
+    fun textShowsValueUnitAndArrowWithLocalDecimalSeparator() {
         val r = parseReading(item("10/8/2026 6:00:00 PM", 115, trend = 4))
-        val kaliningrad = ZoneId.of("Europe/Kaliningrad")   // UTC+2
-        assertEquals("6,4 ммоль/л ↗ в 20:00", r.text(kaliningrad, Locale.forLanguageTag("ru")))
+        assertEquals("6,4 ммоль/л ↗", r.text("ммоль/л", GlucoseUnit.MMOL, Locale.forLanguageTag("ru")))
+        assertEquals("6.4 mmol/L ↗", r.text("mmol/L", GlucoseUnit.MMOL, Locale.forLanguageTag("en")))
     }
 
     @Test
     fun textWithoutTrendHasNoExtraSpaces() {
         val r = parseReading(item("10/8/2026 6:00:00 PM", 115))
-        assertEquals("6,4 ммоль/л в 20:00", r.text(ZoneId.of("Europe/Kaliningrad"), Locale.forLanguageTag("ru")))
+        assertEquals("6,4 mmol/L", r.text("mmol/L", GlucoseUnit.MMOL, Locale.forLanguageTag("de")))
     }
 
-    // --- единицы и целевой диапазон ---
+    // --- units and the target range ---
 
     @Test
     fun glucoseIsFormattedInChosenUnit() {
@@ -49,7 +48,7 @@ class ReadingTest {
     @Test
     fun textInMgDl() {
         val r = parseReading(item("10/8/2026 6:00:00 PM", 115, trend = 4))
-        assertEquals("115 мг/дл ↗ в 20:00", r.text(ZoneId.of("Europe/Kaliningrad"), Locale.forLanguageTag("ru"), GlucoseUnit.MGDL))
+        assertEquals("115 mg/dL ↗", r.text("mg/dL", GlucoseUnit.MGDL, Locale.forLanguageTag("fr")))
     }
 
     @Test

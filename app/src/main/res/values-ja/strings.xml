@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Common -->
+    <string name="unit_mmol">mmol/L</string>
+    <string name="unit_mgdl">mg/dL</string>
+    <string name="level_low">目標範囲より低い</string>
+    <string name="level_in_range">目標範囲内 ♡</string>
+    <string name="level_high">目標範囲より高い</string>
+    <string name="cancel">キャンセル</string>
+    <string name="close">閉じる</string>
+    <string name="done">完了</string>
+    <string name="delete">削除</string>
+    <string name="duration_minutes">%1$d 分</string>
+    <string name="duration_hours">%1$d 時間</string>
+    <string name="ago_now">たった今</string>
+    <string name="ago_minutes">%1$d 分前</string>
+    <string name="ago_hours">%1$d 時間 %2$d 分前</string>
+    <string name="ago_days">%1$d 日前</string>
+
+    <!-- Tabs -->
+    <string name="tab_now">いま</string>
+    <string name="tab_history">履歴</string>
+    <string name="tab_settings">設定</string>
+
+    <!-- Language -->
+    <string name="language_title">言語を選んでください</string>
+    <string name="language_hint">設定からいつでも変更できます。</string>
+    <string name="language_system">端末の言語</string>
+    <string name="language_card">言語</string>
+
+    <!-- Sign-in -->
+    <string name="login_tagline">Libre の血糖値を Samsung Health へそのまま ✧</string>
+    <string name="login_title">LibreLinkUp にログイン</string>
+    <string name="login_email">メールアドレス</string>
+    <string name="login_password">パスワード</string>
+    <string name="login_button">ログイン</string>
+    <string name="login_hint">LibreLink から招待した LibreLinkUp のアカウントです。パスワードはこの端末に暗号化して保存され、LibreLinkUp にのみ送信されます。</string>
+
+    <!-- Now -->
+    <string name="greeting_morning">おはようございます ✧</string>
+    <string name="greeting_day">こんにちは ✧</string>
+    <string name="greeting_evening">こんばんは ✧</string>
+    <string name="greeting_night">おやすみなさい ✧</string>
+    <string name="home_subtitle">天使ちゃんが血糖値を見守っています</string>
+    <string name="home_permission_title">Health Connect への書き込みを許可</string>
+    <string name="home_permission_text">この権限がないと、血糖値は Samsung Health に届きません。</string>
+    <string name="home_permission_button">許可する</string>
+    <string name="home_permission_hint">Samsung Health → 設定 → Health Connect で「血糖値」の読み取りが許可されているかも確認してください。</string>
+    <string name="home_no_samsung_title">Samsung Health が見つかりません</string>
+    <string name="home_no_samsung_hint">血糖値は Health Connect には送られ、ほかのアプリからも見られます。グラフを見るには Samsung Health をインストールしてください。</string>
+    <string name="home_chart_title">直近 12 時間</string>
+    <string name="home_no_data">まだデータがありません</string>
+    <string name="home_no_data_hint">「今すぐ同期」をタップすると、天使ちゃんが LibreLinkUp から血糖値を持ってきます</string>
+    <string name="home_reading_at">測定 %1$s · %2$s</string>
+    <string name="home_stale">データが 10 分以上前のものです。LibreLink を確認してください。血糖値のアラームは LibreLink からのみ届きます。</string>
+    <string name="stat_min">最低</string>
+    <string name="stat_avg">平均</string>
+    <string name="stat_max">最高</string>
+    <string name="stat_in_range">範囲内</string>
+    <string name="percent">%1$d%%</string>
+
+    <string name="gmi_title">推定 HbA1c（GMI）</string>
+    <string name="gmi_14_days">14 日</string>
+    <string name="gmi_90_days">90 日</string>
+    <string name="gmi_percent">%1$.1f%%</string>
+    <string name="gmi_mmol_mol">%1$d mmol/mol</string>
+    <string name="gmi_no_data">%1$s · データなし</string>
+    <string name="gmi_coverage">%1$s · データ %2$d%%</string>
+    <string name="gmi_low_coverage">%1$s · データ不足：%2$d%%</string>
+    <string name="gmi_hint">センサーの平均血糖値からの推定で、血液検査ではありません。検査室の HbA1c とは異なる場合があります。14 日間で %1$d%% 以上のデータがあれば信頼できます。Samsung Health では HbA1c は手入力のみで、Health Connect はこの値を送りません。</string>
+
+    <string name="sync_title">同期</string>
+    <string name="sync_never">まだありません</string>
+    <string name="sync_last">前回：%1$s · 書き込み %2$d 件</string>
+    <string name="sync_error">エラー：%1$s</string>
+    <string name="sync_live_every_minute">分刻みモード：毎分 ✧</string>
+    <string name="sync_live_every">分刻みモード：%1$d 分ごと ✧</string>
+    <string name="sync_background">バックグラウンドで %1$s ごと、通知なし</string>
+    <string name="sync_off">自動同期はオフです</string>
+    <string name="sync_update_rate">LibreLinkUp は約 %1$s 分ごとに新しい値を送っています</string>
+    <string name="sync_now">今すぐ同期</string>
+    <string name="live_title">分刻みモード</string>
+    <string name="live_subtitle">毎分、最新の血糖値を Samsung Health へ</string>
+
+    <!-- History -->
+    <string name="history_title">LibreView のすべての履歴 ☁</string>
+    <string name="history_reading_file">履歴を読み込み中…</string>
+    <string name="history_intro">LibreLinkUp に残るのは 12 時間分だけです。すべての履歴は LibreView にあります。ダウンロードして、Samsung Health に送る日を選んでください。</string>
+    <string name="history_open_libreview">LibreView を開く</string>
+    <string name="history_pick_csv">ダウンロードした CSV を選ぶ</string>
+    <string name="history_step_1">1. LibreLinkUp ではなく、センサーアプリの LibreLink アカウントでログインします。</string>
+    <string name="history_step_2">2. 「グルコース履歴」→「グルコースデータをダウンロード」。</string>
+    <string name="history_step_3">3. 「私はロボットではありません」にチェックして「ダウンロード」をタップ。SugarBridge がファイルを自動で受け取ります。</string>
+    <string name="history_step_browser">ブラウザで CSV をダウンロードした場合は、SugarBridge で開くか、上のボタンで選んでください。</string>
+    <string name="history_loaded">%1$s · 測定値：%2$d</string>
+    <string name="history_loaded_range">%1$s～%2$s · 単位 %3$s</string>
+    <string name="history_loaded_range_skipped">%1$s～%2$s · 単位 %3$s · スキップした行：%4$d</string>
+    <string name="history_other_file">別のファイル</string>
+    <string name="history_period">期間</string>
+    <string name="history_all">すべての履歴</string>
+    <string name="history_last_days">%1$d 日</string>
+    <string name="history_period_summary">日数：%1$d · 測定値：%2$d · 平均 %3$s %4$s · 範囲内 %5$d%%</string>
+    <string name="history_period_gmi">期間の推定 HbA1c（GMI）：%1$.1f%% · %2$d mmol/mol</string>
+    <string name="history_period_gmi_low">期間の推定 HbA1c（GMI）：%1$.1f%% · %2$d mmol/mol · データ不足（%3$d%%）</string>
+    <string name="history_days">日付</string>
+    <string name="history_select_new">新しい日</string>
+    <string name="history_select_all">すべて</string>
+    <string name="history_select_none">解除</string>
+    <string name="history_day_summary">測定値：%1$d · 平均 %2$s · %3$s–%4$s</string>
+    <string name="history_day_in_range">範囲内 %1$d%%</string>
+    <string name="history_in_hc">✓ HC にあり</string>
+    <string name="history_partly">一部</string>
+    <string name="history_select_prompt">Samsung Health に入れたい日にチェックしてください</string>
+    <string name="history_selected">日数：%1$d · 測定値：%2$d</string>
+    <string name="history_write">Health Connect に書き込む</string>
+    <string name="history_pick_title">同期する日</string>
+    <string name="history_delete_title">Health Connect から削除しますか？</string>
+    <string name="history_delete_text">選んだ日（%1$d 日）に SugarBridge が書き込んだ血糖値の記録は、LibreView 由来のものも LibreLinkUp 由来のものも、Health Connect と Samsung Health からすべて消えます。LibreView のデータはそのまま残ります。</string>
+
+    <!-- Settings -->
+    <string name="settings_title">設定</string>
+    <string name="settings_check">接続を確認</string>
+    <string name="settings_sign_out">ログアウト</string>
+    <string name="settings_hc_title">Health Connect と Samsung Health</string>
+    <string name="settings_hc_allowed">血糖値の書き込みは許可されています ✓</string>
+    <string name="settings_hc_denied">血糖値を書き込む権限がありません</string>
+    <string name="settings_hc_checking">権限を確認中…</string>
+    <string name="settings_permissions">権限</string>
+    <string name="settings_open_hc">Health Connect を開く</string>
+    <string name="settings_open_samsung">Samsung Health を開く</string>
+    <string name="settings_hc_hint">Samsung Health は Health Connect から自動で血糖値を取り込みます。点が出ない場合は、Samsung Health → 設定 → Health Connect で「血糖値」の読み取りが許可されているか確認してください。</string>
+    <string name="settings_background_title">バックグラウンド同期</string>
+    <string name="settings_off">オフ</string>
+    <string name="settings_background_hint">通知なし。毎回、約 15 分ごとの点を含む直近 12 時間分を取得するので、端末がスリープしていても抜けはありません。15 分は Android が許す最短の間隔です。</string>
+    <string name="settings_live_title">分刻みモード</string>
+    <string name="settings_live_switch">血糖値をもっと頻繁に更新</string>
+    <string name="settings_live_switch_hint">15 分ごとの点だけでなく、新しい測定値がすべて Samsung Health に届きます</string>
+    <string name="settings_live_every_minute">毎分</string>
+    <string name="settings_live_every">%1$d 分ごと</string>
+    <string name="settings_live_value">通知に血糖値を表示</string>
+    <string name="settings_live_value_hint">ステータスバーと通知シェードに数値を表示します。オフにすると通知はサイレントになり、シェードの下へ移ります</string>
+    <string name="settings_keep_awake">端末をスリープさせない</string>
+    <string name="settings_keep_awake_hint">画面オフでも間隔は延びませんが、バッテリーの減りが早くなります</string>
+    <string name="settings_hide_notification">通知を完全に非表示にする</string>
+    <string name="settings_battery">バッテリーの制限を解除</string>
+    <string name="settings_live_hint">15 分より短い間隔で動かすには、Android では通知付きのサービスが必要です。通知はチャンネル設定でオフにできます。モードは動き続け、アプリは実行中のアプリの一覧に残ります。</string>
+    <string name="settings_display_title">表示</string>
+    <string name="settings_target_range">目標範囲：%1$s – %2$s %3$s</string>
+    <string name="settings_target_hint">色、グラフ、「範囲内」の割合にのみ使われます。LibreLink のアラームには影響しません。</string>
+    <string name="settings_about_title">SugarBridge について</string>
+    <string name="settings_version">バージョン %1$s</string>
+    <string name="settings_about_hint">医療機器ではありません。血糖値のアラームと治療の判断は LibreLink のみに従ってください。LibreLinkUp と LibreView は非公式 API を通じて、ご自身のアカウントとデータでのみ利用します。</string>
+
+    <!-- Health Connect is missing -->
+    <string name="hc_update_title">Health Connect を更新してください</string>
+    <string name="hc_missing_title">Health Connect が必要です</string>
+    <string name="hc_gate_text">SugarBridge は Health Connect を通じて血糖値を Samsung Health に送ります。これがないとデータの行き先がありません。</string>
+    <string name="hc_gate_old">インストールされているバージョンが古すぎます。</string>
+    <string name="hc_gate_missing">この端末にないか、オフになっています。</string>
+    <string name="hc_gate_auto">Health Connect が使えるようになると、この画面は自動で閉じます。</string>
+    <string name="hc_update">更新</string>
+    <string name="hc_install">インストール</string>
+    <string name="hc_settings">Health Connect の設定</string>
+
+    <!-- Snackbar messages -->
+    <string name="msg_hc_denied">Health Connect の権限がないと血糖値を書き込めません</string>
+    <string name="msg_no_app">開けるアプリが見つかりません</string>
+    <string name="msg_not_allowed">Android が開くことを許可しませんでした</string>
+    <string name="msg_nothing_new">新しい測定値はありません。すべて Health Connect にあります ♡</string>
+    <string name="msg_written">Health Connect に書き込みました：%1$d ✧</string>
+    <string name="msg_already_there">登録済み：%1$d</string>
+    <string name="msg_future_skipped">未来の時刻のためスキップ：%1$d。タイムゾーンを確認してください</string>
+    <string name="msg_sign_in_again">LibreLinkUp のパスワードが通りませんでした。もう一度ログインしてください</string>
+    <string name="msg_error">エラー：%1$s</string>
+    <string name="msg_signed_in">ログインしました ♡</string>
+    <string name="msg_sign_in_failed">ログインできません：%1$s</string>
+    <string name="msg_check_ok">LibreLinkUp に接続できました：12 時間で %1$d 件、最新は %2$s（%3$s、リージョン %4$s）</string>
+    <string name="msg_file_unreadable">ファイルを開けませんでした</string>
+    <string name="msg_file_lost">LibreView のファイルが見つかりません。もう一度お試しください</string>
+    <string name="msg_no_glucose">ファイルにグルコースの測定値がありません。LibreView の「グルコースデータ」のエクスポートが必要です</string>
+    <string name="msg_parse_failed">ファイルを読み取れませんでした：%1$s</string>
+    <string name="msg_allow_hc_first">まず SugarBridge に Health Connect への書き込みを許可してください</string>
+    <string name="msg_write_failed">書き込みエラー：%1$s</string>
+    <string name="msg_deleted">Health Connect から削除した日数：%1$d</string>
+    <string name="msg_delete_failed">削除できませんでした：%1$s</string>
+
+    <!-- Errors -->
+    <string name="error_wrong_credentials">メールアドレスまたはパスワードが違います</string>
+    <string name="error_login">ログインに失敗しました：%1$s</string>
+    <string name="error_login_step">LibreLinkUp アプリを開いて「%1$s」のステップを承認し、もう一度ログインしてください</string>
+    <string name="error_rate_limited">リクエストが多すぎます。LibreLinkUp から %1$d 秒待つよう求められています</string>
+    <string name="error_no_connections">LibreLinkUp に接続がありません。LibreLink から自分を招待してください</string>
+    <string name="error_api_changed">LibreLinkUp がアプリのバージョン %1$s を要求していますが、すでに送信済みです。API が変わったようです</string>
+    <string name="error_server">LibreLinkUp からコード %1$d が返されました</string>
+    <string name="error_network">LibreLinkUp に接続できません</string>
+    <string name="error_no_health_connect">この端末では Health Connect を利用できません</string>
+    <string name="error_no_permission">Health Connect に血糖値を書き込む権限がありません</string>
+    <string name="error_signed_out">先に LibreLinkUp にログインしてください</string>
+
+    <!-- Minute mode notification -->
+    <string name="notif_sign_in_again">LibreLinkUp のパスワードが通りませんでした。SugarBridge を開いてもう一度ログインしてください</string>
+    <string name="notif_sign_in">SugarBridge で LibreLinkUp にログインしてください</string>
+    <string name="notif_problem">SugarBridge：%1$s</string>
+    <string name="notif_wait">LibreLinkUp から待つよう求められています</string>
+    <string name="notif_offline">LibreLinkUp に接続できません</string>
+    <string name="notif_failed">同期に失敗しました</string>
+    <string name="notif_value_text">%1$s · %2$s</string>
+    <string name="notif_watching">SugarBridge が血糖値を見守っています ✧</string>
+    <string name="notif_every_minute">毎分更新</string>
+    <string name="notif_every">%1$d 分ごとに更新</string>
+    <string name="notif_stop">停止</string>
+    <string name="channel_live">現在の血糖値</string>
+    <string name="channel_live_description">分刻みモードでステータスバーと通知シェードに血糖値を表示</string>
+    <string name="channel_quiet">バックグラウンド動作</string>
+    <string name="channel_quiet_description">分刻みモードのサイレント通知。オフにしてもモードは動き続けます</string>
+
+    <!-- LibreView window -->
+    <string name="libreview_hint">LibreLink アカウント（LibreLinkUp ではありません）でログイン →「グルコース履歴」→「グルコースデータをダウンロード」→「私はロボットではありません」→「ダウンロード」。SugarBridge がファイルを自動で受け取ります。</string>
+    <string name="libreview_fetching">ファイルを受け取り中…</string>
+    <string name="libreview_download_failed">ダウンロードできませんでした：%1$s</string>
+    <string name="libreview_bad_link">不明なファイルリンクです</string>
+    <string name="libreview_bad_data">ファイルの形式が不明です</string>
+    <string name="libreview_no_glucose">ファイルは届きましたが、グルコースの測定値がありません。「グルコースデータ」のエクスポートが必要です</string>
+    <string name="libreview_read_failed">ファイルを受け取れませんでした：%1$s</string>
+</resources>

@@ -24,11 +24,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.sugarbridge.app.R
 import com.sugarbridge.app.ui.components.CardTitle
 import com.sugarbridge.app.ui.components.GradientButton
 import com.sugarbridge.app.ui.components.Hint
@@ -40,7 +42,7 @@ import com.sugarbridge.app.ui.theme.Tenshi
 @Composable
 fun LoginScreen(busy: Boolean, onSignIn: (String, String) -> Unit) {
     var email by rememberSaveable { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }   // пароль не кладём в сохраняемое состояние экрана
+    var password by remember { mutableStateOf("") }   // the password is not put into the saved screen state
     val canSubmit = email.isNotBlank() && password.isNotEmpty() && !busy
 
     Column(
@@ -54,18 +56,18 @@ fun LoginScreen(busy: Boolean, onSignIn: (String, String) -> Unit) {
             style = MaterialTheme.typography.displaySmall.copy(brush = Brush.linearGradient(Tenshi.Rainbow)),
         )
         Text(
-            "Сахар из Libre — прямо в Samsung Health ✧",
+            stringResource(R.string.login_tagline),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(4.dp))
         TenshiCard {
-            CardTitle("Вход в LibreLinkUp")
+            CardTitle(stringResource(R.string.login_title))
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Email") },
+                label = { Text(stringResource(R.string.login_email)) },
                 singleLine = true,
                 shape = MaterialTheme.shapes.medium,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
@@ -74,7 +76,7 @@ fun LoginScreen(busy: Boolean, onSignIn: (String, String) -> Unit) {
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Пароль") },
+                label = { Text(stringResource(R.string.login_password)) },
                 singleLine = true,
                 shape = MaterialTheme.shapes.medium,
                 visualTransformation = PasswordVisualTransformation(),
@@ -82,13 +84,13 @@ fun LoginScreen(busy: Boolean, onSignIn: (String, String) -> Unit) {
                 modifier = Modifier.fillMaxWidth(),
             )
             GradientButton(
-                "Войти",
+                stringResource(R.string.login_button),
                 onClick = { onSignIn(email, password) },
                 enabled = canSubmit,
                 loading = busy,
                 modifier = Modifier.fillMaxWidth(),
             )
-            Hint("Аккаунт LibreLinkUp, который вы пригласили из LibreLink. Пароль хранится на телефоне зашифрованным и никуда, кроме LibreLinkUp, не уходит.")
+            Hint(stringResource(R.string.login_hint))
         }
     }
 }

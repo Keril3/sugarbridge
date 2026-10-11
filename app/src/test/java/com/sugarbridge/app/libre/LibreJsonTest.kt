@@ -43,7 +43,7 @@ class LibreJsonTest {
     fun graphIsSortedAndCurrentValueWinsOverHistory() {
         val data = JSONObject()
             .put("graphData", JSONArray()
-                .put(item("10/8/2026 6:00:00 PM", 120))          // тот же момент, что и текущее
+                .put(item("10/8/2026 6:00:00 PM", 120))          // the same moment as the current value
                 .put(item("10/8/2026 5:30:00 PM", 100))
                 .put(item("10/8/2026 5:45:00 PM", 110)))
             .put("connection", JSONObject().put("glucoseMeasurement", item("10/8/2026 6:00:00 PM", 121, trend = 3)))

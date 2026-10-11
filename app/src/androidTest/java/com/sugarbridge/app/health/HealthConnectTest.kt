@@ -22,18 +22,18 @@ import java.time.Duration
 import java.time.Instant
 import kotlinx.coroutines.runBlocking
 
-/** Настоящий Health Connect на телефоне или эмуляторе: запись, чтение своих записей, повтор и удаление. */
+/** The real Health Connect on a phone or emulator: writing, reading our own records, rewriting and deleting. */
 @RunWith(AndroidJUnit4::class)
 class HealthConnectTest {
 
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
-    private val base = Instant.parse("2025-03-01T10:00:00Z")   // больше 30 дней назад — проверим и это
+    private val base = Instant.parse("2025-03-01T10:00:00Z")   // more than 30 days ago: checks that too
     private val from = base.minusSeconds(3600)
     private val to = base.plusSeconds(3 * 3600)
 
     @Before
     fun setUp() {
-        assumeTrue("Health Connect недоступен", healthConnectState(context) == HealthConnectState.AVAILABLE)
+        assumeTrue("Health Connect is not available", healthConnectState(context) == HealthConnectState.AVAILABLE)
         InstrumentationRegistry.getInstrumentation().uiAutomation.grantRuntimePermission(context.packageName, WRITE_GLUCOSE)
         runBlocking { deleteOwnGlucose(context, from, to) }
     }
@@ -52,7 +52,7 @@ class HealthConnectTest {
 
     @Test
     fun ownRecordsAreReadableWithoutReadPermission() = runBlocking {
-        // у SugarBridge нет разрешения на чтение, и данные старше 30 дней — свои записи всё равно видны
+        // SugarBridge has no read permission and the data is older than 30 days: our own records are visible anyway
         val readings = (0 until 4).map { Reading(base.plusSeconds(it * 900L + 17), 100.0 + it, 0) }
         insertReadings(context, readings)
         assertEquals(readings.map { minuteKey(it.time) }.toSet(), ownMinuteKeys(context, from, to))
@@ -63,7 +63,7 @@ class HealthConnectTest {
         val readings = (0 until 4).map { Reading(base.plusSeconds(it * 900L + 17), 100.0 + it, 0) }
         insertReadings(context, readings)
         insertReadings(context, readings)
-        // тот же замер из CSV LibreView: та же минута, но без секунд
+        // the same reading from a LibreView CSV: the same minute, but without seconds
         insertReadings(context, readings.map { it.copy(time = Instant.ofEpochSecond(minuteKey(it.time) * 60)) })
         assertEquals(4, countOwn())
     }
@@ -91,7 +91,7 @@ class HealthConnectTest {
 
     @Test
     fun gmiIsCalculatedFromOwnRecords() = runBlocking {
-        // две недели точек раз в 15 минут по 150 мг/дл — далеко в прошлом, чтобы не мешать другим тестам
+        // two weeks of points every 15 minutes at 150 mg/dL, far in the past so other tests are not affected
         val start = Instant.parse("2025-01-01T00:00:00Z")
         val end = start.plus(Duration.ofDays(14))
         try {

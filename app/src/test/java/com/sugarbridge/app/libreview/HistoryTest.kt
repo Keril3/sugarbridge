@@ -16,10 +16,10 @@ class HistoryTest {
     private fun r(utc: String, mgDl: Double) = Reading(Instant.parse(utc), mgDl, 0)
 
     private val readings = listOf(
-        r("2026-10-08T10:00:00Z", 60.0),    // 8 октября, ниже диапазона
+        r("2026-10-08T10:00:00Z", 60.0),    // October 8, below range
         r("2026-10-08T12:00:00Z", 100.0),
-        r("2026-10-08T21:59:00Z", 200.0),   // 23:59 по Калининграду — ещё 8-е
-        r("2026-10-08T22:01:00Z", 120.0),   // 00:01 по Калининграду — уже 9-е
+        r("2026-10-08T21:59:00Z", 200.0),   // 23:59 in Kaliningrad: still the 8th
+        r("2026-10-08T22:01:00Z", 120.0),   // 00:01 in Kaliningrad: already the 9th
     )
 
     @Test
@@ -35,7 +35,7 @@ class HistoryTest {
         assertEquals(60.0, day.minMgDl, 0.0)
         assertEquals(200.0, day.maxMgDl, 0.0)
         assertEquals(120.0, day.avgMgDl, 1e-9)
-        assertEquals(33, day.inRangePercent)   // из трёх замеров в диапазоне один
+        assertEquals(33, day.inRangePercent)   // one of three readings is in range
     }
 
     @Test

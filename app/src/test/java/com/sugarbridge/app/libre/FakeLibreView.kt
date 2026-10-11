@@ -9,36 +9,36 @@ import java.time.LocalDateTime
 const val PATIENT = "11111111-2222-3333-4444-555555555555"
 
 /**
- * Поддельный LibreLinkUp: отвечает как настоящий, но без интернета и без аккаунта.
- * Как у Abbott, это две отдельные системы: российский сервер не знает аккаунтов остального мира
- * и наоборот, а внутри мирового сервера регионы переадресуют друг на друга.
+ * A fake LibreLinkUp: answers like the real one, but without the internet or an account.
+ * As at Abbott, there are two separate systems: the Russian server doesn't know the accounts of the rest
+ * of the world and vice versa, and within the world server the regions redirect to each other.
  */
 class FakeLibreView(
-    private val home: String = "api.libreview.ru",   // на каком сервере «живёт» аккаунт
+    private val home: String = "api.libreview.ru",   // the server the account "lives" on
     private val password: String = "secret",
 ) : HttpTransport {
     var token = "T0KEN-1"
-    var now: LocalDateTime = LocalDateTime.of(2026, 10, 8, 18, 0)   // время последнего замера, UTC
-    val values = mutableListOf(110.0, 112.0, 115.0)   // мг/дл: история + текущее значение
-    var expireNext = false     // следующий запрос с токеном получит 401
-    var limitNext = false      // следующий запрос получит 429
-    var connections = JSONArray().put(JSONObject().put("patientId", PATIENT).put("firstName", "Я"))
-    var minVersion: String? = null    // сервер требует версию приложения не ниже этой
-    var alwaysAskVersion = false      // …и просит её, даже если она уже такая (API сломался)
-    var step: String? = null          // вход ждёт действия человека: «tou» — принять условия
-    var unreachable = emptySet<String>()   // серверы, до которых нет связи
+    var now: LocalDateTime = LocalDateTime.of(2026, 10, 8, 18, 0)   // time of the latest reading, UTC
+    val values = mutableListOf(110.0, 112.0, 115.0)   // mg/dL: history + the current value
+    var expireNext = false     // the next request with a token gets 401
+    var limitNext = false      // the next request gets 429
+    var connections = JSONArray().put(JSONObject().put("patientId", PATIENT).put("firstName", "Me"))
+    var minVersion: String? = null    // the server requires at least this app version
+    var alwaysAskVersion = false      // …and asks for it even when it is already sent (a broken API)
+    var step: String? = null          // sign-in waits for the person: "tou" = accept the terms
+    var unreachable = emptySet<String>()   // servers that can't be reached
     var logins = 0
-    val loginHosts = mutableListOf<String>()   // куда по очереди пытался войти клиент
-    val requests = mutableListOf<String>()   // журнал запросов, чтобы проверять их в тестах
+    val loginHosts = mutableListOf<String>()   // where the client tried to sign in, in order
+    val requests = mutableListOf<String>()   // a request log for the tests to check
 
     override fun send(method: String, url: String, headers: Map<String, String>, body: String?): HttpResponse {
-        check(headers["product"] == "llu.android") { "Клиент не прислал заголовок product" }
+        check(headers["product"] == "llu.android") { "The client didn't send the product header" }
         val uri = URI(url)
-        if (uri.host in unreachable) throw IOException("нет связи с ${uri.host}")
+        if (uri.host in unreachable) throw IOException("no route to ${uri.host}")
         requests.add("$method ${uri.host}${uri.path}")
         val min = minVersion
         if (min != null && (alwaysAskVersion || compareVersions(headers["version"] ?: "0", min) < 0)) {
-            // так отвечает LibreLinkUp, когда Abbott поднял минимальную версию приложения
+            // this is how LibreLinkUp answers when Abbott raised the minimum app version
             val data = JSONObject().put("minimumVersion", min)
             return HttpResponse(200, JSONObject().put("status", 920).put("data", data).toString())
         }
@@ -65,9 +65,9 @@ class FakeLibreView(
     private fun login(host: String, body: JSONObject): HttpResponse {
         logins++
         loginHosts += host
-        // российский и мировой серверы — разные системы: чужой аккаунт для них как неверный пароль
+        // the Russian and the world servers are separate systems: an unknown account looks like a wrong password
         if (host.endsWith(".ru") != home.endsWith(".ru")) return notAuthenticated()
-        if (host != home) {   // аккаунт в другом регионе мирового сервера — сервер просит перейти туда
+        if (host != home) {   // the account is in another region of the world server: the server redirects there
             return ok(JSONObject().put("redirect", true).put("region", regionOf(home)))
         }
         if (body.getString("password") != password) return notAuthenticated()
@@ -82,7 +82,7 @@ class FakeLibreView(
         )
     }
 
-    // дословно как настоящие серверы Abbott отвечают на чужой аккаунт или неверный пароль
+    // word for word how the real Abbott servers answer an unknown account or a wrong password
     private fun notAuthenticated(): HttpResponse {
         val error = JSONObject().put("message", "incorrect username/password")
         return HttpResponse(200, JSONObject().put("status", 2).put("error", error).toString())
@@ -97,7 +97,7 @@ class FakeLibreView(
     private fun graph(): JSONObject {
         val n = values.size
         val history = JSONArray()
-        for (i in 0 until n - 1) {   // история — каждые 15 минут
+        for (i in 0 until n - 1) {   // the history: every 15 minutes
             val t = now.minusMinutes(15L * (n - 1 - i))
             history.put(item(t, values[i]))
         }

@@ -11,6 +11,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.sugarbridge.app.MainActivity
 import com.sugarbridge.app.MainViewModel
+import com.sugarbridge.app.R
 import com.sugarbridge.app.glucose.Reading
 import com.sugarbridge.app.health.HealthConnectState
 import com.sugarbridge.app.health.WRITE_GLUCOSE
@@ -22,9 +23,11 @@ import com.sugarbridge.app.libre.AccountStore
 import com.sugarbridge.app.libre.Libre
 import com.sugarbridge.app.libre.Session
 import com.sugarbridge.app.libre.sha256
+import com.sugarbridge.app.resourcesIn
 import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.settings.SettingsStore
 import com.sugarbridge.app.sync.SyncStore
+import com.sugarbridge.app.useAppLanguage
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -41,8 +44,8 @@ import kotlin.math.sin
 import kotlinx.coroutines.runBlocking
 
 /**
- * Проходит по экранам с демо-данными и сохраняет скриншоты в files/shots приложения.
- * Забрать: adb exec-out run-as com.sugarbridge.app cat files/shots/home.png > home.png
+ * Walks through the screens with demo data in English and in Russian and saves screenshots to the app's
+ * files/shots/<language>. Get one with: adb exec-out run-as com.sugarbridge.app cat files/shots/en/home.png > home.png
  */
 @RunWith(AndroidJUnit4::class)
 class ScreenshotTest {
@@ -56,7 +59,7 @@ class ScreenshotTest {
     private val today = LocalDate.now(zone)
     private val firstDay = today.minusDays(20)
 
-    /** Правдоподобный день: ночью ровно, после еды подъёмы. */
+    /** A plausible day: flat at night, rises after meals. */
     private fun mgDlAt(t: Instant): Double {
         val local = t.atZone(zone)
         val h = local.hour + local.minute / 60.0
@@ -88,17 +91,18 @@ class ScreenshotTest {
 
     @Before
     fun seed() {
-        // фоновую синхронизацию выключаем: с демо-аккаунтом LibreLinkUp ответит «неверный пароль»
+        // background sync is off: with the demo account LibreLinkUp would answer "wrong password"
         SettingsStore(context).save(AppSettings(backgroundMinutes = 0, liveEnabled = false))
+        SettingsStore(context).languageChosen = true
         AccountStore(context).save(Account("tenshi@example.com", "demo", Session("ru", "demo-token", sha256("demo"))))
         val now = Instant.now()
         val recent = (48 downTo 1).map { now.minusSeconds(it * 900L) }.map { Reading(it, Math.round(mgDlAt(it) * 10) / 10.0, 0) } +
             Reading(now.minusSeconds(40), mgDlAt(now), 4)
-        SyncStore(context).saveSuccess(recent, 3)   // «последняя синхронизация только что» — автосинхронизации не будет
+        SyncStore(context).saveSuccess(recent, 3)   // "the last sync was just now": no automatic sync
         if (healthConnectState(context) == HealthConnectState.AVAILABLE) {
             instrumentation.uiAutomation.grantRuntimePermission(context.packageName, WRITE_GLUCOSE)
-            // две недели уже «в Health Connect»: на экране истории у этих дней будет отметка,
-            // а на главном — расчётный HbA1c за 14 дней
+            // two weeks are already "in Health Connect": those days get a mark in the history,
+            // and the home screen gets the estimated HbA1c for 14 days
             runBlocking { insertReadings(context, (0L..13L).flatMap { day(today.minusDays(it)) }) }
         }
     }
@@ -109,52 +113,70 @@ class ScreenshotTest {
             runCatching { deleteOwnGlucose(context, firstDay.atStartOfDay(zone).toInstant(), Instant.now().plusSeconds(3600)) }
         }
         instrumentation.uiAutomation.executeShellCommand("cmd uimode night no").close()
+        useAppLanguage(context, null)
         Libre.signOut(context)
         SyncStore(context).clearDisplay()
     }
 
-    private fun shot(name: String) {
+    private fun shot(language: String, name: String) {
         compose.waitForIdle()
         Thread.sleep(700)
         val bitmap = instrumentation.uiAutomation.takeScreenshot()
-        val dir = File(context.filesDir, "shots").apply { mkdirs() }
+        val dir = File(context.filesDir, "shots/$language").apply { mkdirs() }
         File(dir, "$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
 
     @Test
-    fun allScreens() {
+    fun englishScreens() = allScreens("en")
+
+    @Test
+    fun russianScreens() = allScreens("ru")
+
+    private fun allScreens(language: String) {
+        useAppLanguage(context, language)
+        val res = resourcesIn(context, language)
+        fun text(id: Int) = res.getString(id)
+
         val scenario = ActivityScenario.launch(MainActivity::class.java)
         lateinit var vm: MainViewModel
         scenario.onActivity { vm = ViewModelProvider(it)[MainViewModel::class.java] }
 
         compose.waitUntil(10_000) { vm.ui.signedIn && vm.ui.canWrite != null }
-        shot("home")
+        compose.onNodeWithText(text(R.string.tab_now)).assertExists()   // the screen really is in this language
+        shot(language, "home")
         compose.waitUntil(20_000) { vm.ui.gmi14 != null }
-        compose.onNodeWithText("Оценка по средней глюкозе", substring = true).performScrollTo()
-        shot("home_gmi")
+        compose.onNodeWithText(res.getString(R.string.gmi_hint, 70)).performScrollTo()
+        shot(language, "home_gmi")
 
-        compose.onNodeWithText("История").performClick()
-        shot("history_empty")
+        compose.onNodeWithText(text(R.string.tab_history)).performClick()
+        shot(language, "history_empty")
 
         val file = File(context.cacheDir, "demo.csv").apply { writeText(demoCsv()) }
         scenario.onActivity { vm.importFile(file.absolutePath) }
         compose.waitUntil(20_000) { vm.history.loaded && !vm.history.busy }
-        shot("history")
+        shot(language, "history")
 
-        compose.onNodeWithText("Настройки").performClick()
-        shot("settings")
-        compose.onNodeWithText("О SugarBridge").performScrollTo()
-        shot("settings_bottom")
+        compose.onNodeWithText(text(R.string.tab_settings)).performClick()
+        shot(language, "settings")
+        compose.onNodeWithText(text(R.string.settings_about_title)).performScrollTo()
+        shot(language, "settings_bottom")
 
-        compose.onNodeWithText("Сейчас").performClick()
+        compose.onNodeWithText(text(R.string.tab_now)).performClick()
         instrumentation.uiAutomation.executeShellCommand("cmd uimode night yes").close()
-        Thread.sleep(2500)   // тема меняется — Activity пересоздаётся
-        shot("home_night")
+        Thread.sleep(2500)   // the theme changes and the Activity is recreated
+        shot(language, "home_night")
         instrumentation.uiAutomation.executeShellCommand("cmd uimode night no").close()
         Thread.sleep(2500)
 
         scenario.onActivity { ViewModelProvider(it)[MainViewModel::class.java].signOut() }
-        shot("login")
+        SettingsStore(context).languageChosen = false   // the very first start: the language screen
+        compose.waitUntil(5_000) { !vm.ui.signedIn && !vm.ui.languageChosen }
+        compose.onNodeWithText(text(R.string.language_title)).assertExists()
+        shot(language, "language")
+        SettingsStore(context).languageChosen = true
+        compose.waitUntil(5_000) { vm.ui.languageChosen }
+        compose.onNodeWithText(text(R.string.login_title)).assertExists()
+        shot(language, "login")
         scenario.close()
     }
 }

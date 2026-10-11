@@ -15,7 +15,7 @@ class GmiTest {
 
     @Test
     fun formulaMatchesPublishedTable() {
-        // таблица из статьи Bergenstal 2018: 100 мг/дл → 5,7 %, 150 → 6,9 %, 200 → 8,1 %
+        // the table from Bergenstal 2018: 100 mg/dL → 5.7%, 150 → 6.9%, 200 → 8.1%
         assertEquals(5.7, gmiPercent(100.0), 0.05)
         assertEquals(6.9, gmiPercent(150.0), 0.05)
         assertEquals(8.1, gmiPercent(200.0), 0.05)
@@ -23,7 +23,7 @@ class GmiTest {
 
     @Test
     fun percentToMmolPerMol() {
-        assertEquals(53, hba1cMmolPerMol(7.0))   // 7 % ≈ 53 ммоль/моль
+        assertEquals(53, hba1cMmolPerMol(7.0))   // 7% ≈ 53 mmol/mol
         assertEquals(42, hba1cMmolPerMol(6.0))
         assertEquals(31, hba1cMmolPerMol(5.0))
     }
@@ -40,8 +40,8 @@ class GmiTest {
 
     @Test
     fun minuteDataDoesNotOutweighFifteenMinuteData() {
-        // первый час: минутный режим, 60 замеров по 200; второй час: 4 точки по 100.
-        // По отрезкам среднее (4×200 + 4×100) / 8 = 150, а простое среднее было бы ≈ 194
+        // first hour: minute mode, 60 readings of 200; second hour: 4 points of 100.
+        // Over the slots the mean is (4×200 + 4×100) / 8 = 150, a plain mean would be ≈ 194
         val minute = (0 until 60).map { Reading(from.plusSeconds(it * 60L), 200.0, 0) }
         val quarter = (0 until 4).map { Reading(from.plusSeconds(3600 + it * 900L), 100.0, 0) }
         val gmi = estimateGmi(minute + quarter, from, from.plusSeconds(7200))!!
@@ -50,7 +50,7 @@ class GmiTest {
 
     @Test
     fun tooLittleDataIsFlagged() {
-        val readings = (0 until 4 * 96).map { Reading(from.plusSeconds(it * 900L), 120.0, 0) }   // 4 дня из 14
+        val readings = (0 until 4 * 96).map { Reading(from.plusSeconds(it * 900L), 120.0, 0) }   // 4 days of 14
         val gmi = estimateGmi(readings, from, to)!!
         assertEquals(4.0 / 14, gmi.coverage, 1e-9)
         assertFalse(gmi.enough)

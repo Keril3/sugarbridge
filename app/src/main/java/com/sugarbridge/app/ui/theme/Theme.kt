@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.sugarbridge.app.glucose.GlucoseLevel
 import com.sugarbridge.app.R
 
-/** Фирменные цвета «тэнси каваии»: сакура, небо, лаванда и золото нимба. */
+/** The "tenshi kawaii" palette: sakura, sky, lavender and halo gold. */
 object Tenshi {
     val Sakura = Color(0xFFF58BB8)
     val SakuraDeep = Color(0xFFE5609A)
@@ -31,10 +31,10 @@ object Tenshi {
     val HaloLight = Color(0xFFFFF1BF)
     val Ink = Color(0xFF4A2B4F)
 
-    /** Градиент кнопок и акцентов: сакура → лаванда → небо. */
+    /** The gradient of buttons and accents: sakura → lavender → sky. */
     val Rainbow = listOf(Sakura, Lavender, Sky)
 
-    // Цвета уровней сахара: ниже — прохладный барвинок, в диапазоне — мята, выше — персик
+    // Glucose level colors: below is a cool periwinkle, in range is mint, above is peach
     val Low = Color(0xFF7C83F0)
     val InRange = Color(0xFF3FBF94)
     val High = Color(0xFFFF8A5C)
@@ -110,7 +110,7 @@ private val DarkColors = darkColorScheme(
     onErrorContainer = Color(0xFFFFDDE5),
 )
 
-/** Nunito — округлый шрифт с кириллицей; один файл с переменной толщиной. */
+/** Nunito: a rounded font with Cyrillic, in one variable-weight file. Other scripts fall back to the system font. */
 @OptIn(ExperimentalTextApi::class)
 private fun nunito(weight: Int) =
     Font(R.font.nunito, FontWeight(weight), variationSettings = FontVariation.Settings(FontVariation.weight(weight)))
@@ -147,7 +147,7 @@ private val TenshiShapes = Shapes(
     extraLarge = RoundedCornerShape(36.dp),
 )
 
-/** true — ночная тема: фон и украшения рисуются в тёмных тонах. */
+/** true in the night theme: the background and decorations are drawn in dark tones. */
 val LocalNight = staticCompositionLocalOf { false }
 
 @Composable

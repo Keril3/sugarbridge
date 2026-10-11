@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Common -->
+    <string name="unit_mmol">mmol/L</string>
+    <string name="unit_mgdl">mg/dL</string>
+    <string name="level_low">aralığın altında</string>
+    <string name="level_in_range">aralıkta ♡</string>
+    <string name="level_high">aralığın üstünde</string>
+    <string name="cancel">İptal</string>
+    <string name="close">Kapat</string>
+    <string name="done">Tamam</string>
+    <string name="delete">Sil</string>
+    <string name="duration_minutes">%1$d dk</string>
+    <string name="duration_hours">%1$d sa</string>
+    <string name="ago_now">az önce</string>
+    <string name="ago_minutes">%1$d dk önce</string>
+    <string name="ago_hours">%1$d sa %2$d dk önce</string>
+    <string name="ago_days">%1$d gün önce</string>
+
+    <!-- Tabs -->
+    <string name="tab_now">Şimdi</string>
+    <string name="tab_history">Geçmiş</string>
+    <string name="tab_settings">Ayarlar</string>
+
+    <!-- Language -->
+    <string name="language_title">Bir dil seçin</string>
+    <string name="language_hint">Dili istediğiniz zaman Ayarlar’dan değiştirebilirsiniz.</string>
+    <string name="language_system">Telefonun dili</string>
+    <string name="language_card">Dil</string>
+
+    <!-- Sign-in -->
+    <string name="login_tagline">Libre’deki şeker, doğrudan Samsung Health’e ✧</string>
+    <string name="login_title">LibreLinkUp’a giriş</string>
+    <string name="login_email">E-posta</string>
+    <string name="login_password">Şifre</string>
+    <string name="login_button">Giriş yap</string>
+    <string name="login_hint">LibreLink’ten davet ettiğiniz LibreLinkUp hesabı. Şifre bu telefonda şifrelenmiş olarak saklanır ve yalnızca LibreLinkUp’a gönderilir.</string>
+
+    <!-- Now -->
+    <string name="greeting_morning">Günaydın ✧</string>
+    <string name="greeting_day">İyi günler ✧</string>
+    <string name="greeting_evening">İyi akşamlar ✧</string>
+    <string name="greeting_night">İyi geceler ✧</string>
+    <string name="home_subtitle">Tenshi-chan şekerinize göz kulak oluyor</string>
+    <string name="home_permission_title">Health Connect’e yazmaya izin verin</string>
+    <string name="home_permission_text">Bu izin olmadan şekeriniz Samsung Health’e ulaşmaz.</string>
+    <string name="home_permission_button">İzin ver</string>
+    <string name="home_permission_hint">Ayrıca Samsung Health → Ayarlar → Health Connect’te “Kan şekeri” okuma izni olduğunu kontrol edin.</string>
+    <string name="home_no_samsung_title">Samsung Health bulunamadı</string>
+    <string name="home_no_samsung_hint">Şeker yine de Health Connect’e gider ve diğer uygulamalar da onu görebilir. Grafikleri orada görmek için Samsung Health’i yükleyin.</string>
+    <string name="home_chart_title">Son 12 saat</string>
+    <string name="home_no_data">Henüz veri yok</string>
+    <string name="home_no_data_hint">“Şimdi eşitle”ye dokunun, Tenshi-chan şekerinizi LibreLinkUp’tan getirsin</string>
+    <string name="home_reading_at">Ölçüm saati %1$s · %2$s</string>
+    <string name="home_stale">Veriler 10 dakikadan eski, LibreLink’e bakın. Şeker alarmları yalnızca oradan gelir.</string>
+    <string name="stat_min">en düşük</string>
+    <string name="stat_avg">ortalama</string>
+    <string name="stat_max">en yüksek</string>
+    <string name="stat_in_range">aralıkta</string>
+    <string name="percent">%%%1$d</string>
+
+    <string name="gmi_title">Tahmini HbA1c (GMI)</string>
+    <string name="gmi_14_days">14 gün</string>
+    <string name="gmi_90_days">90 gün</string>
+    <string name="gmi_percent">%%%1$.1f</string>
+    <string name="gmi_mmol_mol">%1$d mmol/mol</string>
+    <string name="gmi_no_data">%1$s · veri yok</string>
+    <string name="gmi_coverage">%1$s · veri %%%2$d</string>
+    <string name="gmi_low_coverage">%1$s · veri az: %%%2$d</string>
+    <string name="gmi_hint">Sensörün ortalama şekerinden bir tahmindir, kan testi değildir: laboratuvar HbA1c değeri farklı olabilir. 14 günde en az %%%1$d veriyle güvenilirdir. Samsung Health HbA1c’yi yalnızca elle girişle kabul eder, Health Connect bu değeri aktarmaz.</string>
+
+    <string name="sync_title">Eşitleme</string>
+    <string name="sync_never">Henüz yok</string>
+    <string name="sync_last">Son: %1$s · yazılan %2$d</string>
+    <string name="sync_error">Hata: %1$s</string>
+    <string name="sync_live_every_minute">Dakika modu: her dakika ✧</string>
+    <string name="sync_live_every">Dakika modu: %1$d dakikada bir ✧</string>
+    <string name="sync_background">Arka planda %1$s arayla, bildirimsiz</string>
+    <string name="sync_off">Otomatik eşitleme kapalı</string>
+    <string name="sync_update_rate">LibreLinkUp yaklaşık %1$s dakikada bir yeni değer gönderiyor</string>
+    <string name="sync_now">Şimdi eşitle</string>
+    <string name="live_title">Dakika modu</string>
+    <string name="live_subtitle">Samsung Health’te her dakika taze şeker</string>
+
+    <!-- History -->
+    <string name="history_title">LibreView’den tüm geçmiş ☁</string>
+    <string name="history_reading_file">Geçmiş okunuyor…</string>
+    <string name="history_intro">LibreLinkUp yalnızca 12 saati tutar. Tüm geçmiş LibreView’de: indirin ve hangi günlerin Samsung Health’e gideceğini seçin.</string>
+    <string name="history_open_libreview">LibreView’i aç</string>
+    <string name="history_pick_csv">İndirilmiş CSV seç</string>
+    <string name="history_step_1">1. LibreLinkUp değil, sensör uygulamasındaki LibreLink hesabınızla giriş yapın.</string>
+    <string name="history_step_2">2. “Glikoz Geçmişi” → “Glikoz verilerini indir”.</string>
+    <string name="history_step_3">3. “Ben robot değilim” kutusunu işaretleyip “İndir”e dokunun. SugarBridge dosyayı kendisi alır.</string>
+    <string name="history_step_browser">CSV’yi tarayıcıda mı indirdiniz? SugarBridge ile açın veya yukarıdaki düğmeyle seçin.</string>
+    <string name="history_loaded">%1$s · ölçüm: %2$d</string>
+    <string name="history_loaded_range">%1$s – %2$s · değerler: %3$s</string>
+    <string name="history_loaded_range_skipped">%1$s – %2$s · değerler: %3$s · atlanan satır: %4$d</string>
+    <string name="history_other_file">Başka dosya</string>
+    <string name="history_period">Dönem</string>
+    <string name="history_all">Tüm geçmiş</string>
+    <string name="history_last_days">%1$d gün</string>
+    <string name="history_period_summary">Gün: %1$d · ölçüm: %2$d · ortalama %3$s %4$s · aralıkta %%%5$d</string>
+    <string name="history_period_gmi">Dönemin tahmini HbA1c değeri (GMI): %%%1$.1f · %2$d mmol/mol</string>
+    <string name="history_period_gmi_low">Dönemin tahmini HbA1c değeri (GMI): %%%1$.1f · %2$d mmol/mol · veri az (%%%3$d)</string>
+    <string name="history_days">Günler</string>
+    <string name="history_select_new">Yeni</string>
+    <string name="history_select_all">Tümü</string>
+    <string name="history_select_none">Hiçbiri</string>
+    <string name="history_day_summary">Ölçüm: %1$d · ort. %2$s · %3$s–%4$s</string>
+    <string name="history_day_in_range">%%%1$d aralıkta</string>
+    <string name="history_in_hc">✓ HC’de</string>
+    <string name="history_partly">kısmen</string>
+    <string name="history_select_prompt">Samsung Health’te istediğiniz günleri işaretleyin</string>
+    <string name="history_selected">Gün: %1$d · ölçüm: %2$d</string>
+    <string name="history_write">Health Connect’e yaz</string>
+    <string name="history_pick_title">Hangi günler eşitlensin</string>
+    <string name="history_delete_title">Health Connect’ten silinsin mi?</string>
+    <string name="history_delete_text">Seçilen günlerdeki (%1$d) tüm SugarBridge şeker kayıtları, hem LibreView’den hem LibreLinkUp’tan gelenler, Health Connect ve Samsung Health’ten silinecek. LibreView’deki verilerinize dokunulmaz.</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Ayarlar</string>
+    <string name="settings_check">Bağlantıyı denetle</string>
+    <string name="settings_sign_out">Çıkış yap</string>
+    <string name="settings_hc_title">Health Connect ve Samsung Health</string>
+    <string name="settings_hc_allowed">Şeker yazma izni var ✓</string>
+    <string name="settings_hc_denied">Şeker yazma izni yok</string>
+    <string name="settings_hc_checking">İzin denetleniyor…</string>
+    <string name="settings_permissions">İzinler</string>
+    <string name="settings_open_hc">Health Connect’i aç</string>
+    <string name="settings_open_samsung">Samsung Health’i aç</string>
+    <string name="settings_hc_hint">Samsung Health şekeri Health Connect’ten kendisi alır. Nokta yok mu? Samsung Health → Ayarlar → Health Connect’te “Kan şekeri” okuma izni olduğunu kontrol edin.</string>
+    <string name="settings_background_title">Arka plan eşitlemesi</string>
+    <string name="settings_off">kapalı</string>
+    <string name="settings_background_hint">Bildirimsiz. Her seferinde yaklaşık 15 dakikada bir nokta içeren son 12 saati alır; telefon uyusa bile hiçbir şey kaçmaz. Android’in izin verdiği en kısa süre 15 dakikadır.</string>
+    <string name="settings_live_title">Dakika modu</string>
+    <string name="settings_live_switch">Şekeri daha sık güncelle</string>
+    <string name="settings_live_switch_hint">Samsung Health’e 15 dakikada bir nokta değil, her yeni ölçüm gider</string>
+    <string name="settings_live_every_minute">her dk</string>
+    <string name="settings_live_every">%1$d dk’da bir</string>
+    <string name="settings_live_value">Bildirimde şeker</string>
+    <string name="settings_live_value_hint">Durum çubuğunda ve bildirim panelinde bir sayı. Kapatırsanız bildirim sessizleşir ve panelin altına iner</string>
+    <string name="settings_keep_awake">Telefonu uyanık tut</string>
+    <string name="settings_keep_awake_hint">Ekran kapalıyken aralık uzamaz, ancak pil daha hızlı biter</string>
+    <string name="settings_hide_notification">Bildirimi tamamen gizle</string>
+    <string name="settings_battery">Pil kısıtlamalarını kaldır</string>
+    <string name="settings_live_hint">15 dakikadan sık çalışmak için Android bildirimli bir hizmet ister. Bildirimi kanal ayarlarından kapatabilirsiniz: mod çalışmaya devam eder ve uygulama etkin uygulamalar listesinde kalır.</string>
+    <string name="settings_display_title">Görünüm</string>
+    <string name="settings_target_range">Hedef aralık: %1$s – %2$s %3$s</string>
+    <string name="settings_target_hint">Yalnızca renkler, grafik ve “aralıkta” oranı için. LibreLink alarmlarını etkilemez.</string>
+    <string name="settings_about_title">SugarBridge hakkında</string>
+    <string name="settings_version">Sürüm %1$s</string>
+    <string name="settings_about_hint">Tıbbi cihaz değildir: şeker alarmları ve tedavi kararları yalnızca LibreLink’e aittir. LibreLinkUp ve LibreView resmî olmayan bir API ile, yalnızca kendi hesabınız ve verilerinizle kullanılır.</string>
+
+    <!-- Health Connect is missing -->
+    <string name="hc_update_title">Health Connect’i güncelleyin</string>
+    <string name="hc_missing_title">Health Connect gerekli</string>
+    <string name="hc_gate_text">SugarBridge şekeri Health Connect üzerinden Samsung Health’e gönderir. O olmadan verilerin gidecek yeri yoktur.</string>
+    <string name="hc_gate_old">Yüklü sürüm çok eski.</string>
+    <string name="hc_gate_missing">Bu telefonda yok veya kapalı.</string>
+    <string name="hc_gate_auto">Health Connect çalışır çalışmaz bu pencere kendiliğinden kapanır.</string>
+    <string name="hc_update">Güncelle</string>
+    <string name="hc_install">Yükle</string>
+    <string name="hc_settings">Health Connect ayarları</string>
+
+    <!-- Snackbar messages -->
+    <string name="msg_hc_denied">Health Connect izni olmadan şekeri yazacak yer yok</string>
+    <string name="msg_no_app">Bunu açacak uygulama bulunamadı</string>
+    <string name="msg_not_allowed">Android bunu açmaya izin vermedi</string>
+    <string name="msg_nothing_new">Yeni ölçüm yok, hepsi zaten Health Connect’te ♡</string>
+    <string name="msg_written">Health Connect’e yazıldı: %1$d ✧</string>
+    <string name="msg_already_there">zaten vardı: %1$d</string>
+    <string name="msg_future_skipped">gelecek zamanlı olduğu için atlandı: %1$d, saat dilimini kontrol edin</string>
+    <string name="msg_sign_in_again">LibreLinkUp şifresi çalışmadı, lütfen yeniden giriş yapın</string>
+    <string name="msg_error">Hata: %1$s</string>
+    <string name="msg_signed_in">Giriş yapıldı ♡</string>
+    <string name="msg_sign_in_failed">Giriş yapılamadı: %1$s</string>
+    <string name="msg_check_ok">LibreLinkUp çevrimiçi: 12 saatte %1$d ölçüm, sonuncusu %2$s, saat %3$s (bölge %4$s)</string>
+    <string name="msg_file_unreadable">Dosya açılamadı</string>
+    <string name="msg_file_lost">LibreView dosyası kayboldu, lütfen tekrar deneyin</string>
+    <string name="msg_no_glucose">Dosyada glikoz ölçümü yok. LibreView’in “Glikoz verileri” dışa aktarımı gerekli</string>
+    <string name="msg_parse_failed">Dosya okunamadı: %1$s</string>
+    <string name="msg_allow_hc_first">Önce SugarBridge’in Health Connect’e yazmasına izin verin</string>
+    <string name="msg_write_failed">Yazma hatası: %1$s</string>
+    <string name="msg_deleted">Health Connect’ten silinen gün: %1$d</string>
+    <string name="msg_delete_failed">Silinemedi: %1$s</string>
+
+    <!-- Errors -->
+    <string name="error_wrong_credentials">e-posta veya şifre yanlış</string>
+    <string name="error_login">giriş başarısız: %1$s</string>
+    <string name="error_login_step">LibreLinkUp uygulamasını açın, oradaki “%1$s” adımını onaylayın ve yeniden giriş yapın</string>
+    <string name="error_rate_limited">çok fazla istek, LibreLinkUp %1$d sn beklemenizi istiyor</string>
+    <string name="error_no_connections">LibreLinkUp’ta bağlantı yok: kendinizi LibreLink’ten davet edin</string>
+    <string name="error_api_changed">LibreLinkUp, zaten gönderilen %1$s uygulama sürümünü istiyor: API değişmiş görünüyor</string>
+    <string name="error_server">LibreLinkUp %1$d koduyla yanıt verdi</string>
+    <string name="error_network">LibreLinkUp ile bağlantı yok</string>
+    <string name="error_no_health_connect">Health Connect bu telefonda kullanılamıyor</string>
+    <string name="error_no_permission">Health Connect’e şeker yazma izni yok</string>
+    <string name="error_signed_out">önce LibreLinkUp’a giriş yapın</string>
+
+    <!-- Minute mode notification -->
+    <string name="notif_sign_in_again">LibreLinkUp şifresi çalışmadı: SugarBridge’i açıp yeniden giriş yapın</string>
+    <string name="notif_sign_in">SugarBridge’de LibreLinkUp’a giriş yapın</string>
+    <string name="notif_problem">SugarBridge: %1$s</string>
+    <string name="notif_wait">LibreLinkUp beklemenizi istiyor</string>
+    <string name="notif_offline">LibreLinkUp ile bağlantı yok</string>
+    <string name="notif_failed">Eşitleme başarısız</string>
+    <string name="notif_value_text">saat %1$s · %2$s</string>
+    <string name="notif_watching">SugarBridge şekerinize göz kulak oluyor ✧</string>
+    <string name="notif_every_minute">Her dakika güncellenir</string>
+    <string name="notif_every">%1$d dakikada bir güncellenir</string>
+    <string name="notif_stop">Durdur</string>
+    <string name="channel_live">Güncel şeker</string>
+    <string name="channel_live_description">Dakika modunda durum çubuğunda ve bildirim panelinde şeker</string>
+    <string name="channel_quiet">Arka plan çalışması</string>
+    <string name="channel_quiet_description">Dakika modunun sessiz bildirimi. Kapatabilirsiniz, mod çalışmaya devam eder</string>
+
+    <!-- LibreView window -->
+    <string name="libreview_hint">LibreLink hesabınızla giriş yapın (LibreLinkUp değil) → “Glikoz Geçmişi” → “Glikoz verilerini indir” → “Ben robot değilim” → “İndir”. SugarBridge dosyayı kendisi alır.</string>
+    <string name="libreview_fetching">Dosya alınıyor…</string>
+    <string name="libreview_download_failed">İndirilemedi: %1$s</string>
+    <string name="libreview_bad_link">Bilinmeyen dosya bağlantısı</string>
+    <string name="libreview_bad_data">Dosya bilinmeyen bir biçimde geldi</string>
+    <string name="libreview_no_glucose">Dosya geldi ama içinde glikoz ölçümü yok. “Glikoz verileri” dışa aktarımı gerekli</string>
+    <string name="libreview_read_failed">Dosya alınamadı: %1$s</string>
+</resources>

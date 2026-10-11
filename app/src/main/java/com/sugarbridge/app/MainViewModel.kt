@@ -36,11 +36,16 @@ import com.sugarbridge.app.libreview.summarizeDays
 import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.settings.SettingsStore
 import com.sugarbridge.app.sync.LiveSyncService
+import com.sugarbridge.app.sync.Problem
+import com.sugarbridge.app.sync.SyncBlocked
 import com.sugarbridge.app.sync.SyncSnapshot
 import com.sugarbridge.app.sync.SyncStore
 import com.sugarbridge.app.sync.minuteKey
 import com.sugarbridge.app.sync.scheduleSync
 import com.sugarbridge.app.sync.syncAndRecord
+import com.sugarbridge.app.ui.UiText
+import com.sugarbridge.app.ui.clockFormat
+import com.sugarbridge.app.ui.uiText
 import java.io.File
 import java.time.Duration
 import java.time.Instant
@@ -56,12 +61,13 @@ import kotlinx.coroutines.withContext
 
 enum class Tab { NOW, HISTORY, SETTINGS }
 
-/** Всё, что нужно главному экрану и настройкам. */
+/** Everything the home and settings screens need. */
 data class UiState(
     val signedIn: Boolean = false,
     val email: String? = null,
+    val languageChosen: Boolean = true,
     val healthConnect: HealthConnectState = HealthConnectState.AVAILABLE,
-    val canWrite: Boolean? = null,            // null — ещё не проверили
+    val canWrite: Boolean? = null,            // null = not checked yet
     val samsungHealth: Boolean = true,
     val batteryUnrestricted: Boolean = true,
     val settings: AppSettings = AppSettings(),
@@ -69,17 +75,17 @@ data class UiState(
     val syncing: Boolean = false,
     val signingIn: Boolean = false,
     val checking: Boolean = false,
-    val gmi14: GmiResult? = null,   // расчётный HbA1c за 14 и 90 дней по своим записям в Health Connect
+    val gmi14: GmiResult? = null,   // estimated HbA1c for 14 and 90 days from our own records in Health Connect
     val gmi90: GmiResult? = null,
 )
 
-/** Импорт истории из LibreView: загруженные замеры, выбранный период и дни. */
+/** History import from LibreView: the loaded readings, the chosen period and days. */
 data class ImportUi(
     val source: String = "",
     val readings: List<Reading> = emptyList(),
     val unit: GlucoseUnit = GlucoseUnit.MMOL,
     val skipped: Int = 0,
-    val existing: Set<Long> = emptySet(),   // минуты, которые уже есть в Health Connect
+    val existing: Set<Long> = emptySet(),   // minutes already in Health Connect
     val days: List<DaySummary> = emptyList(),
     val from: LocalDate? = null,
     val to: LocalDate? = null,
@@ -109,10 +115,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private var gmiJob: Job? = null
     private var gmiAt: Instant? = null
 
-    private val _messages = MutableSharedFlow<String>(extraBufferCapacity = 8)
-    val messages: SharedFlow<String> = _messages
+    private val _messages = MutableSharedFlow<UiText>(extraBufferCapacity = 8)
+    val messages: SharedFlow<UiText> = _messages
 
-    // сервис и фоновая задача пишут в настройки — экран обновляется сам
+    // the service and the background job write to the preferences: the screen updates by itself
     private val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> refreshLocal() }
     private val syncPrefs = app.getSharedPreferences(SyncStore.NAME, Context.MODE_PRIVATE)
     private val settingsPrefs = app.getSharedPreferences(SettingsStore.NAME, Context.MODE_PRIVATE)
@@ -129,22 +135,39 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         settingsPrefs.unregisterOnSharedPreferenceChangeListener(listener)
     }
 
-    private fun say(text: String) {
+    private fun say(text: UiText) {
         _messages.tryEmit(text)
     }
 
-    /** Сообщение внизу экрана — для Activity. */
-    fun notify(text: String) = say(text)
+    private fun say(id: Int, vararg args: Any) = say(uiText(id, *args))
+
+    /** "Error: …" with the failure described in the current language. */
+    private fun sayError(id: Int, e: Throwable) {
+        val problem = Problem.of(e)
+        say { res -> res.getString(id, problem.text(res)) }
+    }
+
+    /** A message at the bottom of the screen, for the Activity. */
+    fun notify(id: Int) = say(id)
 
     private fun refreshAccount() {
         ui = ui.copy(signedIn = Libre.client(context) != null, email = Libre.email(context))
     }
 
     private fun refreshLocal() {
-        ui = ui.copy(settings = settingsStore.load(), sync = SyncStore(context).snapshot())
+        ui = ui.copy(
+            settings = settingsStore.load(),
+            languageChosen = settingsStore.languageChosen,
+            sync = SyncStore(context).snapshot(),
+        )
     }
 
-    /** При каждом возвращении на экран: Health Connect, разрешение, Samsung Health, батарея. */
+    /** The language screen was answered (or skipped): it won't be shown again. */
+    fun languageChosen() {
+        settingsStore.languageChosen = true
+    }
+
+    /** On every return to the screen: Health Connect, the permission, Samsung Health, the battery. */
     fun refreshStatus() {
         refreshAccount()
         refreshLocal()
@@ -165,8 +188,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /**
-     * Расчётный HbA1c (GMI) за 14 и 90 дней по всем замерам SugarBridge в Health Connect — один проход
-     * по записям за 90 дней. Пересчитываем не чаще раза в 10 минут: за это время он почти не меняется.
+     * Estimated HbA1c (GMI) for 14 and 90 days from all SugarBridge readings in Health Connect, in one pass
+     * over 90 days of records. Recalculated at most every 10 minutes: it barely changes in that time.
      */
     private fun refreshGmi(force: Boolean = false) {
         if (gmiJob?.isActive == true) return
@@ -191,7 +214,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /** Открыли приложение, а последней синхронизации больше двух минут — обновимся сами. */
+    /** The app was opened and the last sync is older than two minutes: refresh by ourselves. */
     private fun autoSync() {
         val s = ui
         val stale = s.sync.lastOkAt?.let { Duration.between(it, Instant.now()) > Duration.ofMinutes(2) } ?: true
@@ -205,16 +228,16 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             try {
                 val result = syncAndRecord(context)
                 if (!quiet) {
-                    say(if (result.written == 0) "Новых замеров нет — всё уже в Health Connect ♡" else "Записано в Health Connect: ${result.written} ✧")
+                    if (result.written == 0) say(R.string.msg_nothing_new) else say(R.string.msg_written, result.written)
                 }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: LoginFailed) {
                 Libre.signOut(context)
                 refreshAccount()
-                say("Пароль LibreLinkUp не подошёл — войдите снова")
+                say(R.string.msg_sign_in_again)
             } catch (e: Exception) {
-                if (!quiet) say("Ошибка: ${e.message}")
+                if (!quiet) sayError(R.string.msg_error, e)
             } finally {
                 ui = ui.copy(syncing = false)
                 refreshLocal()
@@ -228,12 +251,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) { Libre.signIn(context, email.trim(), password) }
-                say("Вход выполнен ♡")
+                languageChosen()
+                say(R.string.msg_signed_in)
                 refreshStatus()
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                say("Не получилось: ${e.message}")
+                sayError(R.string.msg_sign_in_failed, e)
             } finally {
                 ui = ui.copy(signingIn = false)
                 refreshAccount()
@@ -242,27 +266,34 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun signOut() {
-        LiveSyncService.stop(context)   // режим остаётся включённым в настройках и вернётся после входа
+        LiveSyncService.stop(context)   // the mode stays on in the settings and comes back after signing in
         Libre.signOut(context)
         SyncStore(context).clearDisplay()
         refreshAccount()
         refreshLocal()
     }
 
-    /** «Проверить связь»: запрос в LibreLinkUp без записи в Health Connect. */
+    /** "Check connection": a request to LibreLinkUp without writing to Health Connect. */
     fun checkLibre() {
         if (ui.checking) return
         ui = ui.copy(checking = true)
         viewModelScope.launch {
             try {
-                val client = Libre.client(context) ?: throw IllegalStateException("Сначала войдите в LibreLinkUp")
+                val client = Libre.client(context) ?: throw SyncBlocked(Problem.Code.SIGNED_OUT)
                 val readings = withContext(Dispatchers.IO) { client.readings() }
-                val last = readings.lastOrNull()?.text(unit = ui.settings.unit) ?: "—"
-                say("LibreLinkUp на связи: ${readings.size} замеров за 12 часов, последний $last (регион ${client.region})")
+                val last = readings.lastOrNull()
+                val unit = ui.settings.unit
+                val region = client.region
+                say { res ->
+                    val locale = res.configuration.locales[0]
+                    val value = last?.text(res.getString(unit.label), unit, locale) ?: "—"
+                    val time = last?.time?.atZone(zone)?.format(clockFormat(context, locale)) ?: "—"
+                    res.getString(R.string.msg_check_ok, readings.size, value, time, region)
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                say("Ошибка: ${e.message}")
+                sayError(R.string.msg_error, e)
             } finally {
                 ui = ui.copy(checking = false)
             }
@@ -284,7 +315,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    // ---------- история из LibreView ----------
+    // ---------- history from LibreView ----------
 
     fun importUri(uri: Uri) {
         viewModelScope.launch {
@@ -293,16 +324,16 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             } catch (e: Exception) {
                 null
             }
-            if (bytes == null) say("Не удалось открыть файл") else importBytes(bytes, displayName(uri) ?: "CSV")
+            if (bytes == null) say(R.string.msg_file_unreadable) else importBytes(bytes, displayName(uri) ?: "CSV")
         }
     }
 
-    /** Файл, который перехватило окно LibreView. */
+    /** The file caught by the LibreView window. */
     fun importFile(path: String) {
         viewModelScope.launch {
             val file = File(path)
             val bytes = withContext(Dispatchers.IO) { runCatching { file.readBytes() }.getOrNull().also { file.delete() } }
-            if (bytes == null) say("Файл из LibreView потерялся, попробуйте ещё раз") else importBytes(bytes, "LibreView")
+            if (bytes == null) say(R.string.msg_file_lost) else importBytes(bytes, "LibreView")
         }
     }
 
@@ -313,7 +344,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             val parsed = withContext(Dispatchers.Default) { LibreViewCsv.parse(LibreViewCsv.decode(bytes), zone) }
             if (parsed.readings.isEmpty()) {
                 history = ImportUi()
-                say("В файле нет замеров глюкозы. Нужна выгрузка «Данные о глюкозе» из LibreView")
+                say(R.string.msg_no_glucose)
                 return
             }
             val existing = existingKeys(parsed.readings)
@@ -333,14 +364,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             throw e
         } catch (e: Exception) {
             history = ImportUi()
-            say("Не удалось прочитать файл: ${e.message}")
+            sayError(R.string.msg_parse_failed, e)
         }
     }
 
     private fun summarize(readings: List<Reading>, existing: Set<Long>, s: AppSettings) =
         summarizeDays(readings, zone, s.lowMgDl, s.highMgDl, existing)
 
-    /** Какие минуты уже есть в Health Connect. Если Health Connect недоступен — считаем, что ничего. */
+    /** Which minutes are already in Health Connect. If Health Connect is unavailable, assume none. */
     private suspend fun existingKeys(readings: List<Reading>): Set<Long> {
         if (readings.isEmpty() || healthConnectState(context) != HealthConnectState.AVAILABLE) return emptySet()
         return try {
@@ -356,11 +387,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun setRange(from: LocalDate, to: LocalDate) {
         val h = history.copy(from = minOf(from, to), to = maxOf(from, to))
-        // в новом периоде по умолчанию выбраны дни, которых ещё нет в Health Connect
+        // in a new period, the days not yet in Health Connect are selected by default
         history = h.copy(selected = h.visibleDays.filterNot { it.complete }.map { it.date }.toSet())
     }
 
-    /** Последние N дней истории (null — вся история). */
+    /** The last N days of the history (null = all of it). */
     fun quickRange(days: Long?) {
         val all = history.days
         if (all.isEmpty()) return
@@ -397,12 +428,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             try {
                 if (healthConnectState(context) != HealthConnectState.AVAILABLE || !hasGlucosePermission(context)) {
-                    say("Сначала разрешите SugarBridge запись в Health Connect")
+                    say(R.string.msg_allow_hc_first)
                     return@launch
                 }
                 val existing = existingKeys(chosen)
                 val now = Instant.now()
-                // время «из будущего» Health Connect не примет — обычно это значит, что файл из другого часового пояса
+                // Health Connect won't take a time in the future; usually the file comes from another time zone
                 val future = chosen.count { it.time.isAfter(now) }
                 val toWrite = chosen.filter { minuteKey(it.time) !in existing && !it.time.isAfter(now) }
                 withContext(Dispatchers.IO) {
@@ -412,24 +443,26 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 }
                 val allExisting = existingKeys(h.readings)
                 history = history.copy(existing = allExisting, days = summarize(h.readings, allExisting, ui.settings), selected = emptySet())
-                refreshGmi(force = true)   // история за прошлые дни меняет расчётный HbA1c
+                refreshGmi(force = true)   // past days change the estimated HbA1c
                 val already = chosen.size - toWrite.size - future
-                say(
-                    "Записано в Health Connect: ${toWrite.size} ✧" +
-                        (if (already > 0) " · уже были: $already" else "") +
-                        (if (future > 0) " · из будущего пропущено: $future — проверьте часовой пояс" else "")
-                )
+                say { res ->
+                    listOfNotNull(
+                        res.getString(R.string.msg_written, toWrite.size),
+                        if (already > 0) res.getString(R.string.msg_already_there, already) else null,
+                        if (future > 0) res.getString(R.string.msg_future_skipped, future) else null,
+                    ).joinToString(" · ")
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                say("Ошибка записи: ${e.message}")
+                sayError(R.string.msg_write_failed, e)
             } finally {
                 history = history.copy(busy = false, progress = null)
             }
         }
     }
 
-    /** Удаляет из Health Connect все записи SugarBridge за выбранные дни (и из LibreLinkUp, и из истории). */
+    /** Deletes all SugarBridge records for the selected days from Health Connect (both from LibreLinkUp and from the history). */
     fun deleteSelected() {
         val h = history
         if (h.selected.isEmpty() || h.busy) return
@@ -440,16 +473,16 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     val from = dayBounds(range.start, zone).first
                     val to = dayBounds(range.endInclusive, zone).second
                     withContext(Dispatchers.IO) { deleteOwnGlucose(context, from, to) }
-                    SyncStore(context).forget(from, to)   // эти минуты LibreLinkUp снова сможет записать
+                    SyncStore(context).forget(from, to)   // LibreLinkUp may write these minutes again
                 }
                 val allExisting = existingKeys(h.readings)
                 history = history.copy(existing = allExisting, days = summarize(h.readings, allExisting, ui.settings), selected = emptySet())
                 refreshGmi(force = true)
-                say("Удалено из Health Connect: ${h.selected.size} дн.")
+                say(R.string.msg_deleted, h.selected.size)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                say("Не удалось удалить: ${e.message}")
+                sayError(R.string.msg_delete_failed, e)
             } finally {
                 history = history.copy(busy = false)
             }

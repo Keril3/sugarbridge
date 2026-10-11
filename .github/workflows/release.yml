@@ -1,13 +1,13 @@
-# Выпуск новой версии: git tag v1.2.0 && git push origin v1.2.0
-# Собирает подписанный APK и публикует его в GitHub Releases как SugarBridge.apk —
-# ссылка «последняя версия» в README всегда ведёт на свежий файл.
+# A new release: git tag v1.3.0 && git push origin v1.3.0
+# Builds a signed APK and publishes it to GitHub Releases as SugarBridge.apk,
+# so the "latest version" link in the README always points to the newest file.
 name: Release
 on:
   push:
     tags: ["v*"]
 
 permissions:
-  contents: write   # чтобы создать выпуск и приложить APK
+  contents: write   # to create the release and attach the APK
 
 jobs:
   apk:
@@ -21,17 +21,17 @@ jobs:
           cache: gradle
       - run: chmod +x gradlew
 
-      - name: Ключ подписи из секретов репозитория
+      - name: Signing key from the repository secrets
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
           if [ -z "$KEYSTORE_BASE64" ]; then
-            echo "::error::Нет секрета KEYSTORE_BASE64 — см. README, раздел «Выпуск новой версии»"
+            echo "::error::The KEYSTORE_BASE64 secret is missing, see the README section \"Releasing a new version\""
             exit 1
           fi
           echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release.jks"
 
-      - name: Тесты и сборка release
+      - name: Tests and the release build
         env:
           SUGARBRIDGE_KEYSTORE: ${{ runner.temp }}/release.jks
           SUGARBRIDGE_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -39,12 +39,12 @@ jobs:
           SUGARBRIDGE_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew testDebugUnitTest assembleRelease -Psugarbridge.version="${GITHUB_REF_NAME#v}"
 
-      - name: Файлы для выпуска
+      - name: Release files
         run: |
           cp app/build/outputs/apk/release/app-release.apk SugarBridge.apk
           sha256sum SugarBridge.apk > SugarBridge.apk.sha256
 
-      - name: Выпуск на GitHub
+      - name: GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

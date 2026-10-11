@@ -1,14 +1,14 @@
 package com.sugarbridge.app.glucose
 
+import androidx.annotation.StringRes
+import com.sugarbridge.app.R
 import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.roundToInt
 
 /**
- * Один замер: время в UTC, сахар в мг/дл и стрелка тренда (1 — быстро вниз … 5 — быстро вверх, 0 — нет).
- * scan = true — ручное сканирование из истории LibreView, а не автоматический замер.
+ * One reading: time in UTC, glucose in mg/dL and the trend arrow (1 = falling fast … 5 = rising fast, 0 = none).
+ * scan = true marks a manual scan from the LibreView history rather than an automatic reading.
  */
 data class Reading(val time: Instant, val mgDl: Double, val trend: Int, val scan: Boolean = false) {
     val mmol: Double get() = mmolOf(mgDl)
@@ -18,9 +18,9 @@ const val MGDL_PER_MMOL = 18.016
 
 fun mmolOf(mgDl: Double): Double = Math.round(mgDl / MGDL_PER_MMOL * 10) / 10.0
 
-enum class GlucoseUnit(val label: String) { MMOL("ммоль/л"), MGDL("мг/дл") }
+enum class GlucoseUnit(@param:StringRes val label: Int) { MMOL(R.string.unit_mmol), MGDL(R.string.unit_mgdl) }
 
-/** Только число: "6,4" в ммоль/л (в русской локали — с запятой) или "115" в мг/дл. */
+/** Just the number: "6.4" in mmol/L (with a decimal comma where the language uses one) or "115" in mg/dL. */
 fun formatGlucose(mgDl: Double, unit: GlucoseUnit, locale: Locale = Locale.getDefault()): String = when (unit) {
     GlucoseUnit.MMOL -> String.format(locale, "%.1f", mmolOf(mgDl))
     GlucoseUnit.MGDL -> mgDl.roundToInt().toString()
@@ -28,7 +28,7 @@ fun formatGlucose(mgDl: Double, unit: GlucoseUnit, locale: Locale = Locale.getDe
 
 enum class GlucoseLevel { LOW, IN_RANGE, HIGH }
 
-/** Где значение относительно целевого диапазона (границы включены в норму). */
+/** Where a value is relative to the target range (the bounds count as in range). */
 fun levelOf(mgDl: Double, lowMgDl: Double, highMgDl: Double): GlucoseLevel = when {
     mgDl < lowMgDl -> GlucoseLevel.LOW
     mgDl > highMgDl -> GlucoseLevel.HIGH
@@ -39,13 +39,6 @@ private val ARROWS = listOf("", "↓", "↘", "→", "↗", "↑")
 
 val Reading.arrow: String get() = ARROWS.getOrElse(trend) { "" }
 
-/** "6,4 ммоль/л ↗ в 20:00" — для экрана и уведомления. */
-fun Reading.text(
-    zone: ZoneId = ZoneId.systemDefault(),
-    locale: Locale = Locale.getDefault(),
-    unit: GlucoseUnit = GlucoseUnit.MMOL,
-): String {
-    val value = formatGlucose(mgDl, unit, locale) + " " + unit.label   // в русской локали будет запятая: 6,4
-    val at = "в " + time.atZone(zone).format(DateTimeFormatter.ofPattern("HH:mm"))
-    return listOf(value, arrow, at).filter { it.isNotEmpty() }.joinToString(" ")
-}
+/** "6.4 mmol/L ↗": value, unit and trend for messages and the notification. */
+fun Reading.text(unitLabel: String, unit: GlucoseUnit = GlucoseUnit.MMOL, locale: Locale = Locale.getDefault()): String =
+    listOf(formatGlucose(mgDl, unit, locale), unitLabel, arrow).filter { it.isNotEmpty() }.joinToString(" ")

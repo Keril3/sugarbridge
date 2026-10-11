@@ -1,194 +1,204 @@
+**English** · [Русский](README.ru.md)
+
 # SugarBridge ✧
 
-Сахар с датчика FreeStyle Libre — в Samsung Health. Без своего сервера: приложение само забирает
-замеры из облака LibreLinkUp и пишет их в Health Connect, а оттуда их берёт Samsung Health.
+Glucose from a FreeStyle Libre sensor, in Samsung Health. No server of your own: the app fetches readings
+from the LibreLinkUp cloud and writes them to Health Connect, where Samsung Health picks them up.
 
 <p>
-  <img src="docs/screenshots/home.png" width="190" alt="Главный экран">
-  <img src="docs/screenshots/home_gmi.png" width="190" alt="Расчётный HbA1c">
-  <img src="docs/screenshots/history.png" width="190" alt="История из LibreView">
-  <img src="docs/screenshots/settings.png" width="190" alt="Настройки">
-  <img src="docs/screenshots/notification.png" width="190" alt="Сахар в уведомлении">
-  <img src="docs/screenshots/home_night.png" width="190" alt="Ночная тема">
+  <img src="docs/screenshots/en/home.png" width="190" alt="Home screen">
+  <img src="docs/screenshots/en/home_gmi.png" width="190" alt="Estimated HbA1c">
+  <img src="docs/screenshots/en/history.png" width="190" alt="History from LibreView">
+  <img src="docs/screenshots/en/settings.png" width="190" alt="Settings">
+  <img src="docs/screenshots/en/notification.png" width="190" alt="Glucose in the notification">
+  <img src="docs/screenshots/en/home_night.png" width="190" alt="Night theme">
 </p>
 
-> **Это не медицинское изделие.** Тревоги о низком и высоком сахаре и решения о лечении — только по
-> официальному приложению LibreLink. SugarBridge работает через неофициальный API LibreLinkUp, который
-> Abbott может поменять без предупреждения. Проект не связан с Abbott, Samsung и Google.
+> **This is not a medical device.** Low and high glucose alarms and treatment decisions belong to the
+> official LibreLink app only. SugarBridge uses the unofficial LibreLinkUp API, which Abbott may change
+> without notice. The project is not affiliated with Abbott, Samsung or Google.
 
-## Что умеет
+## Features
 
-- **Сахар в Samsung Health** — в фоне раз в 15 минут (можно реже) без уведомления в шторке.
-- **Минутный режим** — каждый новый замер попадает в Samsung Health, а сахар со стрелкой виден
-  числом в строке состояния. Уведомление можно сделать тихим или скрыть совсем.
-- **Вся история из LibreView** — скачайте выгрузку прямо в приложении, выберите период и дни, которые
-  нужны в Samsung Health. Повторы не задваиваются, ненужное можно удалить.
-- **Расчётный HbA1c (GMI)** за 14 и 90 дней — по всей истории, которую SugarBridge записал в Health Connect.
-- **Свой график и статистика** за 12 часов, ммоль/л или мг/дл, свой целевой диапазон, ночная тема.
-- **Пароль под защитой Android Keystore**, хранится только на телефоне.
+- **Glucose in Samsung Health**: in the background every 15 minutes (or less often), without a notification.
+- **Minute mode**: every new reading goes to Samsung Health, and the glucose value with its trend arrow is
+  shown as a number in the status bar. The notification can be made quiet or hidden completely.
+- **Full history from LibreView**: download the export right in the app, then choose the period and the days
+  you want in Samsung Health. Nothing is written twice, and anything unwanted can be deleted.
+- **Estimated HbA1c (GMI)** for 14 and 90 days, from all the history SugarBridge has written to Health Connect.
+- **Its own chart and statistics** for 12 hours, mmol/L or mg/dL, your own target range, a night theme.
+- **12 languages**: English, Русский, Українська, Deutsch, Français, Español, Português, Italiano, Türkçe,
+  简体中文, 日本語, 한국어. Chosen on the first start, changeable in Settings or in Android's per-app language settings.
+- **The password is protected by the Android Keystore** and stays on the phone.
+- **Tenshi-chan**, a chibi angel mascot who is happy, worried, flustered or sleepy depending on your glucose.
 
-Путь данных: датчик → LibreLink на телефоне → облако LibreLinkUp → SugarBridge → Health Connect →
-Samsung Health.
+Data path: sensor → LibreLink on the phone → LibreLinkUp cloud → SugarBridge → Health Connect → Samsung Health.
 
-## Совместимость
+## Compatibility
 
-SugarBridge не подключается к датчику сам — он берёт то, что приложение с датчиком отправило в облако.
-Поэтому подходит любой датчик, чьи замеры видны в LibreLinkUp.
+SugarBridge doesn't connect to the sensor itself: it takes what the sensor app has sent to the cloud.
+So any sensor whose readings show up in LibreLinkUp works.
 
 | | |
 |---|---|
-| **Датчики** | FreeStyle Libre 2 и 2 Plus, Libre 3 и 3 Plus — новый замер каждую минуту. FreeStyle Libre (первый) — только после сканирования: история за 8 часов приходит при каждом скане, минутный режим для него бесполезен |
-| **Приложение с датчиком** | FreeStyle LibreLink любой страны (в том числе российское), FreeStyle Libre 3, Libre (США) |
-| **Наблюдение** | LibreLinkUp, в России — LibreLinkUp-RU |
-| **Телефон** | Android 14 и новее |
+| **Sensors** | FreeStyle Libre 2 and 2 Plus, Libre 3 and 3 Plus: a new reading every minute. FreeStyle Libre (the first one): only after a scan, the 8-hour history arrives with every scan, so minute mode is useless for it |
+| **Sensor app** | FreeStyle LibreLink from any country (including the Russian one), FreeStyle Libre 3, Libre (US) |
+| **Follower app** | LibreLinkUp, in Russia LibreLinkUp-RU |
+| **Phone** | Android 14 or newer |
 
-**Россия и остальной мир.** Российский LibreView — отдельная система Abbott со своим сервером
-(libreview.ru), у остального мира — libreview.io с регионами (Европа, США, Германия, Франция…).
-SugarBridge сначала пробует сервер по стране телефона, потом второй, а регион запоминает после первого
-входа — ничего настраивать не нужно. Окно истории открывает libreview.ru или libreview.com по
-региону аккаунта.
+**Russia and the rest of the world.** The Russian LibreView is a separate Abbott system with its own server
+(libreview.ru); the rest of the world uses libreview.io with regions (Europe, US, Germany, France…).
+SugarBridge first tries the server for the phone's country, then the other one, and remembers the region after
+the first sign-in, so there is nothing to configure. The history window opens libreview.ru or libreview.com
+depending on the account's region.
 
-## Скачать
+## Download
 
-**[⬇ SugarBridge.apk — последняя версия](../../releases/latest/download/SugarBridge.apk)** ·
-[все версии](../../releases)
+**[⬇ SugarBridge.apk, the latest version](../../releases/latest/download/SugarBridge.apk)** ·
+[all versions](../../releases)
 
-Что нужно:
-- телефон на **Android 14** или новее (там Health Connect уже встроен в систему);
-- приложение **LibreLink** с датчиком FreeStyle Libre и подключённым **LibreLinkUp** (см. ниже);
-- **Samsung Health** — чтобы смотреть графики там. Без него данные всё равно будут в Health Connect.
+You need:
+- a phone with **Android 14** or newer (Health Connect is built into the system there);
+- the **LibreLink** app with a FreeStyle Libre sensor and a connected **LibreLinkUp** account (see below);
+- **Samsung Health** to see the charts there. Without it the data still ends up in Health Connect.
 
-### Установка
+### Installing
 
-1. Откройте ссылку выше на телефоне и скачайте `SugarBridge.apk`.
-2. Откройте скачанный файл. Android попросит разрешить установку из браузера или «Моих файлов» — разрешите.
-3. Если Play Защита предупредит о неизвестном приложении, выберите «Всё равно установить».
-4. **Обновление:** скачайте новую версию по той же ссылке и установите поверх — вход и настройки сохранятся.
+1. Open the link above on the phone and download `SugarBridge.apk`.
+2. Open the downloaded file. Android asks to allow installing from the browser or My Files: allow it.
+3. If Play Protect warns about an unknown app, choose "Install anyway".
+4. **Updating:** download the new version from the same link and install it over the old one. Your sign-in
+   and settings are kept.
 
-> Если раньше вы ставили SugarBridge, собранный в Android Studio, сначала удалите его: у версий из
-> Releases другая подпись, и поверх Android их не поставит.
+> If you installed a SugarBridge built in Android Studio before, uninstall it first: the versions from
+> Releases have a different signature, and Android won't install them over it.
 
-### Первая настройка
+### First setup
 
-1. **Аккаунт LibreLinkUp.** В LibreLink (или приложении Libre 3): меню → «Подключенные приложения» →
-   LibreLinkUp → добавить подключение и указать **второй** email. Установите LibreLinkUp (в России —
-   LibreLinkUp-RU), зарегистрируйтесь на этот email, примите приглашение и все условия. После этого
-   само приложение LibreLinkUp можно удалить.
-2. **Вход.** Откройте SugarBridge и войдите email и паролем этого аккаунта LibreLinkUp.
-3. **Health Connect.** На главном экране нажмите «Разрешить» и включите запись уровня глюкозы.
-4. **Samsung Health.** Настройки → Health Connect → разрешите Samsung Health **читать** уровень глюкозы.
-5. По желанию: **Настройки → Минутный режим** и «Снять ограничения батареи» — иначе Samsung может
-   усыплять приложение.
+1. **Choose a language** on the first screen (or keep the phone's language).
+2. **A LibreLinkUp account.** In LibreLink (or the Libre 3 app): menu → "Connected Apps" → LibreLinkUp →
+   add a connection with a **second** email. Install LibreLinkUp (LibreLinkUp-RU in Russia), sign up with that
+   email, accept the invitation and all the terms. After that the LibreLinkUp app itself can be removed.
+3. **Sign in.** Open SugarBridge and sign in with that LibreLinkUp email and password.
+4. **Health Connect.** On the home screen tap "Allow" and turn on writing blood glucose.
+5. **Samsung Health.** Settings → Health Connect → let Samsung Health **read** blood glucose.
+6. Optional: **Settings → Minute mode** and "Remove battery restrictions", otherwise Samsung may put the app
+   to sleep.
 
-### Вся история из LibreView
+### Full history from LibreView
 
-LibreLinkUp помнит только последние 12 часов. Всё остальное хранится в LibreView:
+LibreLinkUp remembers only the last 12 hours. Everything else is kept in LibreView:
 
-1. Вкладка «История» → «Открыть LibreView».
-2. Войдите аккаунтом **LibreLink** — тем, что в приложении с датчиком, а не LibreLinkUp.
-3. «История глюкозы» → «Загрузить данные о глюкозе» → «Я не робот» → «Загрузить».
-   SugarBridge сам заберёт файл.
-4. Выберите период и дни → «Записать в Health Connect». Дни, которые уже есть, отмечены «✓ в HC».
+1. The History tab → "Open LibreView".
+2. Sign in with your **LibreLink** account, the one in the sensor app, not LibreLinkUp.
+3. "Glucose History" → "Download glucose data" → "I'm not a robot" → "Download".
+   SugarBridge picks up the file by itself.
+4. Choose the period and the days → "Write to Health Connect". Days that are already there are marked "✓ in HC".
 
-CSV, скачанный в браузере, можно открыть через SugarBridge или выбрать кнопкой «Выбрать скачанный CSV».
+A CSV downloaded in a browser can be opened with SugarBridge or chosen with "Choose a downloaded CSV".
+Exports in any LibreView language work: the columns are recognized by their headers.
 
-## Частые вопросы
+## FAQ
 
-**Как часто обновляется сахар?** LibreLinkUp получает новое значение примерно раз в минуту, а его
-история за 12 часов — это точки каждые 15 минут. В фоне SugarBridge забирает всю историю, поэтому
-пропусков нет, но точки идут раз в 15 минут. Каждую минуту — только в минутном режиме. Насколько часто
-LibreLinkUp на самом деле присылает значения, видно на главном экране.
+**How often is the glucose updated?** LibreLinkUp gets a new value about once a minute, and its 12-hour
+history has a point every 15 minutes. In the background SugarBridge fetches the whole history, so nothing is
+missed, but the points are 15 minutes apart. Every minute happens only in minute mode. How often LibreLinkUp
+really delivers values is shown on the home screen.
 
-**Почему в минутном режиме есть уведомление?** Чаще раза в 15 минут Android разрешает работать в фоне
-только сервису с уведомлением. Его можно сделать тихим (Настройки → «Сахар в уведомлении») или
-выключить совсем (кнопка «Скрыть уведомление совсем») — режим продолжит работать.
+**Why does minute mode have a notification?** Android lets only a service with a notification run more often
+than every 15 minutes. It can be made quiet (Settings → "Glucose in the notification") or turned off completely
+("Hide the notification completely"); the mode keeps working.
 
-**Можно ли без Health Connect?** Нет, и не нужно: на Android 14+ это часть системы, а не отдельное
-приложение. Писать в Samsung Health напрямую можно только с ключом партнёра Samsung. Если
-Health Connect выключен или устарел, SugarBridge покажет, как это исправить.
+**Can it work without Health Connect?** No, and it doesn't need to: on Android 14+ it is part of the system,
+not a separate app. Writing to Samsung Health directly requires a Samsung partner key. If Health Connect is
+turned off or outdated, SugarBridge shows how to fix it.
 
-**А брать сахар прямо из LibreLink, без облака?** LibreLink никому не отдаёт данные, а подключиться
-к датчику напрямую значит отобрать его у LibreLink вместе с тревогами и выгрузкой в облако. Минутный
-режим через LibreLinkUp даёт тот же результат безопасно.
+**What about reading glucose straight from LibreLink, without the cloud?** LibreLink doesn't share its data,
+and connecting to the sensor directly would take it away from LibreLink together with the alarms and the cloud
+upload. Minute mode through LibreLinkUp gives the same result safely.
 
-**Можно ли записывать HbA1c в Samsung Health?** Нет. В Health Connect нет типа записи для HbA1c —
-только уровень глюкозы, и Samsung Health получает оттуда именно его. Писать в Samsung Health напрямую
-можно только с ключом партнёра Samsung. Поэтому SugarBridge показывает расчётный HbA1c (GMI) у себя:
-это оценка по средней глюкозе с датчика (формула Bergenstal, 2018), а не анализ крови. Лабораторный
-HbA1c в Samsung Health можно внести вручную в разделе «Уровень сахара».
+**Can HbA1c be written to Samsung Health?** No. Health Connect has no record type for HbA1c, only blood
+glucose, and that's what Samsung Health gets from it. Writing to Samsung Health directly requires a Samsung
+partner key. So SugarBridge shows an estimated HbA1c (GMI) itself: it is an estimate from the average sensor
+glucose (Bergenstal formula, 2018), not a blood test. A lab HbA1c can be entered manually in Samsung Health.
 
-**Куда уходит пароль?** Только в LibreLinkUp. На телефоне он зашифрован ключом Android Keystore,
-который нельзя достать из телефона. Своего сервера, аналитики и рекламы у SugarBridge нет.
+**Where does the password go?** Only to LibreLinkUp. On the phone it is encrypted with an Android Keystore key
+that can't be taken off the phone. SugarBridge has no server, analytics or ads.
 
-Нашли ошибку? [Заведите issue](../../issues/new?template=bug_report.md): шаги, что ожидали, что
-получилось, кусок Logcat по тегу `SugarSync`.
+**My language is missing or a translation is off.** Open an issue or a pull request: all texts are in
+`app/src/main/res/values-*/strings.xml`, and a unit test checks that every language has every string.
 
-## Для разработчиков
+Found a bug? [Open an issue](../../issues/new?template=bug_report.md): the steps, what you expected, what
+happened, and a piece of Logcat for the `SugarSync` tag.
 
-### Сборка и тесты
+## For developers
 
-Нужны Android Studio (с ней идёт JDK) и Android SDK 37.
+### Building and testing
+
+You need Android Studio (it comes with a JDK) and Android SDK 37.
 
 ```sh
 ./gradlew assembleDebug             # APK: app/build/outputs/apk/debug/
-./gradlew testDebugUnitTest         # unit-тесты: поддельный LibreLinkUp, разбор CSV, логика синхронизации
+./gradlew testDebugUnitTest         # unit tests: a fake LibreLinkUp, CSV parsing, sync logic, translations
 ./gradlew lintDebug                 # Android Lint
-./gradlew connectedDebugAndroidTest # на телефоне или эмуляторе Android 14+: Health Connect, вся цепочка, скриншоты
+./gradlew connectedDebugAndroidTest # on an Android 14+ phone or emulator: Health Connect, the whole chain, screenshots
 ```
 
-На Windows — `gradlew.bat`. CI на GitHub гоняет unit-тесты, Lint и сборку на каждый push.
+On Windows use `gradlew.bat`. CI on GitHub runs the unit tests, Lint and the build on every push.
 
-### Устройство проекта
+### Project layout
 
 ```
 app/src/main/java/com/sugarbridge/app/
-├── MainActivity.kt, MainViewModel.kt  экран и его состояние
-├── glucose/     замер, единицы, целевой диапазон
-├── libre/       клиент LibreLinkUp, разбор ответов, аккаунт под Keystore
-├── libreview/   импорт истории: разбор CSV, окно сайта, сводка по дням
-├── health/      Health Connect: запись, чтение своих записей, удаление
-├── sync/        синхронизация, фоновая задача, минутный сервис, автозапуск
-├── settings/    настройки
-└── ui/          theme — оформление, components — карточки, график, ангелочек, screens — экраны
-app/src/test/         unit-тесты, разложены так же
-app/src/androidTest/  тесты на устройстве
+├── MainActivity.kt, MainViewModel.kt  the screen and its state
+├── glucose/     a reading, units, target range, GMI
+├── libre/       the LibreLinkUp client, response parsing, the account under the Keystore
+├── libreview/   history import: CSV parsing, the site window, per-day summary
+├── health/      Health Connect: writing, reading our own records, deleting
+├── sync/        sync, the background job, the minute service, autostart, errors as codes
+├── settings/    settings and the app language
+└── ui/          theme, components (cards, chart, the mascot), screens
+app/src/main/res/values-*/  translations
+app/src/test/               unit tests, laid out the same way
+app/src/androidTest/        device tests
 ```
 
-### Выпуск новой версии
+### Releasing a new version
 
-APK в Releases собирает и подписывает GitHub Actions, когда в репозиторий приходит тег `v*`.
+GitHub Actions builds and signs the APK in Releases when a `v*` tag arrives in the repository.
 
-1. **Один раз — ключ подписи.** Им подписываются все версии, без него обновить приложение не выйдет.
-   Храните файл и пароли в менеджере паролей, **не в репозитории**:
+1. **Once: the signing key.** Every version is signed with it; without it the app can't be updated.
+   Keep the file and the passwords in a password manager, **not in the repository**:
    ```sh
    keytool -genkeypair -keystore sugarbridge.jks -alias sugarbridge -keyalg RSA -keysize 4096 -validity 36500
    ```
-2. **Один раз — секреты репозитория** (Settings → Secrets and variables → Actions):
-   `KEYSTORE_BASE64` — файл ключа в base64, `KEYSTORE_PASSWORD`, `KEY_ALIAS` (`sugarbridge`), `KEY_PASSWORD`.
-   Base64 в PowerShell сразу в буфер обмена:
+2. **Once: repository secrets** (Settings → Secrets and variables → Actions):
+   `KEYSTORE_BASE64` (the key file in base64), `KEYSTORE_PASSWORD`, `KEY_ALIAS` (`sugarbridge`), `KEY_PASSWORD`.
+   Base64 straight to the clipboard in PowerShell:
    ```powershell
    [Convert]::ToBase64String([IO.File]::ReadAllBytes("sugarbridge.jks")) | Set-Clipboard
    ```
-3. **Каждый выпуск:** допишите раздел версии в [CHANGELOG.md](CHANGELOG.md), затем
+3. **Every release:** add the version's section to [CHANGELOG.md](CHANGELOG.md), then
    ```sh
-   git tag v1.2.0
-   git push origin v1.2.0
+   git tag v1.3.0
+   git push origin v1.3.0
    ```
-   Через несколько минут в Releases появится `SugarBridge.apk` с описанием из CHANGELOG.
+   A few minutes later `SugarBridge.apk` appears in Releases with the notes from the CHANGELOG.
 
-Подписанный APK можно собрать и у себя: пропишите в `~/.gradle/gradle.properties` (вне репозитория)
-`sugarbridge.keystore`, `sugarbridge.keystorePassword`, `sugarbridge.keyAlias`, `sugarbridge.keyPassword`
-и запустите `./gradlew assembleRelease -Psugarbridge.version=1.2.0`.
+A signed APK can be built locally too: put `sugarbridge.keystore`, `sugarbridge.keystorePassword`,
+`sugarbridge.keyAlias` and `sugarbridge.keyPassword` into `~/.gradle/gradle.properties` (outside the repository)
+and run `./gradlew assembleRelease -Psugarbridge.version=1.3.0`.
 
-## Благодарности
+## Thanks
 
-- Гайд «Libre 2 → Samsung Health без сервера», с которого начался проект.
-- Описания неофициального API: [pylibrelinkup](https://github.com/robberwick/pylibrelinkup),
+- The guide "Libre 2 → Samsung Health without a server" that started the project.
+- Descriptions of the unofficial API: [pylibrelinkup](https://github.com/robberwick/pylibrelinkup),
   [libreview-unofficial](https://github.com/FokkeZB/libreview-unofficial),
-  [HTTP-дамп LibreLinkUp](https://gist.github.com/khskekec/6c13ba01b10d3018d816706a32ae8ab2).
-- Шрифт [Nunito](https://github.com/googlefonts/nunito) — SIL Open Font License, см. [licenses/](licenses/).
+  [a LibreLinkUp HTTP dump](https://gist.github.com/khskekec/6c13ba01b10d3018d816706a32ae8ab2).
+- The [Nunito](https://github.com/googlefonts/nunito) font, SIL Open Font License, see [licenses/](licenses/).
 
-## Лицензия
+## License
 
-[MIT](LICENSE). Шрифт Nunito распространяется по своей лицензии OFL. FreeStyle, Libre, LibreLink,
-LibreLinkUp и LibreView — товарные знаки Abbott; Samsung Health — Samsung; Health Connect — Google.
+[MIT](LICENSE). The Nunito font is distributed under its own OFL license. FreeStyle, Libre, LibreLink,
+LibreLinkUp and LibreView are trademarks of Abbott; Samsung Health is a trademark of Samsung; Health Connect
+of Google.

@@ -9,10 +9,10 @@ import java.net.URI
 import java.security.MessageDigest
 import java.util.Locale
 
-/** Ответ сервера: код, тело и заголовки (имена в нижнем регистре). */
+/** A server response: status code, body and headers (names in lower case). */
 class HttpResponse(val code: Int, val body: String, val headers: Map<String, String> = emptyMap())
 
-/** Всё, что клиенту нужно от сети. В приложении — настоящий HTTP, в тестах — подделка. */
+/** Everything the client needs from the network. Real HTTP in the app, a fake in tests. */
 fun interface HttpTransport {
     fun send(method: String, url: String, headers: Map<String, String>, body: String?): HttpResponse
 }
@@ -43,27 +43,35 @@ class UrlConnectionTransport : HttpTransport {
     }
 }
 
+// Messages are in English for logs; the app shows its own translated text for each type.
 open class LibreError(message: String) : Exception(message)
 open class LoginFailed(message: String) : LibreError(message)
 
-/** Аккаунт нашёлся, но LibreLinkUp ждёт действия человека: принять условия, политику и т. п. */
-class LoginStepRequired(val step: String) :
-    LoginFailed("Откройте приложение LibreLinkUp и подтвердите там шаг «$step», потом войдите снова")
-class AuthExpired : LibreError("Токен LibreLinkUp устарел")
-class RateLimited(val retryAfter: Int) : LibreError("Слишком частые запросы, подождать $retryAfter с")
+/** The server doesn't know this email and password (or the account lives on the other server). */
+class WrongCredentials(val serverMessage: String) : LoginFailed("Wrong email or password ($serverMessage)")
 
-/** Сохранённый вход: регион, токен и account-id. С ним не нужно входить при каждом запуске. */
+/** The account exists, but LibreLinkUp waits for the person to do something: accept the terms, the privacy policy… */
+class LoginStepRequired(val step: String) : LoginFailed("Confirm the \"$step\" step in the LibreLinkUp app, then sign in again")
+class AuthExpired : LibreError("LibreLinkUp token expired")
+class RateLimited(val retryAfter: Int) : LibreError("Too many requests, wait $retryAfter s")
+class NoConnections : LibreError("LibreLinkUp has no connections: invite yourself from LibreLink")
+class ApiChanged(val minimum: String) : LibreError("LibreLinkUp asks for version $minimum, which is already sent: the API seems to have changed")
+
+/** LibreLinkUp answered with an unexpected HTTP status. An IOException, so it is retried like a network failure. */
+class ServerError(val code: Int) : IOException("LibreLinkUp answered with HTTP $code")
+
+/** A saved sign-in: region, token and account-id. With it there is no need to sign in on every start. */
 data class Session(val region: String, val token: String, val accountId: String)
 
-// Россия — отдельная система Abbott (свои LibreView и LibreLinkUp-RU), остальной мир — libreview.io с регионами
+// Russia is a separate Abbott system (its own LibreView and LibreLinkUp-RU); the rest of the world is libreview.io with regions
 private val SPECIAL_REGIONS = mapOf("ru" to "https://api.libreview.ru", "us" to "https://api.libreview.io")
 
 fun regionUrl(region: String): String = SPECIAL_REGIONS[region] ?: "https://api-$region.libreview.io"
 
 /**
- * С каких серверов начинать вход, пока регион аккаунта неизвестен. Российский и мировой серверы
- * не знают аккаунтов друг друга, поэтому пробуем оба: первым — вероятный по стране телефона.
- * Внутри мирового сервера регион (eu, de, fr…) подскажет он сам.
+ * Servers to start signing in with while the account's region is unknown. The Russian and the world
+ * servers don't know each other's accounts, so both are tried, the likely one by the phone's country first.
+ * Within the world server, the server itself points to the region (eu, de, fr…).
  */
 fun startRegionsFor(country: String): List<String> = if (country.equals("RU", ignoreCase = true)) {
     listOf("ru", "us")
@@ -74,7 +82,7 @@ fun startRegionsFor(country: String): List<String> = if (country.equals("RU", ig
 fun sha256(text: String): String =
     MessageDigest.getInstance("SHA-256").digest(text.toByteArray()).joinToString("") { "%02x".format(it) }
 
-/** Сравнение версий вида "4.16.0": отрицательное — a старше b. */
+/** Compares versions like "4.16.0": negative when a is older than b. */
 fun compareVersions(a: String, b: String): Int {
     val x = a.split('.').map { it.trim().toIntOrNull() ?: 0 }
     val y = b.split('.').map { it.trim().toIntOrNull() ?: 0 }
@@ -88,7 +96,7 @@ fun compareVersions(a: String, b: String): Int {
 const val DEFAULT_LLU_VERSION = "4.16.0"
 
 private val BASE_HEADERS = mapOf(
-    "product" to "llu.android",   // представляемся приложением LibreLinkUp для Android
+    "product" to "llu.android",   // we present ourselves as the LibreLinkUp Android app
     "content-type" to "application/json",
 )
 
@@ -97,9 +105,9 @@ class LibreClient(
     private val password: String,
     private val http: HttpTransport = UrlConnectionTransport(),
     var session: Session? = null,
-    private val onLogin: (Session) -> Unit = {},     // чтобы приложение сохранило новую сессию
+    private val onLogin: (Session) -> Unit = {},     // lets the app save the new session
     version: String = DEFAULT_LLU_VERSION,
-    private val onVersion: (String) -> Unit = {},    // Abbott поднял минимальную версию — приложение её запомнит
+    private val onVersion: (String) -> Unit = {},    // Abbott raised the minimum version: the app remembers it
     private val startRegions: List<String> = startRegionsFor(Locale.getDefault().country),
 ) {
     var region: String = session?.region ?: startRegions.first()
@@ -113,8 +121,8 @@ class LibreClient(
     private fun headers() = BASE_HEADERS + ("version" to version)
 
     /**
-     * Вход. Если регион уже известен по прошлому входу — только туда. Иначе по очереди на российский
-     * и мировой серверы: на «чужом» аккаунт выглядит как неверный пароль, а сервер может быть недоступен.
+     * Signs in. If the region is known from an earlier sign-in, only there. Otherwise the Russian and the world
+     * servers in turn: on the "wrong" one the account looks like a wrong password, and a server may be unreachable.
      */
     @Synchronized
     fun login() {
@@ -126,14 +134,14 @@ class LibreClient(
                 loginHere()
                 return
             } catch (e: LoginStepRequired) {
-                throw e   // аккаунт нашёлся — другой сервер не поможет
+                throw e   // the account was found, another server won't help
             } catch (e: LoginFailed) {
-                failure = e   // аккаунт тут не знают или пароль неверный — пробуем следующий сервер
+                failure = e   // this server doesn't know the account or the password is wrong: try the next one
             } catch (e: IOException) {
-                if (failure == null) failure = e   // сервер недоступен; ответ «неверный пароль» важнее
+                if (failure == null) failure = e   // server unreachable; a "wrong password" answer matters more
             }
         }
-        throw failure ?: LoginFailed("Вход не удался")
+        throw failure ?: LoginFailed("Sign-in failed")
     }
 
     private fun loginHere() {
@@ -144,15 +152,15 @@ class LibreClient(
             val resp = http.send("POST", "$base/llu/auth/login", headers(), body)
             if (resp.code == 429) throw RateLimited(retryAfter(resp))
             val json = jsonOrNull(resp.body)
-            if (json != null && upgradeIfAsked(json)) {   // сервер просит версию новее — повторяем с ней
-                if (++upgrades > 2) throw LibreError("LibreLinkUp снова и снова просит новую версию приложения")
+            if (json != null && upgradeIfAsked(json)) {   // the server wants a newer version: retry with it
+                if (++upgrades > 2) throw LibreError("LibreLinkUp keeps asking for a newer app version")
                 continue
             }
-            if (resp.code != 200 || json == null) throw IOException("Вход: LibreLinkUp ответил кодом ${resp.code}")
-            minimumVersionOf(json)?.let { throw tooOld(it) }
+            if (resp.code != 200 || json == null) throw ServerError(resp.code)
+            minimumVersionOf(json)?.let { throw ApiChanged(it) }
             val data = json.optJSONObject("data")
-            if (data != null && data.optBoolean("redirect")) {   // аккаунт живёт в другом регионе
-                if (++redirects > 1) throw LoginFailed("Сервер перенаправляет по кругу")
+            if (data != null && data.optBoolean("redirect")) {   // the account lives in another region
+                if (++redirects > 1) throw LoginFailed("The server keeps redirecting in a loop")
                 region = data.getString("region")
                 continue
             }
@@ -169,13 +177,13 @@ class LibreClient(
     private fun loginError(json: JSONObject): LoginFailed {
         val step = json.optJSONObject("data")?.optJSONObject("step")?.optString("type")
         if (!step.isNullOrEmpty()) return LoginStepRequired(step)
-        // так отвечают и российский, и мировой серверы, когда аккаунта нет или пароль не тот
+        // both the Russian and the world servers answer like this when there is no such account or the password is wrong
         val message = json.optJSONObject("error")?.optString("message")
         val known = message != null && listOf("incorrect", "notauthenticated").any { it in message.lowercase() }
-        return LoginFailed("Вход не удался: " + if (known) "неверный email или пароль ($message)" else message ?: json.toString())
+        return if (known) WrongCredentials(message) else LoginFailed(message ?: json.toString())
     }
 
-    /** Если сервер требует версию новее нашей — запоминаем её и говорим, что запрос стоит повторить. */
+    /** If the server requires a newer version than ours, remember it and report that the request is worth repeating. */
     private fun upgradeIfAsked(json: JSONObject): Boolean {
         val minimum = minimumVersionOf(json) ?: return false
         if (compareVersions(minimum, version) <= 0) return false
@@ -187,9 +195,6 @@ class LibreClient(
     private fun minimumVersionOf(json: JSONObject): String? =
         json.optJSONObject("data")?.optString("minimumVersion")?.takeIf { it.isNotBlank() }
 
-    private fun tooOld(minimum: String) =
-        LibreError("LibreLinkUp требует версию приложения $minimum, а она уже указана — API, похоже, изменился")
-
     private fun get(path: String, retried: Boolean = false): JSONObject {
         val s = session ?: run { login(); session!! }
         val headers = headers() + mapOf("authorization" to "Bearer ${s.token}", "account-id" to s.accountId)
@@ -198,24 +203,22 @@ class LibreClient(
         if (resp.code == 429) throw RateLimited(retryAfter(resp))
         val json = jsonOrNull(resp.body)
         if (json != null && !retried && upgradeIfAsked(json)) return get(path, retried = true)
-        if (resp.code != 200 || json == null) throw IOException("LibreLinkUp ответил кодом ${resp.code}")
-        minimumVersionOf(json)?.let { throw tooOld(it) }
+        if (resp.code != 200 || json == null) throw ServerError(resp.code)
+        minimumVersionOf(json)?.let { throw ApiChanged(it) }
         return json
     }
 
     private fun findPatient(): String {
         patientId?.let { return it }
         val list = get("/llu/connections").optJSONArray("data")
-        if (list == null || list.length() == 0) {
-            throw LibreError("В LibreLinkUp нет подключений: пригласите себя из LibreLink")
-        }
+        if (list == null || list.length() == 0) throw NoConnections()
         return list.getJSONObject(0).getString("patientId").also { patientId = it }
     }
 
     private fun fetchGraph(): List<Reading> =
         parseGraph(get("/llu/connections/${findPatient()}/graph").getJSONObject("data"))
 
-    /** Замеры за последние ~12 часов плюс текущий, по времени. Если токен устарел — входит заново один раз. */
+    /** Readings for the last ~12 hours plus the current one, by time. If the token expired, signs in again once. */
     @Synchronized
     fun readings(): List<Reading> = try {
         fetchGraph()

@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
@@ -38,10 +39,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sugarbridge.app.ImportUi
 import com.sugarbridge.app.MainViewModel
+import com.sugarbridge.app.R
 import com.sugarbridge.app.glucose.estimateGmi
 import com.sugarbridge.app.glucose.formatGlucose
 import com.sugarbridge.app.libreview.DaySummary
@@ -57,16 +60,16 @@ import com.sugarbridge.app.ui.components.Pill
 import com.sugarbridge.app.ui.components.RibbonDivider
 import com.sugarbridge.app.ui.components.SoftButton
 import com.sugarbridge.app.ui.components.TenshiCard
+import com.sugarbridge.app.ui.currentLocale
+import com.sugarbridge.app.ui.rememberDateFormat
 import com.sugarbridge.app.ui.theme.Tenshi
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 import kotlin.math.roundToInt
 
-private val SHORT = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 private const val ALL_DAYS = 0L
 
 @Composable
@@ -75,7 +78,7 @@ fun HistoryScreen(vm: MainViewModel, actions: AppActions) {
     val s = vm.ui.settings
     var picking by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
-    val dayFormat = remember(Locale.getDefault()) { DateTimeFormatter.ofPattern("EE, d MMM yyyy", Locale.getDefault()) }
+    val dayFormat = rememberDateFormat("EEdMMMyyyy")
 
     Box(Modifier.fillMaxSize()) {
         LazyColumn(
@@ -88,7 +91,7 @@ fun HistoryScreen(vm: MainViewModel, actions: AppActions) {
                     TenshiCard {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             CircularProgressIndicator(Modifier.padding(end = 12.dp), strokeWidth = 3.dp)
-                            Text("Читаю историю…", style = MaterialTheme.typography.bodyLarge)
+                            Text(stringResource(R.string.history_reading_file), style = MaterialTheme.typography.bodyLarge)
                         }
                     }
                 }
@@ -97,10 +100,10 @@ fun HistoryScreen(vm: MainViewModel, actions: AppActions) {
                 item { PeriodCard(h, s, onPick = { picking = true }, onQuick = vm::quickRange) }
                 item {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text("Дни", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f).padding(start = 4.dp))
-                        TextButton(onClick = vm::selectMissing) { Text("Новые") }
-                        TextButton(onClick = vm::selectAll) { Text("Все") }
-                        TextButton(onClick = vm::selectNone) { Text("Ничего") }
+                        Text(stringResource(R.string.history_days), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f).padding(start = 4.dp))
+                        TextButton(onClick = vm::selectMissing) { Text(stringResource(R.string.history_select_new)) }
+                        TextButton(onClick = vm::selectAll) { Text(stringResource(R.string.history_select_all)) }
+                        TextButton(onClick = vm::selectNone) { Text(stringResource(R.string.history_select_none)) }
                     }
                 }
                 items(h.visibleDays.asReversed(), key = { it.date.toEpochDay() }) { day ->
@@ -122,19 +125,14 @@ fun HistoryScreen(vm: MainViewModel, actions: AppActions) {
     if (confirmDelete) {
         AlertDialog(
             onDismissRequest = { confirmDelete = false },
-            title = { Text("Удалить из Health Connect?") },
-            text = {
-                Text(
-                    "Все записи сахара от SugarBridge за выбранные дни (${h.selected.size}) пропадут из Health Connect и Samsung Health — " +
-                        "и из истории LibreView, и полученные через LibreLinkUp. Данные в LibreView не тронем."
-                )
-            },
+            title = { Text(stringResource(R.string.history_delete_title)) },
+            text = { Text(stringResource(R.string.history_delete_text, h.selected.size)) },
             confirmButton = {
                 TextButton(onClick = { confirmDelete = false; vm.deleteSelected() }) {
-                    Text("Удалить", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                 }
             },
-            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("Отмена") } },
+            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(stringResource(R.string.cancel)) } },
             shape = MaterialTheme.shapes.extraLarge,
         )
     }
@@ -142,42 +140,45 @@ fun HistoryScreen(vm: MainViewModel, actions: AppActions) {
 
 @Composable
 private fun SourceCard(h: ImportUi, actions: AppActions, onClose: () -> Unit) {
+    val dateFormat = rememberDateFormat("dMMMyyyy")
     TenshiCard {
-        CardTitle("Вся история из LibreView ☁")
+        CardTitle(stringResource(R.string.history_title))
         if (h.loaded) {
-            Text("${h.source}: ${h.readings.size} замеров", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.history_loaded, h.source, h.readings.size), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+            val first = h.days.first().date.format(dateFormat)
+            val last = h.days.last().date.format(dateFormat)
+            val unit = stringResource(h.unit.label)
             Hint(
-                "С ${h.days.first().date.format(SHORT)} по ${h.days.last().date.format(SHORT)} · в файле ${h.unit.label}" +
-                    if (h.skipped > 0) " · пропущено строк: ${h.skipped}" else ""
+                if (h.skipped > 0) stringResource(R.string.history_loaded_range_skipped, first, last, unit, h.skipped)
+                else stringResource(R.string.history_loaded_range, first, last, unit)
             )
             ButtonRow {
-                SoftButton("Другой файл", onClick = actions::pickCsv, enabled = !h.busy)
-                SoftButton("Закрыть", onClick = onClose, enabled = !h.busy)
+                SoftButton(stringResource(R.string.history_other_file), onClick = actions::pickCsv, enabled = !h.busy)
+                SoftButton(stringResource(R.string.close), onClick = onClose, enabled = !h.busy)
             }
         } else {
-            Text(
-                "LibreLinkUp помнит только 12 часов. Вся история хранится в LibreView: скачайте её и выберите, какие дни отправить в Samsung Health.",
-                style = MaterialTheme.typography.bodyMedium,
-            )
-            GradientButton("Открыть LibreView", onClick = actions::openLibreView, modifier = Modifier.fillMaxWidth())
-            SoftButton("Выбрать скачанный CSV", onClick = actions::pickCsv, modifier = Modifier.fillMaxWidth())
+            Text(stringResource(R.string.history_intro), style = MaterialTheme.typography.bodyMedium)
+            GradientButton(stringResource(R.string.history_open_libreview), onClick = actions::openLibreView, modifier = Modifier.fillMaxWidth())
+            SoftButton(stringResource(R.string.history_pick_csv), onClick = actions::pickCsv, modifier = Modifier.fillMaxWidth())
             RibbonDivider()
-            Hint(
-                "1. Войдите аккаунтом LibreLink — тем, что в приложении с датчиком, а не LibreLinkUp.\n" +
-                    "2. «История глюкозы» → «Загрузить данные о глюкозе».\n" +
-                    "3. Отметьте «Я не робот» и нажмите «Загрузить» — SugarBridge заберёт файл сам.\n" +
-                    "Скачали CSV в браузере? Откройте его через SugarBridge или выберите кнопкой выше."
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Hint(stringResource(R.string.history_step_1))
+                Hint(stringResource(R.string.history_step_2))
+                Hint(stringResource(R.string.history_step_3))
+                Hint(stringResource(R.string.history_step_browser))
+            }
         }
     }
 }
 
 @Composable
 private fun PeriodCard(h: ImportUi, s: AppSettings, onPick: () -> Unit, onQuick: (Long?) -> Unit) {
+    val locale = currentLocale()
+    val dateFormat = rememberDateFormat("dMMMyyyy")
     TenshiCard {
-        CardTitle("Период")
+        CardTitle(stringResource(R.string.history_period))
         SoftButton(
-            "${h.from?.format(SHORT) ?: "…"} — ${h.to?.format(SHORT) ?: "…"}",
+            "${h.from?.format(dateFormat) ?: "…"} — ${h.to?.format(dateFormat) ?: "…"}",
             onClick = onPick,
             enabled = !h.busy,
             modifier = Modifier.fillMaxWidth(),
@@ -187,7 +188,7 @@ private fun PeriodCard(h: ImportUi, s: AppSettings, onPick: () -> Unit, onQuick:
         ChoiceRow(
             options = options,
             selected = options.firstOrNull { matchesQuick(h, days(it)) } ?: -1L,
-            label = { if (it == ALL_DAYS) "Вся история" else "$it дн." },
+            label = { if (it == ALL_DAYS) stringResource(R.string.history_all) else stringResource(R.string.history_last_days, it.toInt()) },
             onSelect = { onQuick(days(it)) },
             enabled = !h.busy,
         )
@@ -196,15 +197,15 @@ private fun PeriodCard(h: ImportUi, s: AppSettings, onPick: () -> Unit, onQuick:
             val count = visible.sumOf { it.count }
             val avg = visible.sumOf { it.avgMgDl * it.count } / count
             val inRange = visible.sumOf { it.inRangePercent * it.count } / count
-            Hint("В периоде: ${visible.size} дн., $count замеров · среднее ${formatGlucose(avg, s.unit)} ${s.unit.label} · в диапазоне $inRange%")
+            Hint(stringResource(R.string.history_period_summary, visible.size, count, formatGlucose(avg, s.unit, locale), stringResource(s.unit.label), inRange))
             val gmi = remember(h.readings, h.from, h.to) {
                 val zone = ZoneId.systemDefault()
                 estimateGmi(h.readings, dayBounds(visible.first().date, zone).first, dayBounds(visible.last().date, zone).second)
             }
             if (gmi != null) {
                 Hint(
-                    String.format(Locale.getDefault(), "Расчётный HbA1c (GMI) за период: %.1f %% · %d ммоль/моль", gmi.percent, gmi.mmolPerMol) +
-                        if (gmi.enough) "" else " · мало данных (${(gmi.coverage * 100).roundToInt()} %)"
+                    if (gmi.enough) stringResource(R.string.history_period_gmi, gmi.percent, gmi.mmolPerMol)
+                    else stringResource(R.string.history_period_gmi_low, gmi.percent, gmi.mmolPerMol, (gmi.coverage * 100).roundToInt())
                 )
             }
         }
@@ -220,6 +221,7 @@ private fun matchesQuick(h: ImportUi, days: Long?): Boolean {
 
 @Composable
 private fun DayRow(day: DaySummary, format: DateTimeFormatter, selected: Boolean, s: AppSettings, enabled: Boolean, onToggle: () -> Unit) {
+    val locale = currentLocale()
     Surface(
         shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.surface.copy(alpha = if (selected) 0.95f else 0.7f),
@@ -236,8 +238,13 @@ private fun DayRow(day: DaySummary, format: DateTimeFormatter, selected: Boolean
             Column(Modifier.weight(1f)) {
                 Text(day.date.format(format), style = MaterialTheme.typography.titleSmall)
                 Text(
-                    "${day.count} замеров · ср. ${formatGlucose(day.avgMgDl, s.unit)} · " +
-                        "${formatGlucose(day.minMgDl, s.unit)}–${formatGlucose(day.maxMgDl, s.unit)}",
+                    stringResource(
+                        R.string.history_day_summary,
+                        day.count,
+                        formatGlucose(day.avgMgDl, s.unit, locale),
+                        formatGlucose(day.minMgDl, s.unit, locale),
+                        formatGlucose(day.maxMgDl, s.unit, locale),
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -246,14 +253,14 @@ private fun DayRow(day: DaySummary, format: DateTimeFormatter, selected: Boolean
             }
             Spacer(Modifier.width(8.dp))
             when {
-                day.complete -> Pill("✓ в HC", Tenshi.InRange)
-                day.alreadyInHealthConnect > 0 -> Pill("частично", Tenshi.Lavender)
+                day.complete -> Pill(stringResource(R.string.history_in_hc), Tenshi.InRange)
+                day.alreadyInHealthConnect > 0 -> Pill(stringResource(R.string.history_partly), Tenshi.Lavender)
             }
         }
     }
 }
 
-/** Полоска «сколько времени в диапазоне». */
+/** A bar showing how much of the day was in range. */
 @Composable
 private fun InRangeBar(percent: Int) {
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -261,7 +268,7 @@ private fun InRangeBar(percent: Int) {
             Box(Modifier.fillMaxWidth(percent / 100f).height(6.dp).clip(CircleShape).background(Tenshi.InRange))
         }
         Spacer(Modifier.width(6.dp))
-        Text("$percent% в диапазоне", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(stringResource(R.string.history_day_in_range, percent), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -269,14 +276,15 @@ private fun InRangeBar(percent: Int) {
 private fun ActionBar(h: ImportUi, onWrite: () -> Unit, onDelete: () -> Unit, modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.extraLarge.copy(bottomStart = androidx.compose.foundation.shape.CornerSize(0.dp), bottomEnd = androidx.compose.foundation.shape.CornerSize(0.dp)),
+        shape = MaterialTheme.shapes.extraLarge.copy(bottomStart = CornerSize(0.dp), bottomEnd = CornerSize(0.dp)),
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.96f),
         contentColor = MaterialTheme.colorScheme.onSurface,
         shadowElevation = 12.dp,
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(
-                if (h.selected.isEmpty()) "Отметьте дни, которые нужны в Samsung Health" else "Выбрано: ${h.selected.size} дн. · ${h.selectedReadings} замеров",
+                if (h.selected.isEmpty()) stringResource(R.string.history_select_prompt)
+                else stringResource(R.string.history_selected, h.selected.size, h.selectedReadings),
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
             )
@@ -285,13 +293,13 @@ private fun ActionBar(h: ImportUi, onWrite: () -> Unit, onDelete: () -> Unit, mo
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                 GradientButton(
-                    "Записать в Health Connect",
+                    stringResource(R.string.history_write),
                     onClick = onWrite,
                     enabled = h.selected.isNotEmpty(),
                     loading = h.busy,
                     modifier = Modifier.weight(1f),
                 )
-                SoftButton("Удалить", onClick = onDelete, enabled = h.selected.isNotEmpty() && !h.busy, danger = true)
+                SoftButton(stringResource(R.string.delete), onClick = onDelete, enabled = h.selected.isNotEmpty() && !h.busy, danger = true)
             }
         }
     }
@@ -321,20 +329,20 @@ private fun RangePickerDialog(h: ImportUi, onDismiss: () -> Unit, onPick: (Local
                     if (a != null) onPick(a.toUtcDate(), (state.selectedEndDateMillis ?: a).toUtcDate())
                 },
                 enabled = state.selectedStartDateMillis != null,
-            ) { Text("Готово") }
+            ) { Text(stringResource(R.string.done)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Отмена") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
         shape = MaterialTheme.shapes.extraLarge,
     ) {
         DateRangePicker(
             state = state,
             modifier = Modifier.weight(1f),
-            title = { Text("Какие дни синхронизировать", Modifier.padding(start = 24.dp, end = 12.dp, top = 16.dp)) },
+            title = { Text(stringResource(R.string.history_pick_title), Modifier.padding(start = 24.dp, end = 12.dp, top = 16.dp)) },
         )
     }
 }
 
-// DatePicker работает с полуночью UTC выбранного дня
+// DatePicker works with UTC midnight of the chosen day
 private fun LocalDate.toUtcMillis(): Long = atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
 
 private fun Long.toUtcDate(): LocalDate = Instant.ofEpochMilli(this).atZone(ZoneOffset.UTC).toLocalDate()

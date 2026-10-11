@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- фон окна до первой отрисовки Compose, чтобы при запуске не мелькал белый или чёрный экран -->
+    <!-- the window background before Compose draws, so no white or black screen flashes at start -->
     <color name="window_background">#FFFFF0F7</color>
 </resources>

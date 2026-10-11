@@ -10,12 +10,12 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
-/** Поддельное облако LibreLinkUp для проверок на устройстве: история за 12 часов каждые 15 минут и текущий замер. */
+/** A fake LibreLinkUp cloud for device tests: 12 hours of history every 15 minutes plus the current reading. */
 class FakeCloud(start: Instant = Instant.now()) : HttpTransport {
     private val history = (48 downTo 1).map { start.minusSeconds(it * 900L) to 100.0 + (it % 7) * 5 }.toMutableList()
     private var current = start.minusSeconds(30) to 115.0
 
-    /** Пришёл новый замер: текущий уходит в историю. */
+    /** A new reading arrived: the current one moves into the history. */
     fun tick(seconds: Long, mgDl: Double) {
         history += current
         current = current.first.plusSeconds(seconds) to mgDl
