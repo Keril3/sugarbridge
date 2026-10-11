@@ -191,7 +191,6 @@ and run `./gradlew assembleRelease -Psugarbridge.version=1.3.0`.
 
 ## Thanks
 
-- The guide "Libre 2 → Samsung Health without a server" that started the project.
 - Descriptions of the unofficial API: [pylibrelinkup](https://github.com/robberwick/pylibrelinkup),
   [libreview-unofficial](https://github.com/FokkeZB/libreview-unofficial),
   [a LibreLinkUp HTTP dump](https://gist.github.com/khskekec/6c13ba01b10d3018d816706a32ae8ab2).
