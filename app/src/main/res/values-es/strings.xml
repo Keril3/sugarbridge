@@ -361,12 +361,6 @@
     <string name="feedback_discord_link">Abrir el perfil de Discord</string>
     <string name="feedback_telegram_link">Abrir el chat de Telegram</string>
     <string name="feedback_site_link">Abrir el sitio web</string>
-    <string name="trend_falling_fast">baja rápido</string>
-    <string name="trend_falling">baja</string>
-    <string name="trend_steady">estable</string>
-    <string name="trend_rising">sube</string>
-    <string name="trend_rising_fast">sube rápido</string>
-    <string name="settings_arrow_place_hint">«Al lado»: la flecha en un icono propio junto al del número. Cada uno ocupa un cuadrado entero, así que ambos son grandes; en el panel de notificaciones la flecha tiene su propia línea.</string>
+    <string name="settings_arrow_place_hint">Sobre el número las cifras salen más grandes: al lado, la flecha le quita anchura al número en el icono cuadrado.</string>
     <string name="settings_statusbar_tenshi">Sin el número ni la flecha, arriba de la pantalla aparece el icono de Tenshi-chan.</string>
-    <string name="settings_icons_bundled">Este teléfono juntó los dos iconos en uno, así que por ahora la flecha está sobre el número. Toca «Al lado» para volver a probar dos iconos.</string>
 </resources>

@@ -361,12 +361,6 @@
     <string name="feedback_discord_link">Открыть профиль в Discord</string>
     <string name="feedback_telegram_link">Открыть чат в Telegram</string>
     <string name="feedback_site_link">Открыть сайт</string>
-    <string name="trend_falling_fast">быстро падает</string>
-    <string name="trend_falling">падает</string>
-    <string name="trend_steady">держится</string>
-    <string name="trend_rising">растёт</string>
-    <string name="trend_rising_fast">быстро растёт</string>
-    <string name="settings_arrow_place_hint">«Справа» — стрелка в своём значке рядом с числом. Каждый занимает целый квадрат, поэтому оба крупные; в шторке у стрелки своя строка.</string>
+    <string name="settings_arrow_place_hint">Над числом цифры получаются крупнее: справа стрелка в квадратном значке отнимает у числа ширину.</string>
     <string name="settings_statusbar_tenshi">Без числа и стрелки вверху экрана будет значок Тэнси-тян.</string>
-    <string name="settings_icons_bundled">Этот телефон объединил два значка в один, поэтому пока стрелка стоит над числом. Нажмите «Справа», чтобы снова попробовать два значка.</string>
 </resources>

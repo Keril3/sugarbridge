@@ -361,12 +361,6 @@
     <string name="feedback_discord_link">Discord のプロフィールを開く</string>
     <string name="feedback_telegram_link">Telegram のチャットを開く</string>
     <string name="feedback_site_link">ウェブサイトを開く</string>
-    <string name="trend_falling_fast">急降下</string>
-    <string name="trend_falling">下降</string>
-    <string name="trend_steady">安定</string>
-    <string name="trend_rising">上昇</string>
-    <string name="trend_rising_fast">急上昇</string>
-    <string name="settings_arrow_place_hint">「横」：矢印は数値の横の専用アイコンに表示されます。どちらも正方形いっぱいに描かれるので大きくなります。通知パネルでは矢印に専用の行ができます。</string>
+    <string name="settings_arrow_place_hint">数値の上に置くと数字が大きくなります。横に置くと、正方形のアイコンの中で矢印が数値の幅を使ってしまいます。</string>
     <string name="settings_statusbar_tenshi">数値と矢印をどちらも表示しない場合、画面上部には天使ちゃんのアイコンが表示されます。</string>
-    <string name="settings_icons_bundled">このスマホは 2 つのアイコンを 1 つにまとめたため、今は矢印を数値の上に表示しています。「横」をタップすると 2 つのアイコンをもう一度試します。</string>
 </resources>

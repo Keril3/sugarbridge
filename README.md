@@ -23,11 +23,11 @@ from the LibreLinkUp cloud and writes them to Health Connect, where Samsung Heal
 ## Features
 
 - **Glucose in Samsung Health**: in the background every 15 minutes (or less often), without a notification.
-- **Minute mode**: every new reading goes to Samsung Health, and the glucose with its trend arrow is in the
-  status bar: the number and the arrow as two icons side by side, each filling its own square, or the arrow
-  over the number in one icon. In Settings → Status bar you choose which, make the number and the arrow smaller
-  or larger (×0.8, ×0.9, ×1.1, ×1.25, each on its own) or leave either out. Background sync is switched off
-  while minute mode runs and comes back when it stops. The notification can be made quiet or hidden completely.
+- **Minute mode**: every new reading goes to Samsung Health, and the glucose with its trend arrow is the
+  status bar icon. In Settings → Status bar you put the arrow over the number or beside it, make the number and
+  the arrow smaller or larger (×0.8, ×0.9, ×1.1, ×1.25, each on its own) or leave either out. Background sync is
+  switched off while minute mode runs and comes back when it stops. The notification follows the app's theme
+  and can be made quiet or hidden completely.
 - **Full history from LibreView**: download the export right in the app, look through it on a chart (a day, a
   week, a month, all of it or any period from a calendar), then choose the days you want in Samsung Health.
   Nothing is written twice, and anything unwanted can be deleted. The history stays in the app until you delete
@@ -113,8 +113,8 @@ You need:
 6. **"Remove battery restrictions"** (the home screen asks for it). Without it Android holds the background sync
    back for hours while the phone lies idle, and Samsung may put the app to sleep.
 7. Optional: **Settings → Minute mode** for a new value every minute; "Pin the notification" brings it back if it
-   is swiped away by accident. **Settings → Status bar**: the number and the arrow as two icons or one, and how
-   large each is.
+   is swiped away by accident. **Settings → Status bar**: where the arrow stands and how large the number and
+   the arrow are.
    Minute mode switches background sync off and says so in a notice; it comes back when minute mode stops.
 
 ### Full history from LibreView
@@ -173,15 +173,18 @@ background sync off. A notice at the bottom of the screen says so and stays unti
 setting or its ✕. When minute mode is turned off, background sync comes back with the interval it had. You can
 also turn it back on yourself: it does no harm, each run fetches the last 12 hours.
 
-**How are the number and the arrow made large in the status bar?** Android draws every notification icon in a
-small square, the same for every app, and shrinks a wider picture to fit it: "6.4↗" in one square fits only at
-about a third of its height. So with "Beside it" SugarBridge shows two icons, two notifications: the number
-fills one square and the arrow the next. In the notification shade the arrow has a short line of its own, under
-minute mode's pink notification. Android may bundle an app's notifications into one icon; minute mode's
-notification is a colourful foreground one, which Android leaves out of such bundles. If a phone bundles them
-all the same, SugarBridge notices within seconds and puts the arrow over the number in one icon, and Settings
-say so; choosing "Beside it" again tries once more. Without the number only the arrow is shown, without the
-arrow only the number; Tenshi-chan's icon comes only without both.
+**Why isn't the number in the status bar larger?** Android draws every notification icon in a small square,
+the same for every app, and shrinks a wider picture to fit it. So the number and the arrow share one square, and
+a number is wider than tall: "6.4↗" with an arrow as tall as the digits fits only at about a third of the
+square's height. Over the number the arrow takes height instead of width, so the digits come out larger: that
+is the default. The largest number is the number alone: turn the arrow off, it stays in the notification. The
+digits always keep the font's own proportions. Without the number only the arrow is shown; Tenshi-chan's icon
+comes only without both. Two notifications (one icon each) and Android 16's Live Update capsule were tried:
+the first cluttered the shade, the second wasn't drawn on Samsung phones.
+
+**What colour is minute mode's notification?** It follows the app's theme (Settings → Theme): with "Phone
+theme" it looks like any other notification, with the light or the dark theme its background is light or dark
+whatever the phone uses.
 
 **What do the bars of the estimated HbA1c show?** The time in your target range over the 14 or 90 days, each
 15 minutes weighing the same. How much of the period has readings is shown only when it is too little (under
@@ -268,14 +271,14 @@ GitHub Actions builds and signs the APK in Releases when a `v*` tag arrives in t
    ```
 3. **Every release:** add the version's section to [CHANGELOG.md](CHANGELOG.md), then
    ```sh
-   git tag v1.10.0
-   git push origin v1.10.0
+   git tag v1.11.0
+   git push origin v1.11.0
    ```
    A few minutes later `SugarBridge.apk` appears in Releases with the notes from the CHANGELOG.
 
 A signed APK can be built locally too: put `sugarbridge.keystore`, `sugarbridge.keystorePassword`,
 `sugarbridge.keyAlias` and `sugarbridge.keyPassword` into `~/.gradle/gradle.properties` (outside the repository)
-and run `./gradlew assembleRelease -Psugarbridge.version=1.10.0`.
+and run `./gradlew assembleRelease -Psugarbridge.version=1.11.0`.
 
 ## Feedback
 

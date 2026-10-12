@@ -361,12 +361,6 @@
     <string name="feedback_discord_link">Відкрити профіль у Discord</string>
     <string name="feedback_telegram_link">Відкрити чат у Telegram</string>
     <string name="feedback_site_link">Відкрити сайт</string>
-    <string name="trend_falling_fast">швидко падає</string>
-    <string name="trend_falling">падає</string>
-    <string name="trend_steady">тримається</string>
-    <string name="trend_rising">зростає</string>
-    <string name="trend_rising_fast">швидко зростає</string>
-    <string name="settings_arrow_place_hint">«Праворуч» — стрілка у власному значку поруч із числом. Кожен займає цілий квадрат, тож обидва великі; у шторці в стрілки свій рядок.</string>
+    <string name="settings_arrow_place_hint">Над числом цифри виходять більшими: праворуч стрілка в квадратному значку забирає в числа ширину.</string>
     <string name="settings_statusbar_tenshi">Без числа й стрілки вгорі екрана буде значок Тенсі-тян.</string>
-    <string name="settings_icons_bundled">Цей телефон об’єднав два значки в один, тому поки стрілка стоїть над числом. Натисніть «Праворуч», щоб знову спробувати два значки.</string>
 </resources>

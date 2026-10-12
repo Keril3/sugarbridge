@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Icon
 import android.os.SystemClock
@@ -27,6 +28,7 @@ import com.sugarbridge.app.openApp
 import com.sugarbridge.app.resourcesIn
 import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.settings.SettingsStore
+import com.sugarbridge.app.settings.ThemeMode
 import com.sugarbridge.app.useAppLanguage
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -157,58 +159,76 @@ class SyncEndToEndTest {
     }
 
     /**
-     * The number and the arrow are two icons side by side: two notifications, each in a group of its own so that
-     * Android doesn't bundle them under one icon, the arrow's a moment older so that it stands right after the
-     * number. Over the number the arrow is in the same icon; without the number the arrow is the only icon, and
-     * Tenshi-chan comes only without both.
+     * One status bar icon for the parts chosen in Settings: the arrow over the number or beside it, the number
+     * alone, the arrow alone, and Tenshi-chan only without both. The arrow's own notification of 1.10.0, left
+     * behind by the update, is cleared away.
      */
     @Test
-    fun theNumberAndTheArrowAreTwoIcons() {
+    fun theStatusBarIconShowsTheChosenParts() {
         useAppLanguage(context, "en")
+        val manager = context.getSystemService(NotificationManager::class.java)
+        createNotificationChannels(context)
+        manager.notify(
+            LiveSyncService.LEGACY_ARROW_ID,
+            Notification.Builder(context, LiveSyncService.CHANNEL_LIVE).setSmallIcon(R.drawable.ic_stat_tenshi).setContentTitle("↗ rising").setOngoing(true).build(),
+        )
         val settings = AppSettings(backgroundMinutes = 0, liveEnabled = true, liveMinutes = 10, liveShowValue = true, liveKeepAwake = false)
-        SettingsStore(context).save(settings)
+        SettingsStore(context).save(settings.copy(statusArrowAbove = false))
         openApp()
         val value = formatGlucose(115.0, GlucoseUnit.MMOL)
         waitForNotification { it.contains(LiveSyncService.CHANNEL_LIVE) && it.contains(value) }
-        instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_HOME").close()
-        val arrow = StatusIcon.arrow(4, settings.statusArrowSize)!!   // LibreLinkUp says 4: rising
-        val number = StatusIcon.number(value, settings.statusNumberSize)
+        assertTrue("the old arrow notification is gone", manager.activeNotifications.none { it.id == LiveSyncService.LEGACY_ARROW_ID })
+        val (n, a) = settings.statusNumberSize to settings.statusArrowSize
+        waitFor("beside") { if (looksLike(iconOf(ours()), StatusIcon.beside(value, 4, n, a))) true else null }   // LibreLinkUp says 4: rising
+        assertEquals(1, manager.activeNotifications.count { it.packageName == context.packageName && it.notification.channelId == LiveSyncService.CHANNEL_LIVE })
 
-        val second = waitFor("the arrow's own notification") { arrowNotification() }
-        assertTrue("the arrow's icon", looksLike(iconOf(second), arrow))
-        assertTrue("the number's icon", looksLike(iconOf(ours()), number))
-        assertTrue("right after the number", second.notification.`when` < ours().notification.`when`)
-        Thread.sleep(8000)   // Android bundles an app's notifications a few seconds after they come, if it does
-        assertFalse("bundled under one icon", IconBundling.bundledNow(context))
-        assertTrue(arrowNotification() != null)
-        saveScreenshot("en", "statusbar_two")
-
-        // a phone that bundles them all the same: the arrow goes over the number in one icon
-        IconBundling.markBundled(context)
+        SettingsStore(context).update { it.copy(statusArrowAbove = true) }
         LiveSyncService.reload(context)
-        waitFor("one icon on a bundling phone") {
-            if (arrowNotification() == null && looksLike(iconOf(ours()), StatusIcon.above(value, 4, settings.statusNumberSize, settings.statusArrowSize))) true else null
-        }
-        IconBundling.reset(context)
+        waitFor("over the number") { if (looksLike(iconOf(ours()), StatusIcon.above(value, 4, n, a))) true else null }
 
+        SettingsStore(context).update { it.copy(liveStatusValue = false) }   // the arrow alone
         LiveSyncService.reload(context)
-        waitFor("two icons again") { arrowNotification() }
-        SettingsStore(context).update { it.copy(statusArrowAbove = true) }   // the arrow over the number: one icon
-        LiveSyncService.reload(context)
-        waitFor("no second notification") { if (arrowNotification() == null) true else null }
-        assertTrue(looksLike(iconOf(ours()), StatusIcon.above(value, 4, settings.statusNumberSize, settings.statusArrowSize)))
+        waitFor("the arrow alone") { if (looksLike(iconOf(ours()), StatusIcon.arrow(4, a)!!)) true else null }
 
-        SettingsStore(context).update { it.copy(statusArrowAbove = false, liveStatusValue = false) }   // the arrow alone
+        SettingsStore(context).update { it.copy(liveStatusValue = true, liveArrow = false) }   // the number alone
         LiveSyncService.reload(context)
-        waitFor("the arrow alone") { if (arrowNotification() == null && looksLike(iconOf(ours()), arrow)) true else null }
+        waitFor("the number alone") { if (looksLike(iconOf(ours()), StatusIcon.number(value, n))) true else null }
 
-        SettingsStore(context).update { it.copy(liveArrow = false) }   // neither: Tenshi-chan
+        SettingsStore(context).update { it.copy(liveStatusValue = false) }   // neither: Tenshi-chan
         LiveSyncService.reload(context)
         waitFor("Tenshi-chan") { if (ours().notification.smallIcon.type == Icon.TYPE_RESOURCE) true else null }
     }
 
-    private fun arrowNotification() = context.getSystemService(NotificationManager::class.java).activeNotifications
-        .firstOrNull { it.id == LiveSyncService.ARROW_ID }
+    /**
+     * The notification's background follows the app's theme: the phone's own with "Like the phone", light or
+     * dark when chosen. Changing the theme redraws it at once.
+     */
+    @Test
+    fun theNotificationFollowsTheTheme() {
+        useAppLanguage(context, "en")
+        SettingsStore(context).save(AppSettings(backgroundMinutes = 0, liveEnabled = true, liveMinutes = 10, liveShowValue = true, liveKeepAwake = false))
+        openApp()
+        waitForNotification { it.contains(LiveSyncService.CHANNEL_LIVE) && it.contains(formatGlucose(115.0, GlucoseUnit.MMOL)) }
+        fun colorized(n: Notification) = n.extras.getBoolean(Notification.EXTRA_COLORIZED)
+        assertFalse("the phone's own background", colorized(ours().notification))
+
+        SettingsStore(context).update { it.copy(theme = ThemeMode.DARK) }
+        LiveSyncService.reload(context)
+        val dark = waitFor("a dark background") { ours().notification.takeIf { colorized(it) } }
+        assertTrue("dark: ${Integer.toHexString(dark.color)}", Color.luminance(dark.color) < 0.1f)
+        instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_HOME").close()
+        screenshotOfShade("en", "notification_dark")
+        instrumentation.uiAutomation.executeShellCommand("cmd statusbar collapse").close()
+
+        SettingsStore(context).update { it.copy(theme = ThemeMode.LIGHT) }
+        LiveSyncService.reload(context)
+        val light = waitFor("a light background") { ours().notification.takeIf { colorized(it) && Color.luminance(it.color) > 0.9f } }
+        assertTrue(Color.luminance(light.color) > 0.9f)
+
+        SettingsStore(context).update { it.copy(theme = ThemeMode.SYSTEM) }
+        LiveSyncService.reload(context)
+        waitFor("the phone's background again") { if (!colorized(ours().notification)) true else null }
+    }
 
     private fun iconOf(n: StatusBarNotification) = (n.notification.smallIcon.loadDrawable(context) as BitmapDrawable).bitmap
 
@@ -349,7 +369,6 @@ class SyncEndToEndTest {
         val manager = context.getSystemService(NotificationManager::class.java)
         val texts = manager.activeNotifications.map { "${it.notification.extras.getCharSequence(Notification.EXTRA_TITLE)}" }
         assertTrue(texts.toString(), texts.none { it.contains(formatGlucose(150.0, GlucoseUnit.MMOL)) })
-        assertTrue("the arrow went with the number", arrowNotification() == null)
     }
 
     /** What the system sends to the service when the user swipes the notification away. */

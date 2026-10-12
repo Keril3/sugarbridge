@@ -361,12 +361,6 @@
     <string name="feedback_discord_link">Abrir o perfil no Discord</string>
     <string name="feedback_telegram_link">Abrir o chat no Telegram</string>
     <string name="feedback_site_link">Abrir o site</string>
-    <string name="trend_falling_fast">caindo rápido</string>
-    <string name="trend_falling">caindo</string>
-    <string name="trend_steady">estável</string>
-    <string name="trend_rising">subindo</string>
-    <string name="trend_rising_fast">subindo rápido</string>
-    <string name="settings_arrow_place_hint">“Ao lado”: a seta num ícone próprio ao lado do ícone do número. Cada um ocupa um quadrado inteiro, então os dois ficam grandes; na aba de notificações a seta tem uma linha própria.</string>
+    <string name="settings_arrow_place_hint">Acima do número os dígitos ficam maiores: ao lado, a seta tira largura do número no ícone quadrado.</string>
     <string name="settings_statusbar_tenshi">Sem o número e a seta, o ícone da Tenshi-chan aparece no topo da tela.</string>
-    <string name="settings_icons_bundled">Este celular juntou os dois ícones em um, então por enquanto a seta fica acima do número. Toque em “Ao lado” para tentar dois ícones de novo.</string>
 </resources>

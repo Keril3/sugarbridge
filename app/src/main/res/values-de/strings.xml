@@ -361,12 +361,6 @@
     <string name="feedback_discord_link">Discord-Profil öffnen</string>
     <string name="feedback_telegram_link">Telegram-Chat öffnen</string>
     <string name="feedback_site_link">Website öffnen</string>
-    <string name="trend_falling_fast">fällt schnell</string>
-    <string name="trend_falling">fällt</string>
-    <string name="trend_steady">stabil</string>
-    <string name="trend_rising">steigt</string>
-    <string name="trend_rising_fast">steigt schnell</string>
-    <string name="settings_arrow_place_hint">„Daneben“: der Pfeil in einem eigenen Symbol neben dem der Zahl. Jedes füllt ein ganzes Quadrat, darum sind beide groß; in der Benachrichtigungsleiste hat der Pfeil eine eigene Zeile.</string>
+    <string name="settings_arrow_place_hint">Über der Zahl werden die Ziffern größer: daneben nimmt der Pfeil der Zahl im quadratischen Symbol Breite weg.</string>
     <string name="settings_statusbar_tenshi">Ohne Zahl und Pfeil steht oben auf dem Bildschirm Tenshi-chans Symbol.</string>
-    <string name="settings_icons_bundled">Dieses Handy hat die zwei Symbole zu einem zusammengefasst, darum steht der Pfeil vorerst über der Zahl. Tippe auf „Daneben“, um zwei Symbole erneut zu versuchen.</string>
 </resources>

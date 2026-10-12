@@ -361,12 +361,6 @@
     <string name="feedback_discord_link">Discord profilini aç</string>
     <string name="feedback_telegram_link">Telegram sohbetini aç</string>
     <string name="feedback_site_link">Web sitesini aç</string>
-    <string name="trend_falling_fast">hızlı düşüyor</string>
-    <string name="trend_falling">düşüyor</string>
-    <string name="trend_steady">sabit</string>
-    <string name="trend_rising">yükseliyor</string>
-    <string name="trend_rising_fast">hızlı yükseliyor</string>
-    <string name="settings_arrow_place_hint">“Yanında”: ok, sayının simgesinin yanında kendi simgesinde. Her biri koca bir kareyi doldurur, bu yüzden ikisi de büyüktür; bildirim panelinde okun kendi satırı olur.</string>
+    <string name="settings_arrow_place_hint">Sayının üstünde rakamlar daha büyük olur: yanında ok, kare simgede sayıdan genişlik alır.</string>
     <string name="settings_statusbar_tenshi">Sayı ve ok olmadan ekranın üstünde Tenshi-chan’ın simgesi görünür.</string>
-    <string name="settings_icons_bundled">Bu telefon iki simgeyi tek simgede birleştirdi, bu yüzden ok şimdilik sayının üstünde. İki simgeyi yeniden denemek için “Yanında”ya dokunun.</string>
 </resources>

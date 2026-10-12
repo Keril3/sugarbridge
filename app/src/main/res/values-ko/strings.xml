@@ -361,12 +361,6 @@
     <string name="feedback_discord_link">Discord 프로필 열기</string>
     <string name="feedback_telegram_link">Telegram 채팅 열기</string>
     <string name="feedback_site_link">웹사이트 열기</string>
-    <string name="trend_falling_fast">빠르게 하강</string>
-    <string name="trend_falling">하강</string>
-    <string name="trend_steady">안정</string>
-    <string name="trend_rising">상승</string>
-    <string name="trend_rising_fast">빠르게 상승</string>
-    <string name="settings_arrow_place_hint">‘옆’: 화살표가 숫자 아이콘 옆의 별도 아이콘에 표시돼요. 둘 다 정사각형 하나를 가득 채워서 크게 보여요. 알림 창에서는 화살표가 별도의 줄을 가져요.</string>
+    <string name="settings_arrow_place_hint">숫자 위에 두면 숫자가 더 커져요. 옆에 두면 정사각형 아이콘 안에서 화살표가 숫자의 너비를 차지해요.</string>
     <string name="settings_statusbar_tenshi">숫자와 화살표를 모두 끄면 화면 위에 천사짱 아이콘이 보여요.</string>
-    <string name="settings_icons_bundled">이 휴대폰이 두 아이콘을 하나로 묶어서 지금은 화살표를 숫자 위에 표시해요. ‘옆’을 누르면 두 아이콘을 다시 시도해요.</string>
 </resources>

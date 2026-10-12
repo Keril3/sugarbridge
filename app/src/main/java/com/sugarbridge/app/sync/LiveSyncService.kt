@@ -22,7 +22,6 @@ import com.sugarbridge.app.R
 import com.sugarbridge.app.debug.DebugLog
 import com.sugarbridge.app.glucose.GlucoseLevel
 import com.sugarbridge.app.glucose.Reading
-import com.sugarbridge.app.glucose.arrow
 import com.sugarbridge.app.glucose.formatGlucose
 import com.sugarbridge.app.glucose.levelOf
 import com.sugarbridge.app.glucose.text
@@ -32,6 +31,7 @@ import com.sugarbridge.app.libre.LoginFailed
 import com.sugarbridge.app.libre.RateLimited
 import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.settings.SettingsStore
+import com.sugarbridge.app.settings.ThemeMode
 import com.sugarbridge.app.settings.minuteModeOff
 import com.sugarbridge.app.ui.clockFormat
 import java.time.ZoneId
@@ -58,7 +58,6 @@ class LiveSyncService : Service() {
     private var keepAwake: PowerManager.WakeLock? = null
     @Volatile private var hidden = false            // the notification was swiped away: don't bring it back until settings change
     @Volatile private var lastPosted: String? = null
-    private var bundlingWatch: Job? = null
     @Volatile private var lastSyncAt = 0L           // SystemClock.elapsedRealtime() of the last request
     @Volatile private var latest: Reading? = null
     @Volatile private var problem: Problem? = null  // the last failure, until a sync succeeds
@@ -118,7 +117,6 @@ class LiveSyncService : Service() {
                 SettingsStore(this).update { it.minuteModeOff() }
                 scheduleSync(this)   // the background sync minute mode switched off is back
                 stopForeground(STOP_FOREGROUND_REMOVE)
-                cancelArrow()
                 stopSelf()
                 return START_NOT_STICKY
             }
@@ -129,7 +127,6 @@ class LiveSyncService : Service() {
                     safePost(SettingsStore(this).load())
                 } else {
                     hidden = true
-                    cancelArrow()   // the arrow goes with the number
                 }
                 return START_STICKY
             }
@@ -148,10 +145,7 @@ class LiveSyncService : Service() {
         createNotificationChannels(this)
         if (latest == null) latest = SyncStore(this).snapshot().recent.lastOrNull()   // show the last known value at once
         try {
-            val shown = render(settings)
-            startForeground(NOTIFICATION_ID, shown.main, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
-            postArrow(shown.arrow)
-            lastPosted = shown.key
+            startForeground(NOTIFICATION_ID, render(settings).second, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
         } catch (e: Exception) {
             // Android may refuse a start from the background. No harm: the background sync stays
             Log.e(SyncWorker.TAG, "startForeground failed", e)
@@ -176,7 +170,6 @@ class LiveSyncService : Service() {
 
     override fun onDestroy() {
         running = false
-        cancelArrow()
         DebugLog.add(this, "service", "minute mode off")
         runCatching { unregisterReceiver(phoneListener) }
         getSharedPreferences(SyncStore.NAME, MODE_PRIVATE).unregisterOnSharedPreferenceChangeListener(syncListener)
@@ -230,10 +223,9 @@ class LiveSyncService : Service() {
 
     /** The service stops, the notification with the hint stays. */
     private fun finish(message: String) {
-        val notification = builder(CHANNEL_LIVE, message, null).setOngoing(false).build()
+        val notification = builder(SettingsStore(this).load(), CHANNEL_LIVE, message, null).setOngoing(false).build()
         getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notification)
         stopForeground(STOP_FOREGROUND_DETACH)
-        cancelArrow()
         stopSelf()
     }
 
@@ -249,53 +241,18 @@ class LiveSyncService : Service() {
     @Synchronized
     private fun post(settings: AppSettings) {
         if (hidden) return
-        val shown = render(settings)
-        if (shown.key == lastPosted) return   // nothing changed: don't bother the system
-        lastPosted = shown.key
-        getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, shown.main)
-        postArrow(shown.arrow)
+        val (key, notification) = render(settings)
+        if (key == lastPosted) return   // nothing changed: don't bother the system
+        lastPosted = key
+        getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notification)
     }
 
-    /** The second notification, the arrow's own icon next to the number's, or none. */
-    private fun postArrow(arrow: Notification?) {
-        if (arrow == null) {
-            cancelArrow()
-            return
-        }
-        getSystemService(NotificationManager::class.java).notify(ARROW_ID, arrow)
-        watchBundling()
-    }
-
-    /**
-     * Android bundles an app's notifications a few seconds after they come, if it does. Then the two icons
-     * would turn into one Tenshi-chan: the phone is noted, and the arrow goes over the number in one icon.
-     */
-    private fun watchBundling() {
-        if (bundlingWatch?.isActive == true) return
-        bundlingWatch = scope.launch {
-            for (wait in listOf(3_000L, 5_000L, 7_000L)) {
-                delay(wait)
-                if (IconBundling.bundledNow(this@LiveSyncService)) {
-                    DebugLog.add(this@LiveSyncService, "service", "Android bundled the two status bar icons: one icon from now on")
-                    IconBundling.markBundled(this@LiveSyncService)
-                    safePost(SettingsStore(this@LiveSyncService).load())
-                    return@launch
-                }
-            }
-        }
-    }
-
-    private fun cancelArrow() = getSystemService(NotificationManager::class.java).cancel(ARROW_ID)
-
-    /** Minute mode's notification, the arrow's own one (when the arrow stands apart) and a key that shows whether they changed. */
-    private class Shown(val key: String, val main: Notification, val arrow: Notification? = null)
-
-    /** The notifications for the current state. */
-    private fun render(s: AppSettings): Shown {
+    /** The notification for the current state and a key that shows whether it changed. */
+    private fun render(s: AppSettings): Pair<String, Notification> {
         val channel = if (s.liveShowValue) CHANNEL_LIVE else CHANNEL_QUIET
         problem?.let { p ->   // failures are reported in the quiet mode too
             val (title, text) = describe(p)
-            return Shown("problem|$channel|$title|$text", builder(channel, title, text).build())
+            return "problem|$channel|$title|$text|${s.theme}" to builder(s, channel, title, text).build()
         }
         val r = latest
         if (s.liveShowValue && r != null) {
@@ -309,23 +266,21 @@ class LiveSyncService : Service() {
                 GlucoseLevel.HIGH -> R.string.level_high
             }
             val text = getString(R.string.notif_value_text, time, getString(level))
-            // the status bar: the number, the arrow, both in one icon or each in its own; Tenshi-chan only without both
+            // the status bar icon: the number and the arrow as chosen, either alone; Tenshi-chan only without both
             val number = s.liveStatusValue
             val arrow = s.liveArrow && trendAngle(trend) != null
-            // beside it means an icon of its own, unless this phone bundles the two (see IconBundling)
-            val apart = number && arrow && !s.statusArrowAbove && !IconBundling.bundled(this)
             val icon = when {
-                number && arrow && !apart -> StatusIcon.above(value, trend, s.statusNumberSize, s.statusArrowSize)
+                number && arrow && s.statusArrowAbove -> StatusIcon.above(value, trend, s.statusNumberSize, s.statusArrowSize)
+                number && arrow -> StatusIcon.beside(value, trend, s.statusNumberSize, s.statusArrowSize)
                 number -> StatusIcon.number(value, s.statusNumberSize)
                 arrow -> StatusIcon.arrow(trend, s.statusArrowSize)
                 else -> null
             }?.let { Icon.createWithBitmap(it) }
-            val arrowNotification = if (apart) arrowBuilder(r, trend, s.statusArrowSize).build() else null
-            val look = "$number|$arrow|$apart|${s.statusNumberSize}|${s.statusArrowSize}"
-            return Shown("value|$title|$text|$look", builder(channel, title, text, icon).build(), arrowNotification)
+            val look = "$number|$arrow|${s.statusArrowAbove}|${s.statusNumberSize}|${s.statusArrowSize}|${s.theme}"
+            return "value|$title|$text|$look" to builder(s, channel, title, text, icon).build()
         }
         val every = if (s.liveMinutes == 1) getString(R.string.notif_every_minute) else getString(R.string.notif_every, s.liveMinutes)
-        return Shown("quiet|$channel|$every", builder(channel, getString(R.string.notif_watching), every).build())
+        return "quiet|$channel|$every|${s.theme}" to builder(s, channel, getString(R.string.notif_watching), every).build()
     }
 
     /** Title and text of the notification about a failure, in the current language. */
@@ -337,7 +292,7 @@ class LiveSyncService : Service() {
         else -> getString(R.string.notif_failed) to p.text(resources)
     }
 
-    private fun builder(channel: String, title: String, text: String?, icon: Icon? = null): Notification.Builder {
+    private fun builder(s: AppSettings, channel: String, title: String, text: String?, icon: Icon? = null): Notification.Builder {
         val openApp = Intent(this, MainActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)   // don't stack copies of the screen
         val open = PendingIntent.getActivity(this, 0, openApp, PendingIntent.FLAG_IMMUTABLE)
@@ -353,34 +308,22 @@ class LiveSyncService : Service() {
             .setWhen(shownSince)      // the same time on every update: the notification keeps its place
             .setShowWhen(false)
             .setOnlyAlertOnce(true)   // update silently, without sound or vibration
-            .setColor(0xFFF06FA4.toInt())
-            // a colourful foreground notification: Android leaves it out of the bundles it makes of an app's
-            // notifications, so the arrow's own icon isn't bundled with it under one icon
-            .setColorized(true)
+            .apply { background(s.theme) }
             .setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
             .addAction(Notification.Action.Builder(null, getString(R.string.notif_stop), stop).build())
     }
 
     /**
-     * The arrow's own notification, so the arrow gets a whole status bar square next to the number's. The
-     * highest priority puts it before other apps' notifications, right after the number's colourful one; it
-     * stays until the arrow isn't apart.
+     * The notification's background follows the app's theme: the phone's own, or light or dark as chosen in
+     * Settings. Android colours the background of a foreground service's notification on request and picks
+     * text that reads on it; with the phone's theme only the icon and the app's name get the accent.
      */
-    @Suppress("DEPRECATION")   // the priority still orders notifications of the same importance
-    private fun arrowBuilder(r: Reading, trend: Int, arrowSize: Int): Notification.Builder {
-        val openApp = Intent(this, MainActivity::class.java)
-            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-        val words = listOf(R.string.trend_falling_fast, R.string.trend_falling, R.string.trend_steady, R.string.trend_rising, R.string.trend_rising_fast)
-        return Notification.Builder(this, CHANNEL_LIVE)
-            .setSmallIcon(Icon.createWithBitmap(StatusIcon.arrow(trend, arrowSize)!!))   // apart only with a trend
-            .setContentTitle("${r.copy(trend = trend).arrow} ${getString(words[trend - 1])}")
-            .setContentIntent(PendingIntent.getActivity(this, 3, openApp, PendingIntent.FLAG_IMMUTABLE))
-            .setOngoing(true)
-            .setWhen(shownSince - 1)
-            .setShowWhen(false)
-            .setOnlyAlertOnce(true)
-            .setColor(0xFFF06FA4.toInt())
-            .setPriority(Notification.PRIORITY_MAX)
+    private fun Notification.Builder.background(theme: ThemeMode) {
+        when (theme) {
+            ThemeMode.SYSTEM -> setColor(ACCENT)
+            ThemeMode.LIGHT -> setColorized(true).setColor(LIGHT_BACKGROUND)
+            ThemeMode.DARK -> setColorized(true).setColor(DARK_BACKGROUND)
+        }
     }
 
     private fun action(name: String) = Intent(this, LiveSyncService::class.java).setAction(name)
@@ -424,7 +367,10 @@ class LiveSyncService : Service() {
         internal const val LEGACY_CHANNEL = "live"
         const val CHANNEL_QUIET = "quiet"
         const val NOTIFICATION_ID = 1
-        const val ARROW_ID = 2
+        internal const val LEGACY_ARROW_ID = 2   // 1.10.0 showed the arrow in a notification of its own
+        private const val ACCENT = 0xFFF06FA4.toInt()            // Tenshi-chan's pink
+        private const val LIGHT_BACKGROUND = 0xFFFFFFFF.toInt()
+        private const val DARK_BACKGROUND = 0xFF10183E.toInt()   // the night windows of the app
         private const val ACTION_STOP = "stop"
         internal const val ACTION_DISMISSED = "dismissed"
         private const val ACTION_RELOAD = "reload"
@@ -456,6 +402,7 @@ class LiveSyncService : Service() {
 fun createNotificationChannels(context: Context) {
     val manager = context.getSystemService(NotificationManager::class.java)
     manager.deleteNotificationChannel(LiveSyncService.LEGACY_CHANNEL)
+    manager.cancel(LiveSyncService.LEGACY_ARROW_ID)
     // default importance, or Android won't show the number in the status bar; sound and vibration are off
     manager.createNotificationChannel(
         NotificationChannel(LiveSyncService.CHANNEL_LIVE, context.getString(R.string.channel_live), NotificationManager.IMPORTANCE_DEFAULT).apply {

@@ -2,6 +2,18 @@
 
 Newest version first. A version's section becomes the release notes on GitHub.
 
+## 1.11.0 — 2026-10-12
+
+- One status bar icon again: the two notifications of 1.10.0 (one for the number, one for the arrow) are gone,
+  and the arrow's own notification left by that version is cleared away. "Beside it" draws the arrow next to
+  the number in one icon with the font's own proportions; "Above the number", where the digits come out
+  larger, is the default again.
+- Minute mode's notification follows the app's theme instead of being pink: the phone's own look with "Phone
+  theme", a light background with the light theme and a dark one with the dark theme. Changing the theme
+  redraws it at once.
+- Settings → Status bar: the note under the arrow's place explains why the digits are larger over the number.
+- Tests: the icon for every choice of parts, the notification's background in each theme.
+
 ## 1.10.0 — 2026-10-12
 
 - The status bar, anew: with "Beside it" the number and the arrow are two icons side by side, two notifications,

@@ -361,12 +361,6 @@
     <string name="feedback_discord_link">Ouvrir le profil Discord</string>
     <string name="feedback_telegram_link">Ouvrir le chat Telegram</string>
     <string name="feedback_site_link">Ouvrir le site</string>
-    <string name="trend_falling_fast">baisse vite</string>
-    <string name="trend_falling">baisse</string>
-    <string name="trend_steady">stable</string>
-    <string name="trend_rising">monte</string>
-    <string name="trend_rising_fast">monte vite</string>
-    <string name="settings_arrow_place_hint">« À côté » : la flèche dans une icône à elle, à côté de celle du nombre. Chacune remplit un carré entier, donc les deux sont grandes ; dans le volet des notifications, la flèche a sa propre ligne.</string>
+    <string name="settings_arrow_place_hint">Au-dessus du nombre, les chiffres sont plus grands : à côté, la flèche prend de la largeur au nombre dans l’icône carrée.</string>
     <string name="settings_statusbar_tenshi">Sans le nombre ni la flèche, l’icône de Tenshi-chan s’affiche en haut de l’écran.</string>
-    <string name="settings_icons_bundled">Ce téléphone a regroupé les deux icônes en une, la flèche est donc pour l’instant au-dessus du nombre. Touchez « À côté » pour réessayer deux icônes.</string>
 </resources>

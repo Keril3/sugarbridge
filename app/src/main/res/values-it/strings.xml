@@ -361,12 +361,6 @@
     <string name="feedback_discord_link">Apri il profilo Discord</string>
     <string name="feedback_telegram_link">Apri la chat Telegram</string>
     <string name="feedback_site_link">Apri il sito</string>
-    <string name="trend_falling_fast">scende veloce</string>
-    <string name="trend_falling">scende</string>
-    <string name="trend_steady">stabile</string>
-    <string name="trend_rising">sale</string>
-    <string name="trend_rising_fast">sale veloce</string>
-    <string name="settings_arrow_place_hint">«Accanto»: la freccia in un’icona tutta sua accanto a quella del numero. Ognuna occupa un quadrato intero, quindi entrambe sono grandi; nella tendina delle notifiche la freccia ha una riga propria.</string>
+    <string name="settings_arrow_place_hint">Sopra il numero le cifre vengono più grandi: accanto, la freccia toglie larghezza al numero nell’icona quadrata.</string>
     <string name="settings_statusbar_tenshi">Senza numero e freccia, in alto sullo schermo c’è l’icona di Tenshi-chan.</string>
-    <string name="settings_icons_bundled">Questo telefono ha unito le due icone in una, quindi per ora la freccia sta sopra il numero. Tocca «Accanto» per riprovare con due icone.</string>
 </resources>

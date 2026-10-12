@@ -361,12 +361,6 @@
     <string name="feedback_discord_link">打开 Discord 个人资料</string>
     <string name="feedback_telegram_link">打开 Telegram 聊天</string>
     <string name="feedback_site_link">打开网站</string>
-    <string name="trend_falling_fast">快速下降</string>
-    <string name="trend_falling">下降</string>
-    <string name="trend_steady">平稳</string>
-    <string name="trend_rising">上升</string>
-    <string name="trend_rising_fast">快速上升</string>
-    <string name="settings_arrow_place_hint">“旁边”：箭头使用单独的图标，位于数值图标旁边。两者各占一个完整的方格，因此都很大；在通知栏中，箭头有自己的一行。</string>
+    <string name="settings_arrow_place_hint">箭头在数值上方时数字更大：放在旁边时，箭头会在方形图标中占用数值的宽度。</string>
     <string name="settings_statusbar_tenshi">不显示数值和箭头时，屏幕顶部会显示天使酱的图标。</string>
-    <string name="settings_icons_bundled">这部手机把两个图标合并成了一个，所以箭头暂时显示在数值上方。点按“旁边”可再次尝试两个图标。</string>
 </resources>

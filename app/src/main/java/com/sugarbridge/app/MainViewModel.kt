@@ -403,9 +403,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val after = settingsStore.update(change)
         ui = ui.copy(settings = after)
         if (after.backgroundMinutes != before.backgroundMinutes) scheduleSync(context, after)
-        // only what the minute service shows or does matters to it: the look of the app doesn't
+        // only what the minute service shows or does matters to it, the theme too: its notification follows it
         val liveChanged = after.copy(
-            theme = before.theme, backgroundMinutes = before.backgroundMinutes,
+            backgroundMinutes = before.backgroundMinutes,
             textScale = before.textScale, lowVision = before.lowVision, developer = before.developer,
         ) != before
         when {
