@@ -24,9 +24,9 @@ from the LibreLinkUp cloud and writes them to Health Connect, where Samsung Heal
 
 - **Glucose in Samsung Health**: in the background every 15 minutes (or less often), without a notification.
 - **Minute mode**: every new reading goes to Samsung Health, and the glucose value with its trend arrow is
-  shown as a number in the status bar, as tall as the clock's digits. In Settings → Status bar you make the
-  number and the arrow smaller or larger (×0.8, ×0.9, ×1.1, ×1.25, each on its own) and put the arrow beside
-  the number or above it, with a preview; each can also be turned off. Background sync is switched off while
+  shown as a number in the status bar. In Settings → Status bar you make the number and the arrow smaller or
+  larger (×0.8, ×0.9, ×1.1, ×1.25, each on its own; at the same step the arrow is as tall as the digits) and put
+  the arrow above the number or beside it, with a preview; each can also be turned off. Background sync is switched off while
   minute mode runs and comes back when it stops. The notification can be made quiet or hidden completely.
 - **Full history from LibreView**: download the export right in the app, look through it on a chart (a day, a
   week, a month, all of it or any period from a calendar), then choose the days you want in Samsung Health.
@@ -37,7 +37,8 @@ from the LibreLinkUp cloud and writes them to Health Connect, where Samsung Heal
 - **Its own chart and statistics** for 12 hours, mmol/L or mg/dL, your own target range. Tap the chart to open it
   full screen and move a finger along it to read every value and its time.
 - **Light and dark theme** in the style of [keril.art](https://keril.art/): a blue sky with a field of dots,
-  windows and progress bars in the style of Windows XP (the bars fill block by block) and a pixel font. The
+  windows and progress bars in the style of Windows XP (real progress fills block by block, other work shows
+  blocks running through the bar) and a pixel font. The
   phone's theme by default, or light or dark in Settings.
 - **Readable for everyone**: four text sizes and a low vision mode with the phone's own font, larger text,
   more contrast and a plain background.
@@ -171,10 +172,17 @@ setting or its ✕. When minute mode is turned off, background sync comes back w
 also turn it back on yourself: it does no harm, each run fetches the last 12 hours.
 
 **Why is the number in the status bar not larger?** Android draws every notification icon in a small square,
-the same for every app, and shrinks a wider picture to fit it. So the number and the arrow share one square.
-With the arrow beside the number, the number is as tall as the clock's digits; above the number the arrow takes
-height, so both are a little smaller there. The number's size never depends on the arrow's: when the square
-runs short, the arrow gives way. Long values (10.4, 250) are narrowed a little first.
+the same for every app, and shrinks a wider picture to fit it. So the number and the arrow share one square,
+and the digits always keep the font's own proportions. Without the arrow the number fills the whole width.
+Above the number the arrow takes height, beside it width: "6.4↗" with an arrow as tall as the digits fits the
+square only at about a third of its height, so above the number the digits are larger. The steps of the number
+and of the arrow are independent while both fit; at the largest steps and with long values (10.4, 250) both
+are made smaller by the same factor and keep the chosen proportion.
+
+**Why does the estimated HbA1c show less than 100% of data?** The share counts the time covered by readings.
+Libre keeps one every 15 minutes, a minute or two off; a gap longer than 20 minutes counts as missing, apart
+from its first 15 minutes. Less than 100% means real gaps: the hour after a new sensor, no connection, days not
+yet written to Health Connect.
 
 **Can it work without Health Connect?** No, and it doesn't need to: on Android 14+ it is part of the system,
 not a separate app. Writing to Samsung Health directly requires a Samsung partner key. If Health Connect is
@@ -256,19 +264,20 @@ GitHub Actions builds and signs the APK in Releases when a `v*` tag arrives in t
    ```
 3. **Every release:** add the version's section to [CHANGELOG.md](CHANGELOG.md), then
    ```sh
-   git tag v1.8.0
-   git push origin v1.8.0
+   git tag v1.8.1
+   git push origin v1.8.1
    ```
    A few minutes later `SugarBridge.apk` appears in Releases with the notes from the CHANGELOG.
 
 A signed APK can be built locally too: put `sugarbridge.keystore`, `sugarbridge.keystorePassword`,
 `sugarbridge.keyAlias` and `sugarbridge.keyPassword` into `~/.gradle/gradle.properties` (outside the repository)
-and run `./gradlew assembleRelease -Psugarbridge.version=1.8.0`.
+and run `./gradlew assembleRelease -Psugarbridge.version=1.8.1`.
 
-## Author
+## Feedback
 
-SugarBridge is made by Keril³: [keril.art](https://keril.art/). The contacts are on the website and in the app
-(Settings → About the author).
+You can reach the developer through the contacts in Settings → Feedback: email, Discord, Telegram. The
+developer's website: [keril.art](https://keril.art/). Bugs and ideas are welcome in the
+[issues](https://github.com/Keril3/sugarbridge/issues) too.
 
 ## Thanks
 

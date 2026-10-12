@@ -3,7 +3,7 @@ package com.sugarbridge.app.ui.components
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-/** The XP bar shows whole blocks only, like Windows XP. */
+/** The XP bar shows whole blocks only, like Windows XP: 100% is a full bar. */
 class XpMeterTest {
 
     @Test
@@ -15,10 +15,11 @@ class XpMeterTest {
     }
 
     @Test
-    fun aBlockAppearsOnlyWhenItIsWhollyEarned() {
-        assertEquals(0, meterBlocks(0.09f, 10))
+    fun theNearestNumberOfBlocksIsShown() {
+        assertEquals(0, meterBlocks(0.04f, 10))
         assertEquals(1, meterBlocks(0.1f, 10))
-        assertEquals(9, meterBlocks(0.99f, 10))
+        assertEquals(9, meterBlocks(0.93f, 10))
+        assertEquals(10, meterBlocks(0.99f, 10))   // 99% isn't shown as a bar with a gap at the end
         assertEquals(10, meterBlocks(1f, 10))
         assertEquals(10, meterBlocks(1.4f, 10))
         assertEquals(0, meterBlocks(-0.2f, 10))

@@ -4,7 +4,9 @@ import android.graphics.Bitmap
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasScrollToNodeAction
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -13,6 +15,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performTouchInput
@@ -200,6 +203,16 @@ class ScreenshotTest {
         }
         shot(language, "history_chart")
         Espresso.pressBack()
+        // the days' heading and its quick choices stand on a glass bar, readable on the sky by day and by night
+        compose.onNode(hasScrollToNodeAction()).performScrollToNode(hasTestTag("days-header"))   // further down the list
+        shot(language, "history_days")
+        compose.onNodeWithTag("select-all").performClick()
+        compose.waitUntil(5_000) { vm.history.selected.isNotEmpty() }
+        compose.onNodeWithTag("select-none").performClick()
+        compose.waitUntil(5_000) { vm.history.selected.isEmpty() }
+        scenario.onActivity { vm.updateSettings { it.copy(theme = ThemeMode.DARK) } }
+        shot(language, "history_days_night")
+        scenario.onActivity { vm.updateSettings { it.copy(theme = ThemeMode.LIGHT) } }
         // the days to write are picked in the calendar
         // the bar with the write button lies over the end of the list: press the button itself, not the screen there
         compose.onNodeWithTag("sync-period").performScrollTo().performSemanticsAction(SemanticsActions.OnClick)
@@ -227,8 +240,8 @@ class ScreenshotTest {
         shot(language, "settings_sync")
         compose.onNodeWithText(text(R.string.settings_about_title)).performScrollTo()
         shot(language, "settings_bottom")
-        compose.onNodeWithTag("author").performScrollTo()
-        shot(language, "settings_author")
+        compose.onNodeWithTag("feedback").performScrollTo()
+        shot(language, "settings_feedback")
 
         // minute mode turned background sync off: the notice stays until its link or its ✕ is tapped
         scenario.onActivity { vm.updateSettings { it.copy(backgroundNotice = true) } }

@@ -355,13 +355,12 @@
     <string name="notice_background_off">Dakika modu açık, bu yüzden arka plan eşitlemesi kapatıldı: aynı işi yalnızca daha seyrek yapardı. Dakika modunu kapattığınızda yeniden açılır.</string>
     <string name="notice_background_link">Arka plan eşitlemesi ayarları ›</string>
     <string name="settings_background_paused">Şu an kapalı: dakika modu çalışıyor. Onu kapattığınızda yeniden açılır.</string>
-    <string name="author_title">Yazar hakkında</string>
-    <string name="author_text">SugarBridge’i yeni başlayan bir geliştirici olan Keril³ yapıyor.</string>
-    <string name="author_site">Web sitesi</string>
-    <string name="author_contact_intro">Bana buradan ulaşabilirsiniz:</string>
-    <string name="author_email">E-posta</string>
-    <string name="author_email_link">E-posta yaz</string>
-    <string name="author_discord_link">Discord profilini aç</string>
-    <string name="author_telegram_link">Telegram sohbetini aç</string>
-    <string name="author_site_link">Web sitesini aç</string>
+    <string name="feedback_title">Geri bildirim</string>
+    <string name="feedback_site">Geliştiricinin web sitesi</string>
+    <string name="feedback_intro">Geliştiriciye buradan ulaşabilirsiniz:</string>
+    <string name="feedback_email">E-posta</string>
+    <string name="feedback_email_link">E-posta yaz</string>
+    <string name="feedback_discord_link">Discord profilini aç</string>
+    <string name="feedback_telegram_link">Telegram sohbetini aç</string>
+    <string name="feedback_site_link">Web sitesini aç</string>
 </resources>

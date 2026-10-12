@@ -355,13 +355,12 @@
     <string name="notice_background_off">Минутный режим включён, поэтому фоновая синхронизация выключена: она делала бы то же самое, только реже. Когда выключите минутный режим, она включится снова.</string>
     <string name="notice_background_link">Настройки фоновой синхронизации ›</string>
     <string name="settings_background_paused">Сейчас выключена: работает минутный режим. Включится снова, когда вы его выключите.</string>
-    <string name="author_title">Об авторе</string>
-    <string name="author_text">SugarBridge делает Keril³ — начинающий разработчик.</string>
-    <string name="author_site">Сайт</string>
-    <string name="author_contact_intro">Со мной можно связаться здесь:</string>
-    <string name="author_email">Почта</string>
-    <string name="author_email_link">Написать на почту</string>
-    <string name="author_discord_link">Открыть профиль в Discord</string>
-    <string name="author_telegram_link">Открыть чат в Telegram</string>
-    <string name="author_site_link">Открыть сайт</string>
+    <string name="feedback_title">Обратная связь</string>
+    <string name="feedback_site">Сайт разработчика</string>
+    <string name="feedback_intro">Связаться с разработчиком можно здесь:</string>
+    <string name="feedback_email">Почта</string>
+    <string name="feedback_email_link">Написать на почту</string>
+    <string name="feedback_discord_link">Открыть профиль в Discord</string>
+    <string name="feedback_telegram_link">Открыть чат в Telegram</string>
+    <string name="feedback_site_link">Открыть сайт</string>
 </resources>

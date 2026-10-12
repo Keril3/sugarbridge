@@ -16,11 +16,11 @@ import kotlin.math.min
  * The glucose value drawn as the status bar icon. Android shows a notification icon in a small square and
  * shrinks anything wider to fit it, so the number and the trend arrow share one square.
  *
- * The number and the arrow are sized from Settings ([SCALES] of a base size). The number comes first: its
- * height depends only on its own step. When the square runs short, its digits get narrower (down to
- * [NARROWEST] of their width), then the arrow gives way, down to its smallest step, and only then the number
- * gets lower, which happens only to long values at the largest steps. A decimal comma hangs below the digits,
- * so the digits keep their height in languages that write one.
+ * The digits always keep the font's own proportions, beside the arrow as above it. The number and the arrow
+ * are sized in one unit ([SCALES] of it, from Settings): at the same step the arrow is as tall as the digits.
+ * The steps are independent while the number and the arrow fit the square together. When they don't (the
+ * largest steps, long values like 10.4 or 250), both are made smaller by the same factor, so they keep the
+ * proportion that was chosen. A decimal comma hangs below the digits and doesn't make them smaller.
  */
 object StatusIcon {
     /** Pixels of the square; Android scales it down to the status bar, a large one stays crisp. */
@@ -29,36 +29,42 @@ object StatusIcon {
     /** The size steps shown in Settings: two smaller and two larger than the base size. */
     val SCALES = listOf(0.8f, 0.9f, 1.1f, 1.25f)
 
-    /** Sizes at ×1, of the square. Beside the number the arrow takes width; above it, height, so both are smaller. */
-    private class Layout(val number: Float, val arrow: Float)
-
-    private val BESIDE = Layout(number = 0.62f, arrow = 0.30f)
-    private val ABOVE = Layout(number = 0.46f, arrow = 0.22f)
+    // the unit, of the square: the digits' height and the arrow's square at ×1. Beside the number the arrow
+    // takes width, above it height; without an arrow the number gets the whole square
+    private const val UNIT_BESIDE = 0.32f
+    private const val UNIT_ABOVE = 0.36f
+    private const val UNIT_ALONE = 0.49f
     private const val MARGIN = 0.02f        // of the square, on every side
-    private const val GAP = 0.065f          // between the number and the arrow
+    private const val GAP = 0.18f           // between the number and the arrow, of the digits' height
     private const val SPACING = 0.07f       // between two characters, of the digits' height
-    private const val NARROWEST = 0.5f      // how narrow the digits may get before the arrow and then the number give way
 
     fun draw(value: String, trend: Int, arrowAbove: Boolean, numberSize: Int, arrowSize: Int, color: Int = Color.WHITE): Bitmap {
         val s = SIZE.toFloat()
         val bitmap = createBitmap(SIZE, SIZE)
         val canvas = Canvas(bitmap)
         if (value.isEmpty()) return bitmap
-        val layout = if (arrowAbove) ABOVE else BESIDE
         val inner = s * (1 - 2 * MARGIN)
         val angle = trendAngle(trend)
         val number = Number(value, color)
-        val wanted = s * layout.number * SCALES[numberSize.coerceIn(SCALES.indices)]
-        var arrow = 0f
-        var gap = 0f
-        if (angle != null) {
-            gap = s * GAP
-            val chosen = s * layout.arrow * SCALES[arrowSize.coerceIn(SCALES.indices)]
-            val smallest = s * layout.arrow * SCALES.first()
-            val left = inner - gap - if (arrowAbove) number.extentFor(wanted) else number.narrowestWidthFor(wanted)
-            arrow = min(chosen, max(left, smallest))
+        val unit = s * when {
+            angle == null -> UNIT_ALONE
+            arrowAbove -> UNIT_ABOVE
+            else -> UNIT_BESIDE
         }
-        if (arrowAbove) number.fit(wanted, inner, inner - arrow - gap) else number.fit(wanted, inner - arrow - gap, inner)
+        var digits = unit * SCALES[numberSize.coerceIn(SCALES.indices)]
+        var arrow = if (angle != null) unit * SCALES[arrowSize.coerceIn(SCALES.indices)] else 0f
+
+        // the whole picture for these sizes; everything in it grows in proportion, so one factor fits it
+        fun gap() = if (arrow > 0f) digits * GAP else 0f
+        val extent = number.extentFor(digits)
+        val width = if (arrowAbove) max(number.widthFor(digits), arrow) else number.widthFor(digits) + gap() + arrow
+        // beside: the arrow is centred on the digits and may stand out above them and below the comma's tail
+        val height = if (arrowAbove) arrow + gap() + extent else max(extent, (digits + arrow) / 2) + max(0f, (arrow - digits) / 2)
+        val fit = min(1f, min(inner / width, inner / height))
+        digits *= fit
+        arrow *= fit
+        number.size(digits)
+        val gap = gap()
 
         val arrowCenter: Pair<Float, Float>
         if (arrowAbove) {
@@ -67,8 +73,10 @@ object StatusIcon {
             number.draw(canvas, (s - number.width) / 2, top + arrow + gap)
             arrowCenter = s / 2 to top + arrow / 2
         } else {
-            // the digits in the middle, unless a comma's tail would leave the square; the arrow beside the digits
-            val top = ((s - number.height) / 2).coerceAtMost(s * (1 - MARGIN) - number.extent)
+            // the arrow beside the digits, at their middle; together they stand in the middle of the square
+            val above = max(0f, (arrow - number.height) / 2)                   // the arrow over the digits' top
+            val below = max(number.extent, (number.height + arrow) / 2)       // the lowest point under it
+            val top = (s - (above + below)) / 2 + above
             val left = (s - (number.width + gap + arrow)) / 2
             number.draw(canvas, left, top)
             arrowCenter = left + number.width + gap + arrow / 2 to top + number.height / 2
@@ -89,7 +97,6 @@ object StatusIcon {
         private val bottom = text.indices.filter { text[it].isLetterOrDigit() }.maxOfOrNull { glyphs[it].bottom } ?: glyphs.maxOf { it.bottom }
         private val tail = glyphs.maxOf { it.bottom } - bottom   // how far a comma hangs below the digits
         private var scale = 1f       // of text size 100
-        private var narrow = 1f      // horizontal squeeze
 
         /** The digits' height, what the size steps set. */
         var height = 0f
@@ -103,21 +110,15 @@ object StatusIcon {
 
         private fun naturalWidth() = glyphs.sumOf { it.width() } + SPACING * (bottom - top) * (glyphs.size - 1)
 
+        fun widthFor(digits: Float) = naturalWidth() * digits / (bottom - top)
+
         fun extentFor(digits: Float) = digits * (bottom - top + tail) / (bottom - top)
 
-        fun narrowestWidthFor(digits: Float) = naturalWidth() * digits / (bottom - top) * NARROWEST
-
-        /** Digits [wantHeight] tall if they fit [roomHeight] and, narrowed at most to [NARROWEST], [roomWidth]; lower if not. */
-        fun fit(wantHeight: Float, roomWidth: Float, roomHeight: Float) {
-            scale = min(wantHeight / (bottom - top), roomHeight / (bottom - top + tail))
-            narrow = min(1f, roomWidth / (naturalWidth() * scale))
-            if (narrow < NARROWEST) {
-                narrow = NARROWEST
-                scale = roomWidth / (naturalWidth() * NARROWEST)
-            }
+        /** Digits [digits] tall, in the font's own proportions. */
+        fun size(digits: Float) {
+            scale = digits / (bottom - top)
             paint.textSize = 100f * scale
-            paint.textScaleX = narrow
-            width = naturalWidth() * scale * narrow
+            width = naturalWidth() * scale
             height = (bottom - top) * scale
             extent = (bottom - top + tail) * scale
         }
@@ -127,8 +128,8 @@ object StatusIcon {
             val baseline = top - this.top * scale
             text.forEachIndexed { i, c ->
                 val g = glyphs[i]
-                canvas.drawText(c.toString(), x - g.left * scale * narrow, baseline, paint)
-                x += (g.width() + SPACING * (bottom - this.top)) * scale * narrow
+                canvas.drawText(c.toString(), x - g.left * scale, baseline, paint)
+                x += (g.width() + SPACING * (bottom - this.top)) * scale
             }
         }
     }

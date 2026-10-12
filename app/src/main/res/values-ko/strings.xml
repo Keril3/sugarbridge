@@ -355,13 +355,12 @@
     <string name="notice_background_off">분 단위 모드가 켜져 있어서 백그라운드 동기화는 꺼 두었어요. 같은 일을 더 드물게 할 뿐이거든요. 분 단위 모드를 끄면 다시 켜져요.</string>
     <string name="notice_background_link">백그라운드 동기화 설정 ›</string>
     <string name="settings_background_paused">지금은 꺼져 있어요: 분 단위 모드가 작동 중이에요. 분 단위 모드를 끄면 다시 켜져요.</string>
-    <string name="author_title">만든 사람</string>
-    <string name="author_text">SugarBridge는 초보 개발자 Keril³이 만들어요.</string>
-    <string name="author_site">웹사이트</string>
-    <string name="author_contact_intro">여기서 연락할 수 있어요:</string>
-    <string name="author_email">이메일</string>
-    <string name="author_email_link">이메일 보내기</string>
-    <string name="author_discord_link">Discord 프로필 열기</string>
-    <string name="author_telegram_link">Telegram 채팅 열기</string>
-    <string name="author_site_link">웹사이트 열기</string>
+    <string name="feedback_title">피드백</string>
+    <string name="feedback_site">개발자 웹사이트</string>
+    <string name="feedback_intro">여기서 개발자에게 연락할 수 있어요:</string>
+    <string name="feedback_email">이메일</string>
+    <string name="feedback_email_link">이메일 보내기</string>
+    <string name="feedback_discord_link">Discord 프로필 열기</string>
+    <string name="feedback_telegram_link">Telegram 채팅 열기</string>
+    <string name="feedback_site_link">웹사이트 열기</string>
 </resources>

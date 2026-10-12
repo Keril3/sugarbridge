@@ -355,13 +355,12 @@
     <string name="notice_background_off">La modalità minuto è attiva, quindi la sincronizzazione in background è disattivata: farebbe la stessa cosa, solo più di rado. Torna quando disattivi la modalità minuto.</string>
     <string name="notice_background_link">Impostazioni della sincronizzazione in background ›</string>
     <string name="settings_background_paused">Disattivata per ora: la modalità minuto è attiva. Torna quando la disattivi.</string>
-    <string name="author_title">Informazioni sull’autore</string>
-    <string name="author_text">SugarBridge è fatto da Keril³, uno sviluppatore alle prime armi.</string>
-    <string name="author_site">Sito web</string>
-    <string name="author_contact_intro">Puoi contattarmi qui:</string>
-    <string name="author_email">Email</string>
-    <string name="author_email_link">Scrivi un’email</string>
-    <string name="author_discord_link">Apri il profilo Discord</string>
-    <string name="author_telegram_link">Apri la chat Telegram</string>
-    <string name="author_site_link">Apri il sito</string>
+    <string name="feedback_title">Feedback</string>
+    <string name="feedback_site">Sito dello sviluppatore</string>
+    <string name="feedback_intro">Puoi contattare lo sviluppatore qui:</string>
+    <string name="feedback_email">Email</string>
+    <string name="feedback_email_link">Scrivi un’email</string>
+    <string name="feedback_discord_link">Apri il profilo Discord</string>
+    <string name="feedback_telegram_link">Apri la chat Telegram</string>
+    <string name="feedback_site_link">Apri il sito</string>
 </resources>

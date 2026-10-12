@@ -56,6 +56,7 @@ import com.sugarbridge.app.ui.components.PrimaryButton
 import com.sugarbridge.app.ui.components.SecondaryButton
 import com.sugarbridge.app.ui.components.SkyBackground
 import com.sugarbridge.app.ui.components.XpDialog
+import com.sugarbridge.app.ui.components.XpMarquee
 import com.sugarbridge.app.ui.components.XpWindow
 import com.sugarbridge.app.ui.theme.LocalXp
 import com.sugarbridge.app.ui.theme.Tenshi
@@ -86,8 +87,9 @@ fun DeveloperDialog(vm: MainViewModel, actions: AppActions, onDismiss: () -> Uni
                     round++
                 }
             }
-            val status by produceState<List<StatusLine>>(emptyList(), round) { value = collectStatus(context) }
-            val log by produceState<List<LogEntry>>(emptyList(), round) {
+            // null until the first check is done: meanwhile blocks run through a bar
+            val checked by produceState<List<StatusLine>?>(null, round) { value = collectStatus(context) }
+            val read by produceState<List<LogEntry>?>(null, round) {
                 value = withContext(Dispatchers.IO) {
                     // two days of Samsung Health's activity, but nothing from before the log was last cleared
                     val since = maxOf(Instant.now().minus(Duration.ofDays(2)), DebugLog.clearedAt(context))
@@ -95,6 +97,8 @@ fun DeveloperDialog(vm: MainViewModel, actions: AppActions, onDismiss: () -> Uni
                 }
             }
             val usage = remember(round) { hasUsageAccess(context) }
+            val status = checked.orEmpty()
+            val log = read.orEmpty()
 
             LazyColumn(
                 Modifier.fillMaxSize().safeDrawingPadding().testTag("developer"),
@@ -109,6 +113,7 @@ fun DeveloperDialog(vm: MainViewModel, actions: AppActions, onDismiss: () -> Uni
                 }
                 item {
                     XpWindow(stringResource(R.string.dev_status)) {
+                        if (checked == null) XpMarquee(Modifier.fillMaxWidth())
                         status.forEach { line ->
                             StatusRow(line)
                             line.fix?.let { FixButton(it, actions) { round++ } }
@@ -173,7 +178,7 @@ fun DeveloperDialog(vm: MainViewModel, actions: AppActions, onDismiss: () -> Uni
                                 round++
                             }, danger = true)
                         }
-                        if (log.isEmpty()) Hint(stringResource(R.string.dev_log_empty))
+                        if (read == null) XpMarquee(Modifier.fillMaxWidth()) else if (log.isEmpty()) Hint(stringResource(R.string.dev_log_empty))
                     }
                 }
                 items(log.takeLast(SHOWN_ENTRIES).asReversed()) { LogRow(it) }

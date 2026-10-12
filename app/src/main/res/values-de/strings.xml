@@ -355,13 +355,12 @@
     <string name="notice_background_off">Der Minutenmodus ist an, darum ist die Hintergrund-Synchronisierung aus: Sie würde dasselbe nur seltener tun. Wenn du den Minutenmodus ausschaltest, geht sie wieder an.</string>
     <string name="notice_background_link">Einstellungen der Hintergrund-Synchronisierung ›</string>
     <string name="settings_background_paused">Gerade aus: Der Minutenmodus läuft. Sie geht wieder an, wenn du ihn ausschaltest.</string>
-    <string name="author_title">Über den Autor</string>
-    <string name="author_text">SugarBridge macht Keril³, ein angehender Entwickler.</string>
-    <string name="author_site">Website</string>
-    <string name="author_contact_intro">Hier kannst du mich erreichen:</string>
-    <string name="author_email">E-Mail</string>
-    <string name="author_email_link">E-Mail schreiben</string>
-    <string name="author_discord_link">Discord-Profil öffnen</string>
-    <string name="author_telegram_link">Telegram-Chat öffnen</string>
-    <string name="author_site_link">Website öffnen</string>
+    <string name="feedback_title">Feedback</string>
+    <string name="feedback_site">Website des Entwicklers</string>
+    <string name="feedback_intro">Hier erreichst du den Entwickler:</string>
+    <string name="feedback_email">E-Mail</string>
+    <string name="feedback_email_link">E-Mail schreiben</string>
+    <string name="feedback_discord_link">Discord-Profil öffnen</string>
+    <string name="feedback_telegram_link">Telegram-Chat öffnen</string>
+    <string name="feedback_site_link">Website öffnen</string>
 </resources>

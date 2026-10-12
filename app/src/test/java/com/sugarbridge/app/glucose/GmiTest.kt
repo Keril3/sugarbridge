@@ -38,6 +38,27 @@ class GmiTest {
         assertTrue(gmi.enough)
     }
 
+    /** Libre's 15 minutes are a minute or two off: two readings may fall into one slot, the data is still full. */
+    @Test
+    fun unevenFifteenMinutesAreFullData() {
+        val offsets = listOf(0L, 75L, -60L, 110L, -100L, 30L)   // seconds off the regular time
+        val readings = (0 until 14 * 96).map { Reading(from.plusSeconds(400 + it * 900L + offsets[it % offsets.size]), 150.0, 0) }
+        val gmi = estimateGmi(readings, from, to)!!
+        assertEquals(1.0, gmi.coverage, 1e-9)
+        assertEquals(100, Math.round(gmi.coverage * 100).toInt())
+    }
+
+    @Test
+    fun gapsCountAsMissing() {
+        // a reading every 30 minutes covers half the time; an hour without readings is an hour missing
+        val sparse = (0 until 14 * 48).map { Reading(from.plusSeconds(it * 1800L), 150.0, 0) }
+        assertEquals(0.5, estimateGmi(sparse, from, to)!!.coverage, 1e-9)
+        val day = Duration.ofDays(1)
+        val withGap = (0 until 96).map { from.plusSeconds(it * 900L) }.filterNot { it >= from.plusSeconds(36_000) && it < from.plusSeconds(39_600) }
+        val gmi = estimateGmi(withGap.map { Reading(it, 120.0, 0) }, from, from.plus(day))!!
+        assertEquals(1 - 3600.0 / day.seconds, gmi.coverage, 1e-9)   // 4 readings missing: the hour is missing
+    }
+
     @Test
     fun minuteDataDoesNotOutweighFifteenMinuteData() {
         // first hour: minute mode, 60 readings of 200; second hour: 4 points of 100.

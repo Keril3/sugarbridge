@@ -237,7 +237,7 @@ fun SettingsScreen(vm: MainViewModel, actions: AppActions) {
 
         LanguageCard(actions)
         AboutCard(vm, actions)
-        AuthorCard(actions)
+        FeedbackCard(actions)
         BottomSpace()
     }
 }

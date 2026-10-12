@@ -355,13 +355,12 @@
     <string name="notice_background_off">分钟模式已开启，因此后台同步已关闭：它只会以更低的频率做同样的事。关闭分钟模式后，它会重新开启。</string>
     <string name="notice_background_link">后台同步设置 ›</string>
     <string name="settings_background_paused">目前已关闭：分钟模式正在运行。关闭分钟模式后会重新开启。</string>
-    <string name="author_title">关于作者</string>
-    <string name="author_text">SugarBridge 由初学开发者 Keril³ 制作。</string>
-    <string name="author_site">网站</string>
-    <string name="author_contact_intro">可以通过这些方式联系我：</string>
-    <string name="author_email">邮箱</string>
-    <string name="author_email_link">发送邮件</string>
-    <string name="author_discord_link">打开 Discord 个人资料</string>
-    <string name="author_telegram_link">打开 Telegram 聊天</string>
-    <string name="author_site_link">打开网站</string>
+    <string name="feedback_title">反馈</string>
+    <string name="feedback_site">开发者网站</string>
+    <string name="feedback_intro">可以通过以下方式联系开发者：</string>
+    <string name="feedback_email">邮箱</string>
+    <string name="feedback_email_link">发送邮件</string>
+    <string name="feedback_discord_link">打开 Discord 个人资料</string>
+    <string name="feedback_telegram_link">打开 Telegram 聊天</string>
+    <string name="feedback_site_link">打开网站</string>
 </resources>

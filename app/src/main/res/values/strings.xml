@@ -358,13 +358,12 @@
     <string name="notice_background_off">Minute mode is on, so background sync is off: it would only do the same less often. It comes back when you turn minute mode off.</string>
     <string name="notice_background_link">Background sync settings ›</string>
     <string name="settings_background_paused">Off for now: minute mode is on. It comes back when you turn minute mode off.</string>
-    <string name="author_title">About the author</string>
-    <string name="author_text">SugarBridge is made by Keril³, a beginner developer.</string>
-    <string name="author_site">Website</string>
-    <string name="author_contact_intro">You can reach me here:</string>
-    <string name="author_email">Email</string>
-    <string name="author_email_link">Send an email</string>
-    <string name="author_discord_link">Open the Discord profile</string>
-    <string name="author_telegram_link">Open the Telegram chat</string>
-    <string name="author_site_link">Open the website</string>
+    <string name="feedback_title">Feedback</string>
+    <string name="feedback_site">Developer’s website</string>
+    <string name="feedback_intro">You can reach the developer here:</string>
+    <string name="feedback_email">Email</string>
+    <string name="feedback_email_link">Send an email</string>
+    <string name="feedback_discord_link">Open the Discord profile</string>
+    <string name="feedback_telegram_link">Open the Telegram chat</string>
+    <string name="feedback_site_link">Open the website</string>
 </resources>

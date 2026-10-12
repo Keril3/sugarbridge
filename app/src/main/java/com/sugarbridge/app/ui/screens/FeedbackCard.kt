@@ -24,30 +24,29 @@ import com.sugarbridge.app.ui.components.LinkButton
 import com.sugarbridge.app.ui.components.XpWindow
 import com.sugarbridge.app.ui.theme.LocalXp
 
-/** The author's website and the contacts, the same block as on keril.art's "Contact me" page. */
+/** One way to reach the developer, the same block as on keril.art's "Contact me" page. */
 private class Contact(@param:DrawableRes val icon: Int, val name: String, val value: String, val url: String, val linkLabel: Int)
 
 private const val SITE = "https://keril.art"
 
 /**
- * "About the author": who makes SugarBridge, the website and the contacts. As on the site, the names and
+ * "Feedback": how to reach the developer, then the developer's website. As on the site, the names and
  * addresses are plain text and only the chain button after each one opens it.
  */
 @Composable
-fun AuthorCard(actions: AppActions) {
+fun FeedbackCard(actions: AppActions) {
     val contacts = listOf(
-        Contact(R.drawable.ic_contact_mail, stringResource(R.string.author_email), "hello@keril.art", "mailto:hello@keril.art", R.string.author_email_link),
-        Contact(R.drawable.ic_contact_discord, "Discord", "keril3", "https://discord.com/users/249232022483107840", R.string.author_discord_link),
-        Contact(R.drawable.ic_contact_telegram, "Telegram", "@Minimalnaya_dlina_5_simvolov", "https://t.me/Minimalnaya_dlina_5_simvolov", R.string.author_telegram_link),
+        Contact(R.drawable.ic_contact_mail, stringResource(R.string.feedback_email), "hello@keril.art", "mailto:hello@keril.art", R.string.feedback_email_link),
+        Contact(R.drawable.ic_contact_discord, "Discord", "keril3", "https://discord.com/users/249232022483107840", R.string.feedback_discord_link),
+        Contact(R.drawable.ic_contact_telegram, "Telegram", "@Minimalnaya_dlina_5_simvolov", "https://t.me/Minimalnaya_dlina_5_simvolov", R.string.feedback_telegram_link),
     )
-    XpWindow(stringResource(R.string.author_title), Modifier.testTag("author")) {
-        Text(stringResource(R.string.author_text), style = MaterialTheme.typography.bodyLarge)
-        ContactRow(Contact(R.drawable.ic_link_globe, stringResource(R.string.author_site), "keril.art", SITE, R.string.author_site_link), actions)
-        DottedDivider()
-        Text(stringResource(R.string.author_contact_intro), style = MaterialTheme.typography.bodyMedium)
+    XpWindow(stringResource(R.string.feedback_title), Modifier.testTag("feedback")) {
+        Text(stringResource(R.string.feedback_intro), style = MaterialTheme.typography.bodyLarge)
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             contacts.forEach { ContactRow(it, actions) }
         }
+        DottedDivider()
+        ContactRow(Contact(R.drawable.ic_link_globe, stringResource(R.string.feedback_site), "keril.art", SITE, R.string.feedback_site_link), actions)
     }
 }
 

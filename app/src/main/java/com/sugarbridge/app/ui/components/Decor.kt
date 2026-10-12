@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,7 +26,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -62,9 +62,11 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -266,6 +268,7 @@ private fun XpButton(
     minHeight: Dp = 44.dp,
     textStyle: TextStyle = MaterialTheme.typography.labelLarge,
     icon: Int? = null,
+    horizontalPadding: Dp = 16.dp,
 ) {
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
@@ -281,11 +284,11 @@ private fun XpButton(
             .background(gloss(stops))
             .then(if (pressed) Modifier.background(Color(0x1A000000)) else Modifier)
             .clickable(interactionSource = interaction, indication = null, enabled = active, role = Role.Button, onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = horizontalPadding, vertical = 8.dp),
         contentAlignment = Alignment.Center,
     ) {
         if (loading) {
-            CircularProgressIndicator(Modifier.size(20.dp), color = Tenshi.ButtonText, strokeWidth = 2.dp)
+            XpMarquee(Modifier.width(96.dp))   // a request is being handled: blocks run through the bar
         } else if (icon != null) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Icon(painterResource(icon), contentDescription = null, tint = Color.Unspecified, modifier = Modifier.size(16.dp))
@@ -312,6 +315,35 @@ fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modi
         if (danger) Tenshi.DangerText else Tenshi.ButtonText,
         icon = icon,
     )
+
+/** A small light button for a row of quick choices, such as "All" and "None" over a list. */
+@Composable
+fun SmallButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) =
+    XpButton(
+        text, onClick, modifier, enabled, false, Tenshi.SecondaryBorder, Tenshi.SecondaryGloss, Tenshi.ButtonText,
+        minHeight = 34.dp, textStyle = MaterialTheme.typography.labelMedium, horizontalPadding = 10.dp,
+    )
+
+/**
+ * A translucent bar like the tab bar, for a heading with its buttons that stands right on the sky: on the
+ * sky's blue alone, text and blue links are hard to read.
+ */
+@Composable
+fun GlassBar(modifier: Modifier = Modifier, content: @Composable RowScope.() -> Unit) {
+    val xp = LocalXp.current
+    val shape = RoundedCornerShape(12.dp)
+    Row(
+        modifier
+            .shadow(4.dp, shape, spotColor = xp.shadow)
+            .clip(shape)
+            .border(1.dp, xp.statusBorder, shape)
+            .background(Brush.verticalGradient(xp.statusBar))
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        content = content,
+    )
+}
 
 /** The small square glossy button with a chain that opens a link, as on keril.art; [label] is for screen readers. */
 @Composable
@@ -430,16 +462,20 @@ fun DottedDivider(modifier: Modifier = Modifier) {
 private val MeterBlock = 7.dp
 private val MeterGap = 2.dp
 private val MeterInset = 2.dp
-private const val METER_STEP_MS = 45L      // a new block every 45 ms, like Windows XP: tick, tick, tick
+private const val METER_STEP_MS = 40L      // the slowest a new block follows the real progress: tick, tick, tick
+internal const val METER_CATCH_UP_MS = 240L // however far behind, the bar shows the real progress within this
 private const val MARQUEE_STEP_MS = 90L
+
+/** How long a finished bar stays full before it goes, so the last blocks are seen. */
+const val METER_FULL_HOLD_MS = 400L
 
 /** How many whole blocks fit a bar [width] wide. */
 internal fun meterCapacity(width: Float, block: Float, gap: Float, inset: Float): Int =
     if (width <= 2 * inset + block) 0 else ((width - 2 * inset + gap) / (block + gap)).toInt()
 
-/** The blocks shown for [fraction]: whole blocks only, all of them at 100%. */
+/** The blocks shown for [fraction]: whole blocks only, the nearest number, so 100% is a full bar and 0% an empty one. */
 internal fun meterBlocks(fraction: Float, capacity: Int): Int =
-    if (fraction >= 1f) capacity else (fraction.coerceAtLeast(0f) * capacity).toInt()
+    Math.round(fraction.coerceIn(0f, 1f) * capacity)
 
 /** The trough of an XP bar: a rounded frame with a light (by night, dark) inside. */
 @Composable
@@ -464,26 +500,36 @@ private fun DrawScope.meterBlock(index: Int, color: Color) {
 }
 
 /**
- * An XP progress bar: glossy blocks in a rounded trough. As in Windows XP it never shows part of a block, and
- * when the value grows the new blocks appear one after another; a smaller value is shown at once.
+ * An XP progress bar: glossy blocks in a rounded trough, for real progress (a download, a page, writing
+ * days). As in Windows XP it never shows part of a block. It shows the real value: the first one at once, and
+ * when the value grows, the new blocks appear one after another but catch up within [METER_CATCH_UP_MS], so
+ * the bar is never behind the work. A smaller value is shown at once. Work without a known share of the whole
+ * gets [XpMarquee] instead.
  */
 @Composable
 fun XpMeter(fraction: Float, modifier: Modifier = Modifier, color: Color = Color(0xFF4FA8E8)) {
     val density = LocalDensity.current
     var capacity by remember { mutableIntStateOf(0) }
     val target = meterBlocks(fraction, capacity)
-    var shown by remember { mutableIntStateOf(0) }
-    LaunchedEffect(target) {
-        if (target < shown) shown = target
+    var shown by remember { mutableIntStateOf(-1) }   // -1: nothing measured yet
+    LaunchedEffect(target, capacity) {
+        if (capacity == 0) return@LaunchedEffect
+        if (shown < 0 || target < shown) {
+            shown = target
+            return@LaunchedEffect
+        }
+        val step = (METER_CATCH_UP_MS / (target - shown).coerceAtLeast(1)).coerceAtMost(METER_STEP_MS)
         while (shown < target) {
-            delay(METER_STEP_MS)
+            delay(step)
             shown++
         }
     }
     Canvas(
         modifier
             .meterTrough()
-            .onSizeChanged { capacity = with(density) { meterCapacity(it.width.toFloat(), MeterBlock.toPx(), MeterGap.toPx(), MeterInset.toPx()) } },
+            .onSizeChanged { capacity = with(density) { meterCapacity(it.width.toFloat(), MeterBlock.toPx(), MeterGap.toPx(), MeterInset.toPx()) } }
+            // what the bar shows, for screen readers and tests
+            .semantics { progressBarRangeInfo = ProgressBarRangeInfo(if (capacity > 0) shown.coerceIn(0, capacity).toFloat() / capacity else 0f, 0f..1f) },
     ) {
         repeat(shown.coerceAtMost(capacity)) { meterBlock(it, color) }
     }
@@ -508,6 +554,7 @@ fun XpMarquee(modifier: Modifier = Modifier, color: Color = Color(0xFF4FA8E8)) {
         modifier
             .meterTrough()
             .onSizeChanged { capacity = with(density) { meterCapacity(it.width.toFloat(), MeterBlock.toPx(), MeterGap.toPx(), MeterInset.toPx()) } }
+            .semantics { progressBarRangeInfo = ProgressBarRangeInfo.Indeterminate }
             .testTag("xp-marquee"),
     ) {
         for (i in head - 2..head) if (i in 0 until capacity) meterBlock(i, color)

@@ -196,7 +196,7 @@ class MainActivity : ComponentActivity(), AppActions {
     override fun requestBatteryUnrestricted() =
         open(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, "package:$packageName".toUri()))
 
-    /** A website, a profile or an email address from the "About the author" window. */
+    /** A website, a profile or an email address from the "Feedback" window. */
     override fun openLink(url: String) {
         open(if (url.startsWith("mailto:")) Intent(Intent.ACTION_SENDTO, url.toUri()) else Intent(Intent.ACTION_VIEW, url.toUri()))
     }

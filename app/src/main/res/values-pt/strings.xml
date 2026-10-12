@@ -355,13 +355,12 @@
     <string name="notice_background_off">O modo minuto está ligado, então a sincronização em segundo plano está desligada: ela faria o mesmo, só que menos vezes. Ela volta quando você desliga o modo minuto.</string>
     <string name="notice_background_link">Ajustes da sincronização em segundo plano ›</string>
     <string name="settings_background_paused">Desligada por enquanto: o modo minuto está ativo. Ela volta quando você o desligar.</string>
-    <string name="author_title">Sobre o autor</string>
-    <string name="author_text">O SugarBridge é feito por Keril³, um desenvolvedor iniciante.</string>
-    <string name="author_site">Site</string>
-    <string name="author_contact_intro">Você pode falar comigo aqui:</string>
-    <string name="author_email">E-mail</string>
-    <string name="author_email_link">Enviar um e-mail</string>
-    <string name="author_discord_link">Abrir o perfil no Discord</string>
-    <string name="author_telegram_link">Abrir o chat no Telegram</string>
-    <string name="author_site_link">Abrir o site</string>
+    <string name="feedback_title">Fale conosco</string>
+    <string name="feedback_site">Site do desenvolvedor</string>
+    <string name="feedback_intro">Você pode falar com o desenvolvedor aqui:</string>
+    <string name="feedback_email">E-mail</string>
+    <string name="feedback_email_link">Enviar um e-mail</string>
+    <string name="feedback_discord_link">Abrir o perfil no Discord</string>
+    <string name="feedback_telegram_link">Abrir o chat no Telegram</string>
+    <string name="feedback_site_link">Abrir o site</string>
 </resources>

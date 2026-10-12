@@ -17,7 +17,7 @@ data class AppSettings(
     val livePinned: Boolean = false,     // the notification comes straight back if swiped away
     val liveStatusValue: Boolean = true, // the number itself as the status bar icon, instead of Tenshi-chan
     val liveArrow: Boolean = true,       // the trend arrow next to the value in the notification and the status bar
-    val statusArrowAbove: Boolean = false, // in the status bar icon: the arrow above the number, or beside it
+    val statusArrowAbove: Boolean = true, // in the status bar icon: the arrow above the number (larger), or beside it
     val statusNumberSize: Int = 3,       // steps of StatusIcon.SCALES, the largest by default
     val statusArrowSize: Int = 1,        // steps of StatusIcon.SCALES
     val backgroundBeforeLive: Int = 0,   // the background interval minute mode switched off, given back when it stops

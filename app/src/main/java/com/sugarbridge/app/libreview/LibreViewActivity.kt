@@ -32,9 +32,11 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -47,9 +49,11 @@ import androidx.lifecycle.lifecycleScope
 import com.sugarbridge.app.R
 import com.sugarbridge.app.libre.Libre
 import com.sugarbridge.app.settings.SettingsStore
+import com.sugarbridge.app.ui.components.METER_FULL_HOLD_MS
 import com.sugarbridge.app.ui.components.OutlinedTitle
 import com.sugarbridge.app.ui.components.SecondaryButton
 import com.sugarbridge.app.ui.components.SkyBackground
+import com.sugarbridge.app.ui.components.XpMarquee
 import com.sugarbridge.app.ui.components.XpMeter
 import com.sugarbridge.app.ui.theme.LocalXp
 import com.sugarbridge.app.ui.theme.SugarTheme
@@ -59,6 +63,7 @@ import java.net.URI
 import java.net.URLDecoder
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -73,6 +78,7 @@ class LibreViewActivity : ComponentActivity() {
     @Volatile private var pageHost: String? = null
     private var pageProgress by mutableIntStateOf(0)
     private var status by mutableStateOf<String?>(null)
+    private var working by mutableStateOf(false)   // a file is being fetched and checked
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -170,7 +176,18 @@ class LibreViewActivity : ComponentActivity() {
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
                     )
                 }
-                if (pageProgress in 1..99) XpMeter(pageProgress / 100f, Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 4.dp))
+                // the page's real progress; when it is loaded the bar stays full for a moment, then goes
+                var loadingBar by remember { mutableStateOf(false) }
+                LaunchedEffect(pageProgress) {
+                    if (pageProgress in 1..99) {
+                        loadingBar = true
+                    } else if (loadingBar) {
+                        delay(METER_FULL_HOLD_MS)
+                        loadingBar = false
+                    }
+                }
+                if (loadingBar) XpMeter(pageProgress / 100f, Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 4.dp))
+                if (working) XpMarquee(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 4.dp))
                 AndroidView(factory = { web }, modifier = Modifier.fillMaxWidth().weight(1f).padding(top = 4.dp))
             }
         }
@@ -183,6 +200,7 @@ class LibreViewActivity : ComponentActivity() {
 
     private fun download(url: String) {
         status = getString(R.string.libreview_fetching)
+        working = true
         when {
             url.startsWith("blob:") -> web.evaluateJavascript(readBlob(url), null)
             url.startsWith("data:") -> acceptDataUrl(url)
@@ -191,11 +209,16 @@ class LibreViewActivity : ComponentActivity() {
                 val cookies = CookieManager.getInstance().getCookie(url)
                 lifecycleScope.launch {
                     val bytes = withContext(Dispatchers.IO) { runCatching { fetch(url, userAgent, cookies) } }
-                    bytes.onSuccess(::accept).onFailure { status = getString(R.string.libreview_download_failed, it.message.orEmpty()) }
+                    bytes.onSuccess(::accept).onFailure { fail(getString(R.string.libreview_download_failed, it.message.orEmpty())) }
                 }
             }
-            else -> status = getString(R.string.libreview_bad_link)
+            else -> fail(getString(R.string.libreview_bad_link))
         }
+    }
+
+    private fun fail(message: String) {
+        status = message
+        working = false
     }
 
     private fun fetch(url: String, userAgent: String, cookies: String?): ByteArray {
@@ -216,7 +239,7 @@ class LibreViewActivity : ComponentActivity() {
     private fun acceptDataUrl(dataUrl: String) {
         val comma = dataUrl.indexOf(',')
         if (comma < 0) {
-            status = getString(R.string.libreview_bad_data)
+            fail(getString(R.string.libreview_bad_data))
             return
         }
         val meta = dataUrl.substring(0, comma)
@@ -236,7 +259,7 @@ class LibreViewActivity : ComponentActivity() {
                 runCatching { LibreViewCsv.parse(LibreViewCsv.decode(bytes)).readings.size }.getOrDefault(0)
             }
             if (found == 0) {
-                status = getString(R.string.libreview_no_glucose)
+                fail(getString(R.string.libreview_no_glucose))
                 return@launch
             }
             val file = File(cacheDir, "libreview.csv")
@@ -255,7 +278,7 @@ class LibreViewActivity : ComponentActivity() {
 
         @JavascriptInterface
         fun onError(message: String) {
-            runOnUiThread { status = getString(R.string.libreview_read_failed, message) }
+            runOnUiThread { fail(getString(R.string.libreview_read_failed, message)) }
         }
     }
 

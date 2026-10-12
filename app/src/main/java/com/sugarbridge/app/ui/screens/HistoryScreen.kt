@@ -25,7 +25,6 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,11 +55,13 @@ import com.sugarbridge.app.ui.components.ButtonRow
 import com.sugarbridge.app.ui.components.ChoiceRow
 import com.sugarbridge.app.ui.components.DateRangeDialog
 import com.sugarbridge.app.ui.components.DottedDivider
+import com.sugarbridge.app.ui.components.GlassBar
 import com.sugarbridge.app.ui.components.Hint
 import com.sugarbridge.app.ui.components.Pill
 import com.sugarbridge.app.ui.components.PrimaryButton
 import com.sugarbridge.app.ui.components.ScreenColumn
 import com.sugarbridge.app.ui.components.SecondaryButton
+import com.sugarbridge.app.ui.components.SmallButton
 import com.sugarbridge.app.ui.components.XpDialog
 import com.sugarbridge.app.ui.components.XpMarquee
 import com.sugarbridge.app.ui.components.XpMeter
@@ -174,11 +175,12 @@ private fun LoadedHistory(vm: MainViewModel) {
             item { HistoryViewer(h, s) }
             item { PeriodCard(h, s, onPick = { picking = true }, onQuick = vm::quickRange) }
             item {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(stringResource(R.string.history_days), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f).padding(start = 4.dp))
-                    TextButton(onClick = vm::selectMissing) { Text(stringResource(R.string.history_select_new)) }
-                    TextButton(onClick = vm::selectAll) { Text(stringResource(R.string.history_select_all)) }
-                    TextButton(onClick = vm::selectNone) { Text(stringResource(R.string.history_select_none)) }
+                // on a glass bar: right on the sky the heading and the blue links were hard to read
+                GlassBar(Modifier.fillMaxWidth().testTag("days-header")) {
+                    Text(stringResource(R.string.history_days), style = MaterialTheme.typography.titleMedium, color = LocalXp.current.text, modifier = Modifier.weight(1f))
+                    SmallButton(stringResource(R.string.history_select_new), onClick = vm::selectMissing)
+                    SmallButton(stringResource(R.string.history_select_all), onClick = vm::selectAll, modifier = Modifier.testTag("select-all"))
+                    SmallButton(stringResource(R.string.history_select_none), onClick = vm::selectNone, modifier = Modifier.testTag("select-none"))
                 }
             }
             items(h.visibleDays.asReversed(), key = { it.date.toEpochDay() }) { day ->

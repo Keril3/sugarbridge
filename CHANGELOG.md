@@ -2,6 +2,25 @@
 
 Newest version first. A version's section becomes the release notes on GitHub.
 
+## 1.8.1 — 2026-10-12
+
+- Status bar: the digits keep the font's own proportions with the arrow beside them too, the same as above
+  them; they are no longer squeezed. The number and the arrow are sized in one unit: at the same step the arrow
+  is as tall as the digits. While both fit the square, their steps are independent; at the largest steps both
+  are made smaller by the same factor and keep the chosen proportion. With the arrow above the number the digits
+  are larger, so that is the default again.
+- Estimated HbA1c: the share of data is counted by time. Libre's readings come every 15 minutes but a minute or
+  two off, so two of them sometimes fell into one 15-minute slot and the next stayed empty: full data showed as
+  99% with a bar one block short. A bar now shows the nearest number of blocks, so 100% is a full bar.
+- Progress bars show the real progress: the first value at once, new blocks one after another but never more
+  than a quarter of a second behind. The LibreView page's bar stays full for a moment when the page has loaded
+  instead of vanishing a few blocks short. Work without a known end shows blocks running through the bar: buttons
+  while their request runs (sync, sign in, check connection, writing days), fetching and checking the LibreView
+  file, the developer tools' first check.
+- "About the author" is now "Feedback": how to reach the developer first, then the developer's website.
+- History: the "Days" heading with "New", "All" and "None" stands on a glass bar with small buttons; right on the
+  sky the blue links were hard to read in both themes.
+
 ## 1.8.0 — 2026-10-12
 
 - The glucose in the status bar is larger and its sizes are independent. The number is measured by its digits:
