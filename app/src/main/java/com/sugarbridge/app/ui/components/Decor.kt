@@ -45,7 +45,9 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -56,6 +58,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -392,10 +395,10 @@ fun <T> ChoiceRow(options: List<T>, selected: T, label: @Composable (T) -> Strin
 
 /** A settings row with a switch. */
 @Composable
-fun SwitchRow(title: String, subtitle: String?, checked: Boolean, onChange: (Boolean) -> Unit, enabled: Boolean = true) {
+fun SwitchRow(title: String, subtitle: String?, checked: Boolean, onChange: (Boolean) -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
     val xp = LocalXp.current
     Row(
-        Modifier.fillMaxWidth().clip(MaterialTheme.shapes.small).clickable(enabled = enabled) { onChange(!checked) }.padding(vertical = 4.dp),
+        modifier.fillMaxWidth().clip(MaterialTheme.shapes.small).clickable(enabled = enabled) { onChange(!checked) }.padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(Modifier.weight(1f).alpha(if (enabled) 1f else 0.5f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -462,6 +465,7 @@ fun DottedDivider(modifier: Modifier = Modifier) {
 private val MeterBlock = 7.dp
 private val MeterGap = 2.dp
 private val MeterInset = 2.dp
+private val MeterRadius = 6.dp
 private const val METER_STEP_MS = 40L      // the slowest a new block follows the real progress: tick, tick, tick
 internal const val METER_CATCH_UP_MS = 240L // however far behind, the bar shows the real progress within this
 private const val MARQUEE_STEP_MS = 90L
@@ -481,7 +485,7 @@ internal fun meterBlocks(fraction: Float, capacity: Int): Int =
 @Composable
 private fun Modifier.meterTrough(): Modifier {
     val night = LocalNight.current
-    val shape = RoundedCornerShape(6.dp)
+    val shape = RoundedCornerShape(MeterRadius)
     return this
         .height(12.dp)
         .clip(shape)
@@ -489,14 +493,35 @@ private fun Modifier.meterTrough(): Modifier {
         .background(if (night) Color(0xCC050A24) else Color(0xFFEAF6FF))
 }
 
-/** One glossy block at [index] of the bar. */
-private fun DrawScope.meterBlock(index: Int, color: Color) {
+/**
+ * How wide each of [capacity] blocks is so that, with their gaps, they fill the bar from end to end: the
+ * blocks are a little wider than [MeterBlock] instead of leaving a strip of empty trough at the end.
+ */
+internal fun meterBlockWidth(width: Float, capacity: Int, gap: Float, inset: Float): Float =
+    if (capacity <= 0) 0f else (width - 2 * inset - (capacity - 1) * gap) / capacity
+
+/**
+ * The blocks [indices] of a bar of [capacity], clipped to the inside of the rounded trough: the end blocks
+ * follow its rounding instead of standing out over the frame.
+ */
+private fun DrawScope.meterBlocks(indices: Iterable<Int>, capacity: Int, color: Color) {
     val inset = MeterInset.toPx()
-    val step = MeterBlock.toPx() + MeterGap.toPx()
-    val x = inset + index * step
-    val size = Size(MeterBlock.toPx(), this.size.height - 2 * inset)
-    drawRect(color, Offset(x, inset), size)
-    drawRect(Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.75f), Color.Transparent), startY = inset, endY = this.size.height * 0.6f), Offset(x, inset), size)
+    val gap = MeterGap.toPx()
+    val border = 1.dp.toPx()
+    val blockWidth = meterBlockWidth(size.width, capacity, gap, inset)
+    val inner = Path().apply {
+        addRoundRect(RoundRect(border, border, size.width - border, size.height - border, CornerRadius(MeterRadius.toPx() - border)))
+    }
+    val block = Size(blockWidth, size.height - 2 * inset)
+    val shine = Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.75f), Color.Transparent), startY = inset, endY = size.height * 0.6f)
+    clipPath(inner) {
+        for (i in indices) {
+            if (i !in 0 until capacity) continue
+            val at = Offset(inset + i * (blockWidth + gap), inset)
+            drawRect(color, at, block)
+            drawRect(shine, at, block)
+        }
+    }
 }
 
 /**
@@ -531,7 +556,7 @@ fun XpMeter(fraction: Float, modifier: Modifier = Modifier, color: Color = Color
             // what the bar shows, for screen readers and tests
             .semantics { progressBarRangeInfo = ProgressBarRangeInfo(if (capacity > 0) shown.coerceIn(0, capacity).toFloat() / capacity else 0f, 0f..1f) },
     ) {
-        repeat(shown.coerceAtMost(capacity)) { meterBlock(it, color) }
+        meterBlocks(0 until shown.coerceAtMost(capacity), capacity, color)
     }
 }
 
@@ -557,7 +582,7 @@ fun XpMarquee(modifier: Modifier = Modifier, color: Color = Color(0xFF4FA8E8)) {
             .semantics { progressBarRangeInfo = ProgressBarRangeInfo.Indeterminate }
             .testTag("xp-marquee"),
     ) {
-        for (i in head - 2..head) if (i in 0 until capacity) meterBlock(i, color)
+        meterBlocks(head - 2..head, capacity, color)
     }
 }
 

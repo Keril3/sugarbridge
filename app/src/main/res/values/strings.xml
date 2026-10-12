@@ -67,9 +67,8 @@
     <string name="gmi_90_days">90 days</string>
     <string name="gmi_percent">%1$.1f%%</string>
     <string name="gmi_mmol_mol" tools:ignore="PluralsCandidate">%1$d mmol/mol</string>
-    <string name="gmi_no_data">%1$s · no data</string>
-    <string name="gmi_coverage">%1$s · %2$d%% data</string>
-    <string name="gmi_low_coverage">%1$s · too little data: %2$d%%</string>
+    <string name="gmi_no_data">no data</string>
+    <string name="gmi_low_coverage">too little data: %1$d%%</string>
     <string name="gmi_hint">An estimate from the average sensor glucose, not a blood test: a lab HbA1c may differ. Reliable with at least %1$d%% of the data over 14 days. Samsung Health takes HbA1c only as a manual entry, Health Connect does not carry it.</string>
 
     <string name="sync_title">Sync</string>
@@ -366,4 +365,16 @@
     <string name="feedback_discord_link">Open the Discord profile</string>
     <string name="feedback_telegram_link">Open the Telegram chat</string>
     <string name="feedback_site_link">Open the website</string>
+    <string name="settings_chip">Capsule by the clock</string>
+    <string name="settings_chip_hint">Android 16+: a Live Update, the arrow and the number in a capsule next to the clock, as large as its digits</string>
+    <string name="settings_chip_old">Needs Android 16 or newer</string>
+    <string name="settings_chip_denied">Android doesn’t allow SugarBridge Live Updates. Allow them in the settings:</string>
+    <string name="settings_chip_allow">Allow Live Updates</string>
+    <string name="settings_chip_icon_note">While SugarBridge is open, Android hides the capsule and shows the icon; its look is set below. If your phone shows no capsule, turn it off.</string>
+    <string name="dev_live_update">Live Update</string>
+    <string name="dev_live_update_old">none: Android 15 or older</string>
+    <string name="dev_live_update_denied">not allowed by Android</string>
+    <string name="dev_live_update_shown">a capsule by the clock</string>
+    <string name="dev_live_update_refused">Android didn’t make the notification a Live Update</string>
+    <string name="dev_live_update_waiting">comes with minute mode</string>
 </resources>

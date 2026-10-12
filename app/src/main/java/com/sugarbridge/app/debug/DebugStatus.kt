@@ -15,6 +15,7 @@ import com.sugarbridge.app.health.WRITE_GLUCOSE
 import com.sugarbridge.app.health.healthConnectState
 import com.sugarbridge.app.settings.SettingsStore
 import com.sugarbridge.app.sync.LiveSyncService
+import com.sugarbridge.app.sync.LiveUpdate
 import com.sugarbridge.app.sync.SyncStore
 import com.sugarbridge.app.sync.SyncWorker
 import java.time.Instant
@@ -25,7 +26,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /** What can be done about a red line: each has a button under it in the developer tools. */
-enum class DevFix { MINUTE, BATTERY, SAVER, HEALTH_PERMISSION, INSTALL_SAMSUNG }
+enum class DevFix { MINUTE, BATTERY, SAVER, HEALTH_PERMISSION, INSTALL_SAMSUNG, LIVE_UPDATE }
 
 /** One line of the status in the developer tools; [warn] marks what can hold the glucose back, [fix] what helps. */
 class StatusLine(val label: String, val value: String, val warn: Boolean = false, val fix: DevFix? = null)
@@ -55,6 +56,18 @@ suspend fun collectStatus(context: Context): List<StatusLine> = withContext(Disp
     } else {
         lines += StatusLine(s(R.string.settings_live_title), s(R.string.dev_off))
     }
+
+    // Android 16+: the glucose as a Live Update capsule next to the clock
+    val capsule = when {
+        !LiveUpdate.supported -> StatusLine(s(R.string.dev_live_update), s(R.string.dev_live_update_old))
+        !settings.liveChip -> StatusLine(s(R.string.dev_live_update), s(R.string.dev_off))
+        !LiveUpdate.allowed(context) -> StatusLine(s(R.string.dev_live_update), s(R.string.dev_live_update_denied), warn = true, fix = DevFix.LIVE_UPDATE)
+        LiveUpdate.shown(context) -> StatusLine(s(R.string.dev_live_update), s(R.string.dev_live_update_shown))
+        LiveSyncService.running && settings.liveShowValue && settings.liveStatusValue ->
+            StatusLine(s(R.string.dev_live_update), s(R.string.dev_live_update_refused), warn = true)
+        else -> StatusLine(s(R.string.dev_live_update), s(R.string.dev_live_update_waiting))
+    }
+    lines += capsule
 
     // the background job: when WorkManager plans to run it next
     if (settings.backgroundMinutes > 0) {

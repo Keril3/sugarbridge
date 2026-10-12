@@ -64,9 +64,8 @@
     <string name="gmi_90_days">90 dias</string>
     <string name="gmi_percent">%1$.1f%%</string>
     <string name="gmi_mmol_mol">%1$d mmol/mol</string>
-    <string name="gmi_no_data">%1$s · sem dados</string>
-    <string name="gmi_coverage">%1$s · %2$d%% de dados</string>
-    <string name="gmi_low_coverage">%1$s · poucos dados: %2$d%%</string>
+    <string name="gmi_no_data">sem dados</string>
+    <string name="gmi_low_coverage">poucos dados: %1$d%%</string>
     <string name="gmi_hint">Uma estimativa pela glicose média do sensor, não um exame de sangue: a HbA1c do laboratório pode ser diferente. Confiável com pelo menos %1$d%% dos dados em 14 dias. O Samsung Health só aceita HbA1c como registro manual, o Health Connect não a transmite.</string>
 
     <string name="sync_title">Sincronização</string>
@@ -363,4 +362,16 @@
     <string name="feedback_discord_link">Abrir o perfil no Discord</string>
     <string name="feedback_telegram_link">Abrir o chat no Telegram</string>
     <string name="feedback_site_link">Abrir o site</string>
+    <string name="settings_chip">Cápsula junto ao relógio</string>
+    <string name="settings_chip_hint">Android 16+: uma Live Update, a seta e o número numa cápsula junto ao relógio, do tamanho dos seus dígitos</string>
+    <string name="settings_chip_old">Requer Android 16 ou mais recente</string>
+    <string name="settings_chip_denied">O Android não permite Live Updates do SugarBridge. Permita nos ajustes:</string>
+    <string name="settings_chip_allow">Permitir Live Updates</string>
+    <string name="settings_chip_icon_note">Enquanto o SugarBridge está aberto, o Android esconde a cápsula e mostra o ícone; a aparência dele é ajustada abaixo. Se o seu celular não mostrar a cápsula, desligue-a.</string>
+    <string name="dev_live_update">Live Update</string>
+    <string name="dev_live_update_old">não: Android 15 ou anterior</string>
+    <string name="dev_live_update_denied">não permitido pelo Android</string>
+    <string name="dev_live_update_shown">uma cápsula junto ao relógio</string>
+    <string name="dev_live_update_refused">O Android não transformou a notificação em Live Update</string>
+    <string name="dev_live_update_waiting">chega com o modo minuto</string>
 </resources>

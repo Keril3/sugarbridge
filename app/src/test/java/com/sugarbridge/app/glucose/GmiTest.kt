@@ -59,6 +59,20 @@ class GmiTest {
         assertEquals(1 - 3600.0 / day.seconds, gmi.coverage, 1e-9)   // 4 readings missing: the hour is missing
     }
 
+    /** The time in range weighs every 15 minutes the same, however many readings they have. */
+    @Test
+    fun timeInRangeWeighsSlotsNotReadings() {
+        // first hour: minute mode, 60 readings of 200 (high); second hour: 4 points of 100 (in range)
+        val minute = (0 until 60).map { Reading(from.plusSeconds(it * 60L), 200.0, 0) }
+        val quarter = (0 until 4).map { Reading(from.plusSeconds(3600 + it * 900L), 100.0, 0) }
+        val bins = GlucoseBins(from, from.plusSeconds(7200), lowMgDl = 70.0, highMgDl = 180.0)
+        (minute + quarter).forEach { bins.add(it.time, it.mgDl) }
+        assertEquals(0.5, bins.result()!!.inRange, 1e-9)   // a plain share of readings would say 4 of 64
+        val wide = GlucoseBins(from, from.plusSeconds(7200), lowMgDl = 70.0, highMgDl = 250.0)
+        (minute + quarter).forEach { wide.add(it.time, it.mgDl) }
+        assertEquals(1.0, wide.result()!!.inRange, 1e-9)   // the target range decides
+    }
+
     @Test
     fun minuteDataDoesNotOutweighFifteenMinuteData() {
         // first hour: minute mode, 60 readings of 200; second hour: 4 points of 100.

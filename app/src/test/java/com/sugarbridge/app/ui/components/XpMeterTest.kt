@@ -1,6 +1,7 @@
 package com.sugarbridge.app.ui.components
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /** The XP bar shows whole blocks only, like Windows XP: 100% is a full bar. */
@@ -12,6 +13,18 @@ class XpMeterTest {
         assertEquals(10, meterCapacity(92f, block = 7f, gap = 2f, inset = 2f))
         assertEquals(9, meterCapacity(91f, block = 7f, gap = 2f, inset = 2f))
         assertEquals(0, meterCapacity(10f, block = 7f, gap = 2f, inset = 2f))
+    }
+
+    /** The blocks fill the trough from end to end: no strip of empty trough is left after the last one. */
+    @Test
+    fun theBlocksFillTheWholeBar() {
+        for (width in listOf(92f, 95.5f, 140f, 333f)) {
+            val capacity = meterCapacity(width, block = 7f, gap = 2f, inset = 2f)
+            val block = meterBlockWidth(width, capacity, gap = 2f, inset = 2f)
+            assertEquals(width, 2 * 2f + capacity * block + (capacity - 1) * 2f, 0.001f)
+            assertTrue("$width: $block", block >= 7f && block < 7f + 9f / capacity + 0.001f)   // only a little wider
+        }
+        assertEquals(0f, meterBlockWidth(5f, 0, gap = 2f, inset = 2f), 0f)
     }
 
     @Test

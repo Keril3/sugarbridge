@@ -42,6 +42,7 @@ import com.sugarbridge.app.libreview.summarizeDays
 import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.settings.SettingsStore
 import com.sugarbridge.app.sync.LiveSyncService
+import com.sugarbridge.app.sync.LiveUpdate
 import com.sugarbridge.app.sync.Problem
 import com.sugarbridge.app.sync.SyncBlocked
 import com.sugarbridge.app.sync.SyncSnapshot
@@ -87,6 +88,7 @@ data class UiState(
     val checkResult: CheckResult? = null,
     val gmi14: GmiResult? = null,   // estimated HbA1c for 14 and 90 days from our own records in Health Connect
     val gmi90: GmiResult? = null,
+    val liveUpdates: Boolean = false,         // Android 16+ lets SugarBridge show the Live Update capsule
 )
 
 /** A newer version on GitHub and the state of downloading it. */
@@ -218,6 +220,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             healthConnect = hc,
             samsungHealth = isInstalled(context, SAMSUNG_HEALTH_PACKAGE),
             batteryUnrestricted = power.isIgnoringBatteryOptimizations(context.packageName),
+            liveUpdates = LiveUpdate.allowed(context),
         )
         viewModelScope.launch {
             val canWrite = hc == HealthConnectState.AVAILABLE && runCatching { hasGlucosePermission(context) }.getOrDefault(false)
@@ -291,8 +294,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         if (!force && last != null && Duration.between(last, Instant.now()) < Duration.ofMinutes(10)) return
         gmiJob = viewModelScope.launch {
             val now = Instant.now()
-            val days14 = GlucoseBins(now.minus(Duration.ofDays(14)), now)
-            val days90 = GlucoseBins(now.minus(Duration.ofDays(90)), now)
+            val s = ui.settings
+            val days14 = GlucoseBins(now.minus(Duration.ofDays(14)), now, s.lowMgDl, s.highMgDl)
+            val days90 = GlucoseBins(now.minus(Duration.ofDays(90)), now, s.lowMgDl, s.highMgDl)
             val ok = withContext(Dispatchers.IO) {
                 runCatching {
                     forEachOwnGlucose(context, now.minus(Duration.ofDays(90)), now) { time, mgDl ->
@@ -412,8 +416,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             !after.liveEnabled && before.liveEnabled -> LiveSyncService.stop(context)
             after.liveEnabled && liveChanged -> LiveSyncService.reload(context)
         }
-        if ((after.lowMgDl != before.lowMgDl || after.highMgDl != before.highMgDl) && history.loaded) {
-            history = history.copy(days = summarize(history.readings, history.existing, after))
+        if (after.lowMgDl != before.lowMgDl || after.highMgDl != before.highMgDl) {
+            if (history.loaded) history = history.copy(days = summarize(history.readings, history.existing, after))
+            if (ui.gmi90 != null) refreshGmi(force = true)   // its time in range follows the new target range
         }
     }
 

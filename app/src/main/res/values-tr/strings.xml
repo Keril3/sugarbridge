@@ -64,9 +64,8 @@
     <string name="gmi_90_days">90 gün</string>
     <string name="gmi_percent">%%%1$.1f</string>
     <string name="gmi_mmol_mol">%1$d mmol/mol</string>
-    <string name="gmi_no_data">%1$s · veri yok</string>
-    <string name="gmi_coverage">%1$s · veri %%%2$d</string>
-    <string name="gmi_low_coverage">%1$s · veri az: %%%2$d</string>
+    <string name="gmi_no_data">veri yok</string>
+    <string name="gmi_low_coverage">veri az: %%%1$d</string>
     <string name="gmi_hint">Sensörün ortalama şekerinden bir tahmindir, kan testi değildir: laboratuvar HbA1c değeri farklı olabilir. 14 günde en az %%%1$d veriyle güvenilirdir. Samsung Health HbA1c’yi yalnızca elle girişle kabul eder, Health Connect bu değeri aktarmaz.</string>
 
     <string name="sync_title">Eşitleme</string>
@@ -363,4 +362,16 @@
     <string name="feedback_discord_link">Discord profilini aç</string>
     <string name="feedback_telegram_link">Telegram sohbetini aç</string>
     <string name="feedback_site_link">Web sitesini aç</string>
+    <string name="settings_chip">Saatin yanında kapsül</string>
+    <string name="settings_chip_hint">Android 16+: Live Update; ok ve sayı saatin yanındaki bir kapsülde, saatin rakamları kadar büyük</string>
+    <string name="settings_chip_old">Android 16 veya daha yenisi gerekir</string>
+    <string name="settings_chip_denied">Android, SugarBridge’in Live Update göstermesine izin vermiyor. Ayarlardan izin verin:</string>
+    <string name="settings_chip_allow">Live Update’e izin ver</string>
+    <string name="settings_chip_icon_note">SugarBridge açıkken Android kapsülü gizler ve simgeyi gösterir; görünümü aşağıda ayarlanır. Telefonunuz kapsül göstermiyorsa kapatın.</string>
+    <string name="dev_live_update">Live Update</string>
+    <string name="dev_live_update_old">yok: Android 15 veya daha eski</string>
+    <string name="dev_live_update_denied">Android izin vermiyor</string>
+    <string name="dev_live_update_shown">saatin yanında kapsül</string>
+    <string name="dev_live_update_refused">Android bildirimi Live Update yapmadı</string>
+    <string name="dev_live_update_waiting">dakika moduyla gelir</string>
 </resources>

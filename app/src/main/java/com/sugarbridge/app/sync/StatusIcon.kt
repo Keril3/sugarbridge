@@ -85,6 +85,16 @@ object StatusIcon {
         return bitmap
     }
 
+    /**
+     * The trend arrow alone, filling the square: the icon of the Live Update capsule, where the number stands
+     * next to it as text (see [LiveUpdate]). null without a trend.
+     */
+    fun arrow(trend: Int, color: Int = Color.WHITE): Bitmap? {
+        val angle = trendAngle(trend) ?: return null
+        val s = SIZE.toFloat()
+        return createBitmap(SIZE, SIZE).also { drawArrow(Canvas(it), s / 2, s / 2, s * (1 - 2 * MARGIN), angle, color) }
+    }
+
     /** The digits laid out by their outlines, so a dot or a comma takes only its own width. */
     private class Number(val text: String, color: Int) {
         private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {

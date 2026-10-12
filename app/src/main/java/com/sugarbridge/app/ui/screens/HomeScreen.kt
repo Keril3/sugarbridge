@@ -56,6 +56,7 @@ import com.sugarbridge.app.ui.currentLocale
 import com.sugarbridge.app.ui.minutesText
 import com.sugarbridge.app.ui.rememberClockFormat
 import com.sugarbridge.app.ui.theme.LocalXp
+import com.sugarbridge.app.ui.theme.Tenshi
 import com.sugarbridge.app.ui.theme.color
 import java.time.Duration
 import java.time.Instant
@@ -240,25 +241,28 @@ private fun GmiCard(days14: GmiResult?, days90: GmiResult?) {
 private fun GmiStat(label: String, gmi: GmiResult?, modifier: Modifier = Modifier) {
     val xp = LocalXp.current
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(label, style = MaterialTheme.typography.labelMedium, color = xp.textMuted)
         Text(
             if (gmi == null) "—" else stringResource(R.string.gmi_percent, gmi.percent),
             style = MaterialTheme.typography.headlineSmall,
             color = if (gmi?.enough == true) xp.text else xp.textMuted,
         )
-        if (gmi != null) {
-            Text(stringResource(R.string.gmi_mmol_mol, gmi.mmolPerMol), style = MaterialTheme.typography.labelSmall, color = xp.textMuted)
-            XpMeter(gmi.coverage.toFloat(), Modifier.padding(horizontal = 12.dp).fillMaxWidth(), color = if (gmi.enough) com.sugarbridge.app.ui.theme.Tenshi.InRange else com.sugarbridge.app.ui.theme.Tenshi.Low)
+        if (gmi == null) {
+            Text(stringResource(R.string.gmi_no_data), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
+            return@Column
         }
-        val coverage = gmi?.let { (it.coverage * 100).roundToInt() } ?: 0
-        Text(
-            when {
-                gmi == null -> stringResource(R.string.gmi_no_data, label)
-                gmi.enough -> stringResource(R.string.gmi_coverage, label, coverage)
-                else -> stringResource(R.string.gmi_low_coverage, label, coverage)
-            },
-            style = MaterialTheme.typography.labelSmall,
-            color = if (gmi?.enough == true) xp.textMuted else MaterialTheme.colorScheme.error,
-        )
+        Text(stringResource(R.string.gmi_mmol_mol, gmi.mmolPerMol), style = MaterialTheme.typography.labelSmall, color = xp.textMuted)
+        // the time in the target range over the period, like the days of the history
+        XpMeter(gmi.inRange.toFloat(), Modifier.padding(horizontal = 12.dp).fillMaxWidth().testTag("gmi-in-range"), color = Tenshi.InRange)
+        Text(stringResource(R.string.history_day_in_range, (gmi.inRange * 100).roundToInt()), style = MaterialTheme.typography.labelSmall, color = xp.textMuted)
+        // how much of the period has readings matters only when it is too little to trust the estimate
+        if (!gmi.enough) {
+            Text(
+                stringResource(R.string.gmi_low_coverage, (gmi.coverage * 100).roundToInt()),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
     }
 }
 

@@ -55,7 +55,7 @@ class StatusBarCardTest {
             SugarTheme(settings) {
                 SkyBackground {
                     Column(Modifier.verticalScroll(rememberScrollState()).padding(14.dp)) {
-                        StatusBarCard(settings, Reading(Instant.now(), 115.0, 4)) { change -> settings = change(settings) }
+                        StatusBarCard(settings, Reading(Instant.now(), 115.0, 4), liveUpdates = true) { change -> settings = change(settings) }
                     }
                 }
             }
@@ -67,7 +67,12 @@ class StatusBarCardTest {
     fun stepsChangeTheSettingsAndThePreviewFollows() {
         val settings = show(AppSettings(liveEnabled = true, liveShowValue = true))
         compose.onNodeWithTag("statusbar-preview").assertExists()
+        compose.onNodeWithTag("capsule-preview").assertExists()   // Android allows Live Updates here
         shot("statusbar_settings")
+        compose.onNodeWithTag("chip-switch").performScrollTo().performClick()
+        compose.waitForIdle()
+        assertFalse(settings().liveChip)
+        compose.onNodeWithTag("capsule-preview").assertDoesNotExist()
 
         assertEquals(2, compose.onAllNodesWithText(step(3)).fetchSemanticsNodes().size)   // one in each row
         compose.onAllNodesWithText(step(3))[1].performScrollTo().performClick()   // the arrow's ×1.25

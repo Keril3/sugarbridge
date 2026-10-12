@@ -64,9 +64,8 @@
     <string name="gmi_90_days">90일</string>
     <string name="gmi_percent">%1$.1f%%</string>
     <string name="gmi_mmol_mol">%1$d mmol/mol</string>
-    <string name="gmi_no_data">%1$s · 데이터 없음</string>
-    <string name="gmi_coverage">%1$s · 데이터 %2$d%%</string>
-    <string name="gmi_low_coverage">%1$s · 데이터 부족: %2$d%%</string>
+    <string name="gmi_no_data">데이터 없음</string>
+    <string name="gmi_low_coverage">데이터 부족: %1$d%%</string>
     <string name="gmi_hint">센서 평균 혈당으로 추정한 값이며 혈액 검사가 아니에요. 검사실 HbA1c와 다를 수 있어요. 14일 동안 데이터가 %1$d%% 이상이면 믿을 만해요. Samsung Health에서는 HbA1c를 직접 입력해야 하며 Health Connect는 이 값을 전달하지 않아요.</string>
 
     <string name="sync_title">동기화</string>
@@ -363,4 +362,16 @@
     <string name="feedback_discord_link">Discord 프로필 열기</string>
     <string name="feedback_telegram_link">Telegram 채팅 열기</string>
     <string name="feedback_site_link">웹사이트 열기</string>
+    <string name="settings_chip">시계 옆 캡슐</string>
+    <string name="settings_chip_hint">Android 16+: Live Update로 화살표와 숫자를 시계 옆 캡슐에 시계 숫자만큼 크게 표시</string>
+    <string name="settings_chip_old">Android 16 이상이 필요해요</string>
+    <string name="settings_chip_denied">Android가 SugarBridge의 Live Update를 허용하지 않아요. 설정에서 허용해 주세요:</string>
+    <string name="settings_chip_allow">Live Update 허용</string>
+    <string name="settings_chip_icon_note">SugarBridge가 열려 있는 동안 Android는 캡슐을 숨기고 아이콘을 보여 줘요. 아이콘 모양은 아래에서 설정해요. 휴대폰에 캡슐이 나타나지 않으면 꺼 주세요.</string>
+    <string name="dev_live_update">Live Update</string>
+    <string name="dev_live_update_old">없음: Android 15 이하</string>
+    <string name="dev_live_update_denied">Android가 허용하지 않음</string>
+    <string name="dev_live_update_shown">시계 옆 캡슐</string>
+    <string name="dev_live_update_refused">Android가 알림을 Live Update로 만들지 않았어요</string>
+    <string name="dev_live_update_waiting">분 단위 모드와 함께 표시돼요</string>
 </resources>

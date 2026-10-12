@@ -110,6 +110,17 @@ class MainActivity : ComponentActivity(), AppActions {
         handleIntent(intent)
     }
 
+    // the minute service shows the number in its icon while the app is on screen, the Live Update capsule when not
+    override fun onStart() {
+        super.onStart()
+        LiveSyncService.appVisible(true)
+    }
+
+    override fun onStop() {
+        LiveSyncService.appVisible(false)
+        super.onStop()
+    }
+
     override fun onResume() {
         super.onResume()
         vm.refreshStatus()

@@ -64,9 +64,8 @@
     <string name="gmi_90_days">90 天</string>
     <string name="gmi_percent">%1$.1f%%</string>
     <string name="gmi_mmol_mol">%1$d mmol/mol</string>
-    <string name="gmi_no_data">%1$s · 无数据</string>
-    <string name="gmi_coverage">%1$s · 数据 %2$d%%</string>
-    <string name="gmi_low_coverage">%1$s · 数据不足：%2$d%%</string>
+    <string name="gmi_no_data">无数据</string>
+    <string name="gmi_low_coverage">数据不足：%1$d%%</string>
     <string name="gmi_hint">这是根据传感器平均血糖得出的估算值，并非血液检测：化验室的 HbA1c 可能不同。14 天内数据至少达到 %1$d%% 时较为可靠。Samsung Health 只能手动录入 HbA1c，Health Connect 不传输此指标。</string>
 
     <string name="sync_title">同步</string>
@@ -363,4 +362,16 @@
     <string name="feedback_discord_link">打开 Discord 个人资料</string>
     <string name="feedback_telegram_link">打开 Telegram 聊天</string>
     <string name="feedback_site_link">打开网站</string>
+    <string name="settings_chip">时钟旁的胶囊</string>
+    <string name="settings_chip_hint">Android 16+：实时更新（Live Update），箭头和数值显示在时钟旁的胶囊中，与时钟数字一样大</string>
+    <string name="settings_chip_old">需要 Android 16 或更高版本</string>
+    <string name="settings_chip_denied">Android 不允许 SugarBridge 的实时更新。请在设置中允许：</string>
+    <string name="settings_chip_allow">允许实时更新</string>
+    <string name="settings_chip_icon_note">SugarBridge 打开时，Android 会隐藏胶囊并显示图标，图标样式在下方设置。如果你的手机不显示胶囊，请关闭此项。</string>
+    <string name="dev_live_update">Live Update</string>
+    <string name="dev_live_update_old">无：Android 15 或更早</string>
+    <string name="dev_live_update_denied">Android 不允许</string>
+    <string name="dev_live_update_shown">时钟旁的胶囊</string>
+    <string name="dev_live_update_refused">Android 未将通知设为实时更新</string>
+    <string name="dev_live_update_waiting">开启分钟模式后显示</string>
 </resources>

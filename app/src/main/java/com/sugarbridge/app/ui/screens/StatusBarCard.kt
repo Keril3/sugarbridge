@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,10 +26,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -36,9 +41,11 @@ import com.sugarbridge.app.R
 import com.sugarbridge.app.glucose.Reading
 import com.sugarbridge.app.glucose.formatGlucose
 import com.sugarbridge.app.settings.AppSettings
+import com.sugarbridge.app.sync.LiveUpdate
 import com.sugarbridge.app.sync.StatusIcon
 import com.sugarbridge.app.ui.components.ChoiceRow
 import com.sugarbridge.app.ui.components.Hint
+import com.sugarbridge.app.ui.components.SecondaryButton
 import com.sugarbridge.app.ui.components.SwitchRow
 import com.sugarbridge.app.ui.components.XpWindow
 import com.sugarbridge.app.ui.currentLocale
@@ -55,14 +62,16 @@ fun scaleLabel(scale: Float, locale: Locale): String =
     "×" + NumberFormat.getInstance(locale).apply { maximumFractionDigits = 2 }.format(scale)
 
 /**
- * The glucose in the status bar: whether the number and the arrow are there, where the arrow stands, how much
- * larger or smaller than usual each is, and a preview drawn by the same code as the real icon. Works with
- * minute mode and "Glucose in the notification" on.
+ * The glucose in the status bar: whether the number and the arrow are there, the Live Update capsule of
+ * Android 16+ ([liveUpdates]: Android allows it), where the arrow stands in the icon, how much larger or smaller
+ * than usual each is, and previews drawn by the same code as the real ones. Works with minute mode and
+ * "Glucose in the notification" on.
  */
 @Composable
-fun StatusBarCard(s: AppSettings, latest: Reading?, update: ((AppSettings) -> AppSettings) -> Unit) {
+fun StatusBarCard(s: AppSettings, latest: Reading?, liveUpdates: Boolean, update: ((AppSettings) -> AppSettings) -> Unit) {
     val active = s.liveEnabled && s.liveShowValue
     val locale = currentLocale()
+    val context = LocalContext.current
     XpWindow(stringResource(R.string.settings_statusbar_title)) {
         if (!active) Hint(stringResource(R.string.settings_statusbar_off))
         SwitchRow(
@@ -83,6 +92,31 @@ fun StatusBarCard(s: AppSettings, latest: Reading?, update: ((AppSettings) -> Ap
         val arrow = icon && s.liveArrow
         val value = formatGlucose(latest?.mgDl ?: 115.0, s.unit, locale)
         val trend = latest?.trend?.takeIf { it in 1..5 } ?: 4
+
+        // Android 16+: the arrow and the number in a capsule next to the clock, as large as its digits
+        SwitchRow(
+            stringResource(R.string.settings_chip),
+            stringResource(R.string.settings_chip_hint),
+            checked = s.liveChip && LiveUpdate.supported,
+            onChange = { on -> update { it.copy(liveChip = on) } },
+            enabled = icon && LiveUpdate.supported,
+            modifier = Modifier.testTag("chip-switch"),
+        )
+        when {
+            !LiveUpdate.supported -> Hint(stringResource(R.string.settings_chip_old))
+            s.liveChip && !liveUpdates -> {
+                Hint(stringResource(R.string.settings_chip_denied))
+                SecondaryButton(
+                    stringResource(R.string.settings_chip_allow),
+                    onClick = { LiveUpdate.settings(context)?.let { runCatching { context.startActivity(it) } } },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+            icon && s.liveChip -> {
+                CapsulePreview(value, if (s.liveArrow) trend else 0)
+                Hint(stringResource(R.string.settings_chip_icon_note))
+            }
+        }
 
         Text(stringResource(R.string.settings_arrow_place), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.alpha(if (arrow) 1f else 0.5f))
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -122,6 +156,43 @@ fun StatusBarCard(s: AppSettings, latest: Reading?, update: ((AppSettings) -> Ap
 @Composable
 private fun rememberIcon(value: String, trend: Int, above: Boolean, numberSize: Int, arrowSize: Int): ImageBitmap =
     remember(value, trend, above, numberSize, arrowSize) { StatusIcon.draw(value, trend, above, numberSize, arrowSize).asImageBitmap() }
+
+/**
+ * The Live Update capsule as Android 16 draws it next to the clock: the arrow as its icon, the number as its
+ * text, both as large as the clock's digits; Tenshi-chan without an arrow.
+ */
+@Composable
+private fun CapsulePreview(value: String, trend: Int) {
+    val ink = Color(0xFF262A33)
+    val arrow = remember(trend) { StatusIcon.arrow(trend, ink.toArgb())?.asImageBitmap() }
+    val clock = rememberClockFormat()
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .border(1.dp, LocalXp.current.windowBorder, RoundedCornerShape(10.dp))
+            .background(barBrush())
+            .height(40.dp)
+            .padding(horizontal = 12.dp)
+            .testTag("capsule-preview"),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Text(LocalTime.of(12, 30).format(clock), color = Color.White, fontSize = 17.sp, fontFamily = FontFamily.SansSerif)
+        Row(
+            Modifier.clip(RoundedCornerShape(50)).background(Color(0xFFE3E4EA)).padding(horizontal = 10.dp, vertical = 3.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+        ) {
+            if (arrow != null) {
+                Image(arrow, contentDescription = null, modifier = Modifier.size(17.dp))
+            } else {
+                Icon(painterResource(R.drawable.ic_stat_tenshi), contentDescription = null, tint = ink, modifier = Modifier.size(17.dp))
+            }
+            Text(value, color = ink, fontSize = 17.sp, fontWeight = FontWeight.Medium, fontFamily = FontFamily.SansSerif)
+        }
+    }
+}
 
 /** The status bar of the previews: the deep blue of the sky (navy at night), so the white icon reads as on a phone. */
 @Composable

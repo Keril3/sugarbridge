@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Icon
 import android.os.SystemClock
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -28,6 +29,7 @@ import com.sugarbridge.app.settings.SettingsStore
 import com.sugarbridge.app.useAppLanguage
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Before
@@ -37,6 +39,7 @@ import java.io.File
 import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import kotlin.math.abs
 import kotlinx.coroutines.runBlocking
 
 /**
@@ -152,11 +155,65 @@ class SyncEndToEndTest {
         assertTrue("$before → $after", after.contains(LiveSyncService.CHANNEL_LIVE))
     }
 
+    /**
+     * Android 16+: minute mode's notification is a Live Update. Its short text is the number, shown in a capsule
+     * next to the clock, and its icon the arrow alone; while SugarBridge is on screen Android hides the capsule,
+     * so the icon has the number. Turned off in Settings it is an ordinary notification again.
+     */
+    @Test
+    fun theGlucoseIsALiveUpdateCapsule() {
+        assumeTrue("Live Updates need Android 16 and their permission", LiveUpdate.allowed(context))
+        useAppLanguage(context, "en")
+        SettingsStore(context).save(AppSettings(backgroundMinutes = 0, liveEnabled = true, liveMinutes = 10, liveShowValue = true, liveKeepAwake = false))
+        openApp()
+        val value = formatGlucose(115.0, GlucoseUnit.MMOL)
+        val arrow = StatusIcon.arrow(4)!!   // LibreLinkUp says 4: rising
+        fun iconIsTheArrow() = looksLike((smallIcon().loadDrawable(context) as BitmapDrawable).bitmap, arrow)
+        waitForOurs { it.flags and Notification.FLAG_PROMOTED_ONGOING != 0 && it.shortCriticalText == value }
+        assertFalse("on screen the icon has the number", iconIsTheArrow())
+
+        instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_HOME").close()
+        val deadline = SystemClock.uptimeMillis() + 10_000
+        while (!iconIsTheArrow() && SystemClock.uptimeMillis() < deadline) Thread.sleep(250)
+        assertTrue("in the capsule the icon is the arrow", iconIsTheArrow())
+        assertTrue(LiveUpdate.shown(context))
+        Thread.sleep(1500)
+        saveScreenshot("en", "statusbar_capsule")
+
+        SettingsStore(context).update { it.copy(liveChip = false) }
+        LiveSyncService.reload(context)
+        waitForOurs { it.flags and Notification.FLAG_PROMOTED_ONGOING == 0 && it.shortCriticalText == null }
+        assertFalse(iconIsTheArrow())   // the number and the arrow drawn in the square icon
+        assertEquals(Icon.TYPE_BITMAP, smallIcon().type)
+    }
+
+    /** Android scales a posted icon down, so the shapes are compared at one small size by their opacity. */
+    private fun looksLike(icon: Bitmap, expected: Bitmap): Boolean {
+        val n = 40
+        val a = Bitmap.createScaledBitmap(icon, n, n, true)
+        val b = Bitmap.createScaledBitmap(expected, n, n, true)
+        var diff = 0L
+        for (x in 0 until n) for (y in 0 until n) diff += abs(android.graphics.Color.alpha(a.getPixel(x, y)) - android.graphics.Color.alpha(b.getPixel(x, y)))
+        return diff / (n * n) < 12
+    }
+
+    /** Minute mode's own notification, once it matches. */
+    private fun waitForOurs(timeoutMs: Long = 15_000, matches: (Notification) -> Boolean): Notification {
+        val manager = context.getSystemService(NotificationManager::class.java)
+        val deadline = SystemClock.uptimeMillis() + timeoutMs
+        while (SystemClock.uptimeMillis() < deadline) {
+            manager.activeNotifications.firstOrNull { it.id == LiveSyncService.NOTIFICATION_ID }?.notification?.let { if (matches(it)) return it }
+            Thread.sleep(250)
+        }
+        throw AssertionError("minute mode's notification didn't become as expected")
+    }
+
     /** The trend arrow and the number in the status bar each have a switch in Settings. */
     @Test
     fun arrowAndStatusBarNumberCanBeTurnedOff() {
         useAppLanguage(context, "en")
-        SettingsStore(context).save(AppSettings(backgroundMinutes = 0, liveEnabled = true, liveMinutes = 10, liveShowValue = true, liveKeepAwake = false))
+        // the square icon, not the Live Update capsule whose icon is the arrow alone
+        SettingsStore(context).save(AppSettings(backgroundMinutes = 0, liveEnabled = true, liveMinutes = 10, liveShowValue = true, liveKeepAwake = false, liveChip = false))
         openApp()
         val withArrow = waitForNotification { it.contains(LiveSyncService.CHANNEL_LIVE) && it.contains(formatGlucose(115.0, GlucoseUnit.MMOL)) }
         assertTrue(withArrow, withArrow.contains("↗"))   // LibreLinkUp says 4: rising

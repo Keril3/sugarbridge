@@ -17,8 +17,9 @@ fun hba1cMmolPerMol(percent: Double): Int = ((percent - 2.15) * 10.929).roundToI
 /**
  * The result for a period. coverage is the share of the period covered by readings (see [GlucoseBins]). By the
  * international consensus the estimate can be trusted with at least 70% of the data over 14 days or more.
+ * inRange is the time in the target range, 0 to 1, each 15 minutes weighing the same.
  */
-data class GmiResult(val days: Int, val meanMgDl: Double, val coverage: Double) {
+data class GmiResult(val days: Int, val meanMgDl: Double, val coverage: Double, val inRange: Double = 0.0) {
     val percent: Double get() = gmiPercent(meanMgDl)
     val mmolPerMol: Int get() = hba1cMmolPerMol(percent)
     val enough: Boolean get() = coverage >= MIN_COVERAGE
@@ -37,10 +38,16 @@ data class GmiResult(val days: Int, val meanMgDl: Double, val coverage: Double) 
  * Now a reading covers the time until the next one if that comes within [MAX_GAP]; after a longer gap, a
  * missing sensor or no connection, it covers only one [INTERVAL].
  */
-class GlucoseBins(private val from: Instant, private val to: Instant) {
+class GlucoseBins(
+    private val from: Instant,
+    private val to: Instant,
+    private val lowMgDl: Double = 70.0,
+    private val highMgDl: Double = 180.0,
+) {
     private val count = ((Duration.between(from, to).seconds + BIN_SECONDS - 1) / BIN_SECONDS).toInt().coerceAtLeast(1)
     private val sums = DoubleArray(count)
     private val hits = IntArray(count)
+    private val inside = IntArray(count)   // readings in the target range
     private var times = LongArray(1024)   // seconds since [from], for the coverage
     private var size = 0
 
@@ -50,6 +57,7 @@ class GlucoseBins(private val from: Instant, private val to: Instant) {
         val bin = (since / BIN_SECONDS).toInt()
         sums[bin] += mgDl
         hits[bin]++
+        if (mgDl in lowMgDl..highMgDl) inside[bin]++
         if (size == times.size) times = times.copyOf(size * 2)
         times[size++] = since
     }
@@ -70,15 +78,17 @@ class GlucoseBins(private val from: Instant, private val to: Instant) {
     fun result(): GmiResult? {
         var filled = 0
         var total = 0.0
+        var inRange = 0.0
         for (i in 0 until count) {
             if (hits[i] > 0) {
                 filled++
                 total += sums[i] / hits[i]
+                inRange += inside[i].toDouble() / hits[i]
             }
         }
         if (filled == 0) return null
         val days = Duration.between(from, to).toDays().toInt().coerceAtLeast(1)
-        return GmiResult(days, total / filled, coverage())
+        return GmiResult(days, total / filled, coverage(), inRange / filled)
     }
 
     companion object {

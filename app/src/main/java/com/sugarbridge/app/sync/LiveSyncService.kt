@@ -1,5 +1,6 @@
 package com.sugarbridge.app.sync
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -13,6 +14,7 @@ import android.content.SharedPreferences
 import android.content.pm.ServiceInfo
 import android.content.res.Configuration
 import android.graphics.drawable.Icon
+import android.os.Bundle
 import android.os.IBinder
 import android.os.PowerManager
 import android.os.SystemClock
@@ -32,6 +34,7 @@ import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.settings.SettingsStore
 import com.sugarbridge.app.settings.minuteModeOff
 import com.sugarbridge.app.ui.clockFormat
+import java.lang.ref.WeakReference
 import java.time.ZoneId
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -98,6 +101,7 @@ class LiveSyncService : Service() {
     override fun onCreate() {
         super.onCreate()
         running = true
+        instance = WeakReference(this)
         getSharedPreferences(SyncStore.NAME, MODE_PRIVATE).registerOnSharedPreferenceChangeListener(syncListener)
         val events = IntentFilter().apply {
             addAction(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED)
@@ -168,6 +172,7 @@ class LiveSyncService : Service() {
 
     override fun onDestroy() {
         running = false
+        instance = null
         DebugLog.add(this, "service", "minute mode off")
         runCatching { unregisterReceiver(phoneListener) }
         getSharedPreferences(SyncStore.NAME, MODE_PRIVATE).unregisterOnSharedPreferenceChangeListener(syncListener)
@@ -264,14 +269,18 @@ class LiveSyncService : Service() {
                 GlucoseLevel.HIGH -> R.string.level_high
             }
             val text = getString(R.string.notif_value_text, time, getString(level))
-            // the number itself as the status bar icon, drawn the way Settings show it
-            val icon = if (s.liveStatusValue) {
-                Icon.createWithBitmap(StatusIcon.draw(value, trend, s.statusArrowAbove, s.statusNumberSize, s.statusArrowSize))
-            } else {
-                null
+            // Android 16+: a Live Update, the number as text in a capsule next to the clock
+            val capsule = if (s.liveStatusValue && s.liveChip && LiveUpdate.allowed(this)) value else null
+            val icon = when {
+                !s.liveStatusValue -> null
+                // in the capsule the arrow is the icon, as large as the number beside it (Tenshi-chan without one).
+                // While SugarBridge is on screen Android hides the capsule and shows the icon alone: then it has the number
+                capsule != null && !appInFront -> StatusIcon.arrow(trend)?.let { Icon.createWithBitmap(it) }
+                // the number itself as the status bar icon, drawn the way Settings show it
+                else -> Icon.createWithBitmap(StatusIcon.draw(value, trend, s.statusArrowAbove, s.statusNumberSize, s.statusArrowSize))
             }
-            val look = "${s.liveStatusValue}|${s.statusArrowAbove}|${s.statusNumberSize}|${s.statusArrowSize}"
-            return "value|$title|$text|$look" to builder(channel, title, text, icon).build()
+            val look = "${s.liveStatusValue}|${s.statusArrowAbove}|${s.statusNumberSize}|${s.statusArrowSize}|$capsule|$appInFront"
+            return "value|$title|$text|$look" to builder(channel, title, text, icon, capsule).build()
         }
         val every = if (s.liveMinutes == 1) getString(R.string.notif_every_minute) else getString(R.string.notif_every, s.liveMinutes)
         return "quiet|$channel|$every" to builder(channel, getString(R.string.notif_watching), every).build()
@@ -286,7 +295,12 @@ class LiveSyncService : Service() {
         else -> getString(R.string.notif_failed) to p.text(resources)
     }
 
-    private fun builder(channel: String, title: String, text: String?, icon: Icon? = null): Notification.Builder {
+    /**
+     * [capsule]: the short text of a Live Update (Android 16+), or null for an ordinary notification. The request
+     * to be one is a plain text extra: phones on Android 16 before QPR2 that have Live Updates read it too.
+     */
+    @SuppressLint("InlinedApi")
+    private fun builder(channel: String, title: String, text: String?, icon: Icon? = null, capsule: String? = null): Notification.Builder {
         val openApp = Intent(this, MainActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)   // don't stack copies of the screen
         val open = PendingIntent.getActivity(this, 0, openApp, PendingIntent.FLAG_IMMUTABLE)
@@ -305,6 +319,13 @@ class LiveSyncService : Service() {
             .setColor(0xFFF06FA4.toInt())
             .setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
             .addAction(Notification.Action.Builder(null, getString(R.string.notif_stop), stop).build())
+            .apply {
+                if (capsule != null && LiveUpdate.supported) {
+                    // the request as an extra: Builder.setRequestPromotedOngoing came only with Android 16 QPR2
+                    addExtras(Bundle().apply { putBoolean(Notification.EXTRA_REQUEST_PROMOTED_ONGOING, true) })
+                    setShortCriticalText(capsule)
+                }
+            }
     }
 
     private fun action(name: String) = Intent(this, LiveSyncService::class.java).setAction(name)
@@ -340,6 +361,21 @@ class LiveSyncService : Service() {
             private set
         @Volatile var lastTick = 0L
             private set
+
+        /** SugarBridge is on screen: Android hides the Live Update capsule then, see [render]. */
+        @Volatile var appInFront = false
+            private set
+        private var instance: WeakReference<LiveSyncService>? = null
+
+        /** The app came on screen or left it: the status bar icon changes between the number and the arrow. */
+        fun appVisible(visible: Boolean) {
+            if (appInFront == visible) return
+            appInFront = visible
+            instance?.get()?.let { service ->
+                service.lastPosted = null
+                service.safePost(SettingsStore(service).load())
+            }
+        }
 
         // "live" was used by version 1.0.0 with LOW importance: such notifications get no status bar icon,
         // and an app can't change the importance of an existing channel, hence the new id

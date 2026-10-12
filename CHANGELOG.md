@@ -2,6 +2,20 @@
 
 Newest version first. A version's section becomes the release notes on GitHub.
 
+## 1.9.0 — 2026-10-12
+
+- Android 16 and newer: minute mode's glucose is a Live Update, a capsule next to the clock. The trend arrow is
+  its icon and the number its text, both as large as the clock's digits, which the square notification icon
+  can't give. While SugarBridge itself is open, Android hides the capsule; the icon then shows the number.
+  Settings → Status bar has a switch "Capsule by the clock" with a preview and, if Android doesn't allow Live
+  Updates for the app, a button to its setting. The developer tools show whether Android made the notification
+  a Live Update. Phones that don't draw the capsule keep the square icon as before.
+- Estimated HbA1c: the bars show the time in the target range over 14 and 90 days, each 15 minutes weighing
+  the same, like the days of the history. The share of data is shown only when it is too little to trust the
+  estimate. Changing the target range recounts it.
+- XP bars: the blocks fill the trough from end to end instead of leaving a strip at the end, and the end blocks
+  follow its rounding instead of standing out over the frame.
+
 ## 1.8.1 — 2026-10-12
 
 - Status bar: the digits keep the font's own proportions with the arrow beside them too, the same as above
