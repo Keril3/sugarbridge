@@ -328,7 +328,6 @@
     <string name="settings_arrow_place">Де стрілка</string>
     <string name="arrow_above">Над числом</string>
     <string name="arrow_beside">Праворуч</string>
-    <string name="settings_statusbar_preview">Ліворуч — як у рядку стану, праворуч — те саме збільшено</string>
     <string name="home_all_history">Історія за весь час</string>
     <string name="history_view_loaded">Переглянути завантажену історію</string>
     <string name="history_back">‹ Назад</string>
@@ -362,16 +361,12 @@
     <string name="feedback_discord_link">Відкрити профіль у Discord</string>
     <string name="feedback_telegram_link">Відкрити чат у Telegram</string>
     <string name="feedback_site_link">Відкрити сайт</string>
-    <string name="settings_chip">Капсула біля годинника</string>
-    <string name="settings_chip_hint">Android 16+: Live Update — стрілка й число в капсулі поруч із годинником, завбільшки з цифри годинника</string>
-    <string name="settings_chip_old">Потрібен Android 16 або новіший</string>
-    <string name="settings_chip_denied">Android не дозволяє SugarBridge Live Updates. Дозвольте їх у налаштуваннях:</string>
-    <string name="settings_chip_allow">Дозволити Live Updates</string>
-    <string name="settings_chip_icon_note">Поки SugarBridge відкритий, Android ховає капсулу й показує значок — його вигляд налаштовується нижче. Якщо капсула на вашому телефоні не з’являється, вимкніть її.</string>
-    <string name="dev_live_update">Live Update</string>
-    <string name="dev_live_update_old">немає: Android 15 або старший</string>
-    <string name="dev_live_update_denied">не дозволено Android</string>
-    <string name="dev_live_update_shown">капсула біля годинника</string>
-    <string name="dev_live_update_refused">Android не зробив сповіщення Live Update</string>
-    <string name="dev_live_update_waiting">увімкнеться з хвилинним режимом</string>
+    <string name="trend_falling_fast">швидко падає</string>
+    <string name="trend_falling">падає</string>
+    <string name="trend_steady">тримається</string>
+    <string name="trend_rising">зростає</string>
+    <string name="trend_rising_fast">швидко зростає</string>
+    <string name="settings_arrow_place_hint">«Праворуч» — стрілка у власному значку поруч із числом. Кожен займає цілий квадрат, тож обидва великі; у шторці в стрілки свій рядок.</string>
+    <string name="settings_statusbar_tenshi">Без числа й стрілки вгорі екрана буде значок Тенсі-тян.</string>
+    <string name="settings_icons_bundled">Цей телефон об’єднав два значки в один, тому поки стрілка стоїть над числом. Натисніть «Праворуч», щоб знову спробувати два значки.</string>
 </resources>

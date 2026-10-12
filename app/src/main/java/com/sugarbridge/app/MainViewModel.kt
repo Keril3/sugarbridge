@@ -42,7 +42,6 @@ import com.sugarbridge.app.libreview.summarizeDays
 import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.settings.SettingsStore
 import com.sugarbridge.app.sync.LiveSyncService
-import com.sugarbridge.app.sync.LiveUpdate
 import com.sugarbridge.app.sync.Problem
 import com.sugarbridge.app.sync.SyncBlocked
 import com.sugarbridge.app.sync.SyncSnapshot
@@ -88,7 +87,6 @@ data class UiState(
     val checkResult: CheckResult? = null,
     val gmi14: GmiResult? = null,   // estimated HbA1c for 14 and 90 days from our own records in Health Connect
     val gmi90: GmiResult? = null,
-    val liveUpdates: Boolean = false,         // Android 16+ lets SugarBridge show the Live Update capsule
 )
 
 /** A newer version on GitHub and the state of downloading it. */
@@ -220,7 +218,6 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             healthConnect = hc,
             samsungHealth = isInstalled(context, SAMSUNG_HEALTH_PACKAGE),
             batteryUnrestricted = power.isIgnoringBatteryOptimizations(context.packageName),
-            liveUpdates = LiveUpdate.allowed(context),
         )
         viewModelScope.launch {
             val canWrite = hc == HealthConnectState.AVAILABLE && runCatching { hasGlucosePermission(context) }.getOrDefault(false)

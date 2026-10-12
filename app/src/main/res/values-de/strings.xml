@@ -328,7 +328,6 @@
     <string name="settings_arrow_place">Position des Pfeils</string>
     <string name="arrow_above">Über der Zahl</string>
     <string name="arrow_beside">Daneben</string>
-    <string name="settings_statusbar_preview">Links wie in der Statusleiste, rechts dasselbe vergrößert</string>
     <string name="home_all_history">Gesamter Verlauf</string>
     <string name="history_view_loaded">Geladenen Verlauf ansehen</string>
     <string name="history_back">‹ Zurück</string>
@@ -362,16 +361,12 @@
     <string name="feedback_discord_link">Discord-Profil öffnen</string>
     <string name="feedback_telegram_link">Telegram-Chat öffnen</string>
     <string name="feedback_site_link">Website öffnen</string>
-    <string name="settings_chip">Kapsel an der Uhr</string>
-    <string name="settings_chip_hint">Android 16+: ein Live Update, Pfeil und Zahl in einer Kapsel neben der Uhr, so groß wie ihre Ziffern</string>
-    <string name="settings_chip_old">Braucht Android 16 oder neuer</string>
-    <string name="settings_chip_denied">Android erlaubt SugarBridge keine Live Updates. Erlaube sie in den Einstellungen:</string>
-    <string name="settings_chip_allow">Live Updates erlauben</string>
-    <string name="settings_chip_icon_note">Solange SugarBridge offen ist, versteckt Android die Kapsel und zeigt das Symbol; wie es aussieht, stellst du unten ein. Zeigt dein Handy keine Kapsel, schalte sie aus.</string>
-    <string name="dev_live_update">Live Update</string>
-    <string name="dev_live_update_old">nein: Android 15 oder älter</string>
-    <string name="dev_live_update_denied">von Android nicht erlaubt</string>
-    <string name="dev_live_update_shown">eine Kapsel an der Uhr</string>
-    <string name="dev_live_update_refused">Android hat die Benachrichtigung nicht zum Live Update gemacht</string>
-    <string name="dev_live_update_waiting">kommt mit dem Minutenmodus</string>
+    <string name="trend_falling_fast">fällt schnell</string>
+    <string name="trend_falling">fällt</string>
+    <string name="trend_steady">stabil</string>
+    <string name="trend_rising">steigt</string>
+    <string name="trend_rising_fast">steigt schnell</string>
+    <string name="settings_arrow_place_hint">„Daneben“: der Pfeil in einem eigenen Symbol neben dem der Zahl. Jedes füllt ein ganzes Quadrat, darum sind beide groß; in der Benachrichtigungsleiste hat der Pfeil eine eigene Zeile.</string>
+    <string name="settings_statusbar_tenshi">Ohne Zahl und Pfeil steht oben auf dem Bildschirm Tenshi-chans Symbol.</string>
+    <string name="settings_icons_bundled">Dieses Handy hat die zwei Symbole zu einem zusammengefasst, darum steht der Pfeil vorerst über der Zahl. Tippe auf „Daneben“, um zwei Symbole erneut zu versuchen.</string>
 </resources>

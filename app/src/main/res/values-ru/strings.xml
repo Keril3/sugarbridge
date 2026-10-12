@@ -328,7 +328,6 @@
     <string name="settings_arrow_place">Где стрелка</string>
     <string name="arrow_above">Над числом</string>
     <string name="arrow_beside">Справа</string>
-    <string name="settings_statusbar_preview">Слева — как в строке состояния, справа — то же крупно</string>
     <string name="home_all_history">История за всё время</string>
     <string name="history_view_loaded">Просмотр загруженной истории</string>
     <string name="history_back">‹ Назад</string>
@@ -362,16 +361,12 @@
     <string name="feedback_discord_link">Открыть профиль в Discord</string>
     <string name="feedback_telegram_link">Открыть чат в Telegram</string>
     <string name="feedback_site_link">Открыть сайт</string>
-    <string name="settings_chip">Капсула у часов</string>
-    <string name="settings_chip_hint">Android 16+: Live Update — стрелка и число в капсуле рядом с часами, размером с цифры часов</string>
-    <string name="settings_chip_old">Нужен Android 16 или новее</string>
-    <string name="settings_chip_denied">Android не разрешает SugarBridge Live Updates. Разрешите их в настройках:</string>
-    <string name="settings_chip_allow">Разрешить Live Updates</string>
-    <string name="settings_chip_icon_note">Пока SugarBridge открыт, Android прячет капсулу и показывает значок — его вид настраивается ниже. Если капсула на вашем телефоне не появляется, выключите её.</string>
-    <string name="dev_live_update">Live Update</string>
-    <string name="dev_live_update_old">нет: Android 15 или старше</string>
-    <string name="dev_live_update_denied">не разрешено Android</string>
-    <string name="dev_live_update_shown">капсула у часов</string>
-    <string name="dev_live_update_refused">Android не сделал уведомление Live Update</string>
-    <string name="dev_live_update_waiting">включится с минутным режимом</string>
+    <string name="trend_falling_fast">быстро падает</string>
+    <string name="trend_falling">падает</string>
+    <string name="trend_steady">держится</string>
+    <string name="trend_rising">растёт</string>
+    <string name="trend_rising_fast">быстро растёт</string>
+    <string name="settings_arrow_place_hint">«Справа» — стрелка в своём значке рядом с числом. Каждый занимает целый квадрат, поэтому оба крупные; в шторке у стрелки своя строка.</string>
+    <string name="settings_statusbar_tenshi">Без числа и стрелки вверху экрана будет значок Тэнси-тян.</string>
+    <string name="settings_icons_bundled">Этот телефон объединил два значка в один, поэтому пока стрелка стоит над числом. Нажмите «Справа», чтобы снова попробовать два значка.</string>
 </resources>

@@ -328,7 +328,6 @@
     <string name="settings_arrow_place">Okun yeri</string>
     <string name="arrow_above">Sayının üstünde</string>
     <string name="arrow_beside">Yanında</string>
-    <string name="settings_statusbar_preview">Solda durum çubuğundaki gibi, sağda aynısı büyütülmüş</string>
     <string name="home_all_history">Tüm zamanların geçmişi</string>
     <string name="history_view_loaded">Yüklenen geçmişi görüntüle</string>
     <string name="history_back">‹ Geri</string>
@@ -362,16 +361,12 @@
     <string name="feedback_discord_link">Discord profilini aç</string>
     <string name="feedback_telegram_link">Telegram sohbetini aç</string>
     <string name="feedback_site_link">Web sitesini aç</string>
-    <string name="settings_chip">Saatin yanında kapsül</string>
-    <string name="settings_chip_hint">Android 16+: Live Update; ok ve sayı saatin yanındaki bir kapsülde, saatin rakamları kadar büyük</string>
-    <string name="settings_chip_old">Android 16 veya daha yenisi gerekir</string>
-    <string name="settings_chip_denied">Android, SugarBridge’in Live Update göstermesine izin vermiyor. Ayarlardan izin verin:</string>
-    <string name="settings_chip_allow">Live Update’e izin ver</string>
-    <string name="settings_chip_icon_note">SugarBridge açıkken Android kapsülü gizler ve simgeyi gösterir; görünümü aşağıda ayarlanır. Telefonunuz kapsül göstermiyorsa kapatın.</string>
-    <string name="dev_live_update">Live Update</string>
-    <string name="dev_live_update_old">yok: Android 15 veya daha eski</string>
-    <string name="dev_live_update_denied">Android izin vermiyor</string>
-    <string name="dev_live_update_shown">saatin yanında kapsül</string>
-    <string name="dev_live_update_refused">Android bildirimi Live Update yapmadı</string>
-    <string name="dev_live_update_waiting">dakika moduyla gelir</string>
+    <string name="trend_falling_fast">hızlı düşüyor</string>
+    <string name="trend_falling">düşüyor</string>
+    <string name="trend_steady">sabit</string>
+    <string name="trend_rising">yükseliyor</string>
+    <string name="trend_rising_fast">hızlı yükseliyor</string>
+    <string name="settings_arrow_place_hint">“Yanında”: ok, sayının simgesinin yanında kendi simgesinde. Her biri koca bir kareyi doldurur, bu yüzden ikisi de büyüktür; bildirim panelinde okun kendi satırı olur.</string>
+    <string name="settings_statusbar_tenshi">Sayı ve ok olmadan ekranın üstünde Tenshi-chan’ın simgesi görünür.</string>
+    <string name="settings_icons_bundled">Bu telefon iki simgeyi tek simgede birleştirdi, bu yüzden ok şimdilik sayının üstünde. İki simgeyi yeniden denemek için “Yanında”ya dokunun.</string>
 </resources>

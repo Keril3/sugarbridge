@@ -10,7 +10,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import kotlin.math.abs
 
-/** The status bar icon is measured by its pixels: how large the number and the arrow are and how they stand. */
+/** The status bar icons are measured by their pixels: how large the number and the arrow are and how they stand. */
 @RunWith(AndroidJUnit4::class)
 class StatusIconTest {
 
@@ -34,27 +34,49 @@ class StatusIconTest {
 
     private fun size(r: IntRange) = r.last - r.first + 1
 
-    /** The rows of the number: above it stands the arrow (the first run of rows), beside it the whole height. */
-    private fun numberRows(icon: Bitmap, above: Boolean): IntRange =
-        if (above) runs(icon, rows = true).drop(1).let { it.first().first..it.last().last } else 0 until SIZE
+    private fun span(r: List<IntRange>) = r.last().last - r.first().first + 1
 
-    /** The first digit's box: its columns and its rows. */
-    private fun firstDigit(icon: Bitmap, above: Boolean): Pair<IntRange, IntRange> {
-        val columns = runs(icon, rows = false, across = numberRows(icon, above)).first()
-        val rows = runs(icon, rows = true, across = columns).let { r -> if (above) r.last() else r.maxBy { size(it) } }
+    /** The first digit's box, under the arrow if there is one above: its columns and its rows. */
+    private fun firstDigit(icon: Bitmap, arrowAbove: Boolean): Pair<IntRange, IntRange> {
+        val numberRows = if (arrowAbove) runs(icon, rows = true).drop(1).let { it.first().first..it.last().last } else 0 until SIZE
+        val columns = runs(icon, rows = false, across = numberRows).first()
+        val rows = runs(icon, rows = true, across = columns).let { r -> if (arrowAbove) r.last() else r.maxBy { size(it) } }
         return columns to rows
     }
 
-    private fun digitHeight(icon: Bitmap, above: Boolean) = size(firstDigit(icon, above).second)
+    private fun digitHeight(icon: Bitmap, arrowAbove: Boolean) = size(firstDigit(icon, arrowAbove).second)
 
-    /** The arrow's height: above the number the first run of rows, beside it the rows of the last run of columns. */
-    private fun arrowHeight(icon: Bitmap, above: Boolean): Int =
-        if (above) size(runs(icon, rows = true).first())
-        else size(runs(icon, rows = true, across = runs(icon, rows = false).last()).let { it.first().first..it.last().last })
+    /** Alone, the largest number fills the width of its icon and is tall. */
+    @Test
+    fun theLargestNumberFillsItsIcon() {
+        for (value in listOf("6.4", "6,5")) {
+            val icon = StatusIcon.number(value, 3)
+            assertTrue("$value: width ${span(runs(icon, rows = false))} of $SIZE", span(runs(icon, rows = false)) >= SIZE * 0.9)
+            assertTrue("$value: digits ${digitHeight(icon, false)} of $SIZE", digitHeight(icon, false) >= SIZE * 0.55)
+        }
+    }
+
+    /** The largest arrow fills its own icon; every step draws it larger. */
+    @Test
+    fun theArrowFillsItsIcon() {
+        val up = StatusIcon.arrow(5, 3)!!   // straight up: as tall as its square
+        assertTrue("${span(runs(up, rows = true))} of $SIZE", span(runs(up, rows = true)) >= SIZE * 0.9)
+        val heights = (0..3).map { span(runs(StatusIcon.arrow(5, it)!!, rows = true)) }
+        assertTrue("$heights", (0..2).all { heights[it] < heights[it + 1] })
+        assertEquals(null, StatusIcon.arrow(0, 3))   // no trend, no arrow
+    }
 
     @Test
-    fun theNumberIsLargeAndTheArrowStandsApartAboveIt() {
-        val icon = StatusIcon.draw("6.4", 4, arrowAbove = true, numberSize = 3, arrowSize = 1)
+    fun everyNumberStepDrawsLarger() {
+        for (value in listOf("3,7", "6.4", "10.4")) {
+            val heights = (0..3).map { digitHeight(StatusIcon.number(value, it), false) }
+            assertTrue("$value: $heights", (0..2).all { heights[it] < heights[it + 1] })
+        }
+    }
+
+    @Test
+    fun overTheNumberTheArrowStandsApart() {
+        val icon = StatusIcon.above("6.4", 4, numberSize = 3, arrowSize = 1)
         val rows = runs(icon, rows = true)
         assertEquals("the arrow and the number: $rows", 2, rows.size)
         val (arrow, number) = rows
@@ -62,109 +84,66 @@ class StatusIconTest {
         assertTrue("gap ${number.first - arrow.last} px", number.first - arrow.last >= SIZE * 0.06)
     }
 
-    @Test
-    fun besideTheNumberTheArrowKeepsAGapToo() {
-        val icon = StatusIcon.draw("6.4", 4, arrowAbove = false, numberSize = 3, arrowSize = 1)
-        val columns = runs(icon, rows = false)
-        val arrow = columns.last()
-        val beforeArrow = columns[columns.size - 2]
-        assertTrue("gap ${arrow.first - beforeArrow.last} px", arrow.first - beforeArrow.last >= SIZE * 0.06)
-    }
-
-    /** The digits are never narrowed: beside the arrow they have the same proportions as above it or alone. */
-    @Test
-    fun theDigitsKeepTheirProportionsEverywhere() {
-        for (value in listOf("3,7", "6.4", "10.4", "22,2", "250")) {
-            val (c, r) = firstDigit(StatusIcon.draw(value, 0, false, 3, 0), above = false)
-            val alone = size(c).toFloat() / size(r)
-            for (above in listOf(true, false)) {
-                for ((n, a) in listOf(3 to 3, 3 to 0, 0 to 3, 1 to 1)) {
-                    val (columns, rows) = firstDigit(StatusIcon.draw(value, 4, above, n, a), above)
-                    val ratio = size(columns).toFloat() / size(rows)
-                    assertTrue("$value, above $above, $n/$a: $ratio vs $alone", abs(ratio - alone) <= 0.07f)
-                }
-            }
-        }
-    }
-
-    /** At the same step the arrow is as tall as the digits, beside them and above them. */
+    /** Over the number, at the same step the arrow is as tall as the digits. */
     @Test
     fun atTheSameStepTheArrowIsAsTallAsTheDigits() {
-        for (above in listOf(false, true)) {
-            for (step in listOf(1, 3)) {
-                val icon = StatusIcon.draw("3,7", 5, above, step, step)   // 5: straight up, as tall as its square
-                val digit = digitHeight(icon, above)
-                val arrow = arrowHeight(icon, above)
-                assertTrue("above $above, step $step: arrow $arrow, digits $digit", abs(arrow - digit) <= digit * 0.08)
-            }
+        for (step in listOf(1, 3)) {
+            val icon = StatusIcon.above("3,7", 5, step, step)   // 5: straight up, as tall as its square
+            val digit = digitHeight(icon, true)
+            val arrow = size(runs(icon, rows = true).first())
+            assertTrue("step $step: arrow $arrow, digits $digit", abs(arrow - digit) <= digit * 0.08)
         }
     }
 
-    /** While the number and the arrow fit the square together, the step of one doesn't change the other. */
+    /** Over the number, while both fit, the step of one doesn't change the other. */
     @Test
     fun stepsAreIndependentWhileTheyFit() {
-        for (above in listOf(false, true)) {
-            val digits = (0..3).map { digitHeight(StatusIcon.draw("3,7", 5, above, 1, it), above) }
-            assertTrue("above $above, number at ×0.9: $digits", digits.max() - digits.min() <= 1)
-            val arrows = (0..2).map { arrowHeight(StatusIcon.draw("3,7", 5, above, it, 1), above) }
-            assertTrue("above $above, arrow at ×0.9: $arrows", arrows.max() - arrows.min() <= 1)
-        }
+        val digits = (0..3).map { digitHeight(StatusIcon.above("3,7", 5, 1, it), true) }
+        assertTrue("number at ×0.9: $digits", digits.max() - digits.min() <= 1)
+        val arrows = (0..2).map { size(runs(StatusIcon.above("3,7", 5, it, 1), rows = true).first()) }
+        assertTrue("arrow at ×0.9: $arrows", arrows.max() - arrows.min() <= 1)
     }
 
-    /** Every step makes the number larger, also when the square runs short and everything is made smaller. */
+    /** The digits are never narrowed: under the arrow they have the same proportions as alone. */
     @Test
-    fun largerStepsDrawLarger() {
-        for (above in listOf(false, true)) {
-            for (value in listOf("3,7", "6.4")) {
-                val digits = (0..3).map { digitHeight(StatusIcon.draw(value, 5, above, it, 3), above) }
-                assertTrue("$value, above $above: $digits", (0..2).all { digits[it] < digits[it + 1] })
+    fun theDigitsKeepTheirProportions() {
+        for (value in listOf("3,7", "6.4", "10.4", "22,2", "250")) {
+            val (c, r) = firstDigit(StatusIcon.number(value, 3), false)
+            val alone = size(c).toFloat() / size(r)
+            for ((n, a) in listOf(3 to 3, 3 to 0, 0 to 3, 1 to 1)) {
+                val (columns, rows) = firstDigit(StatusIcon.above(value, 4, n, a), true)
+                val ratio = size(columns).toFloat() / size(rows)
+                assertTrue("$value, $n/$a: $ratio vs $alone", abs(ratio - alone) <= 0.07f)
             }
-            val arrows = (0..3).map { arrowHeight(StatusIcon.draw("6.4", 5, above, 1, it), above) }
-            assertTrue("above $above: $arrows", (0..2).all { arrows[it] < arrows[it + 1] })
         }
-        val alone = (0..3).map { digitHeight(StatusIcon.draw("6.4", 0, false, it, 1), false) }
-        assertTrue("$alone", (0..2).all { alone[it] < alone[it + 1] })
     }
 
     /** The comma's tail hangs below the digits: "6,4" has digits as tall as "6.4". */
     @Test
     fun aCommaDoesNotMakeTheDigitsSmaller() {
-        fun digit(value: String) = digitHeight(StatusIcon.draw(value, 0, false, 2, 1), false)
+        fun digit(value: String) = digitHeight(StatusIcon.number(value, 2), false)
         assertTrue("${digit("6,4")} vs ${digit("6.4")}", abs(digit("6,4") - digit("6.4")) <= 1)
     }
 
-    /** Alone, the largest number is as wide as the icon allows. */
     @Test
-    fun theLargestNumberAloneFillsTheIcon() {
-        for (value in listOf("6.4", "6,2")) {
-            val icon = StatusIcon.draw(value, 0, false, 3, 1)
-            val columns = runs(icon, rows = false)
-            val width = columns.last().last - columns.first().first + 1
-            assertTrue("$value: $width of $SIZE", width >= SIZE * 0.9)
-            assertTrue("$value: digits ${digitHeight(icon, false)} of $SIZE", digitHeight(icon, false) >= SIZE * 0.55)
-        }
-    }
-
-    @Test
-    fun withoutATrendTheNumberIsInTheMiddle() {
-        val number = runs(StatusIcon.draw("6.4", 0, true, 3, 1), rows = true).single()
+    fun withoutATrendTheNumberIsAloneInTheMiddle() {
+        val icon = StatusIcon.above("6.4", 0, 3, 1)
+        assertTrue(icon.sameAs(StatusIcon.number("6.4", 3)))
+        val number = runs(icon, rows = true).single()
         assertTrue("$number", abs((number.first + number.last) / 2 - SIZE / 2) <= 3)
     }
 
     @Test
     fun nothingTouchesTheEdges() {
-        for (value in listOf("2.2", "6.4", "10.4", "22.2", "22,2", "45", "120", "400")) {
-            for (trend in listOf(0, 1, 3, 5)) {
-                for (above in listOf(true, false)) {
-                    for (step in 0..3) {
-                        val icon = StatusIcon.draw(value, trend, above, numberSize = 3, arrowSize = step)
-                        val edge = (0 until SIZE).any { i ->
-                            visible(icon, i, 0) || visible(icon, i, SIZE - 1) || visible(icon, 0, i) || visible(icon, SIZE - 1, i)
-                        }
-                        assertTrue("$value, trend $trend, above $above, arrow $step touches the edge", !edge)
-                    }
-                }
+        fun edge(icon: Bitmap) = (0 until SIZE).any { i ->
+            visible(icon, i, 0) || visible(icon, i, SIZE - 1) || visible(icon, 0, i) || visible(icon, SIZE - 1, i)
+        }
+        for (step in 0..3) {
+            for (value in listOf("2.2", "6.4", "10.4", "22.2", "22,2", "45", "120", "400")) {
+                assertTrue("number $value, $step", !edge(StatusIcon.number(value, step)))
+                for (trend in listOf(1, 3, 5)) assertTrue("$value over $trend, $step", !edge(StatusIcon.above(value, trend, 3, step)))
             }
+            for (trend in 1..5) assertTrue("arrow $trend, $step", !edge(StatusIcon.arrow(trend, step)!!))
         }
     }
 }

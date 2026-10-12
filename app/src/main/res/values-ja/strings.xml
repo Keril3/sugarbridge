@@ -328,7 +328,6 @@
     <string name="settings_arrow_place">矢印の位置</string>
     <string name="arrow_above">数字の上</string>
     <string name="arrow_beside">横</string>
-    <string name="settings_statusbar_preview">左はステータスバーでの見え方、右は拡大表示です</string>
     <string name="home_all_history">全期間の履歴</string>
     <string name="history_view_loaded">読み込んだ履歴を見る</string>
     <string name="history_back">‹ 戻る</string>
@@ -362,16 +361,12 @@
     <string name="feedback_discord_link">Discord のプロフィールを開く</string>
     <string name="feedback_telegram_link">Telegram のチャットを開く</string>
     <string name="feedback_site_link">ウェブサイトを開く</string>
-    <string name="settings_chip">時計の横のカプセル</string>
-    <string name="settings_chip_hint">Android 16 以降：Live Update として、矢印と数値を時計の横のカプセルに時計の数字と同じ大きさで表示</string>
-    <string name="settings_chip_old">Android 16 以降が必要です</string>
-    <string name="settings_chip_denied">Android が SugarBridge の Live Update を許可していません。設定で許可してください：</string>
-    <string name="settings_chip_allow">Live Update を許可</string>
-    <string name="settings_chip_icon_note">SugarBridge を開いている間、Android はカプセルを隠してアイコンを表示します。アイコンの見た目は下で設定します。カプセルが表示されないスマホでは、オフにしてください。</string>
-    <string name="dev_live_update">Live Update</string>
-    <string name="dev_live_update_old">なし：Android 15 以前</string>
-    <string name="dev_live_update_denied">Android が許可していません</string>
-    <string name="dev_live_update_shown">時計の横のカプセル</string>
-    <string name="dev_live_update_refused">Android が通知を Live Update にしませんでした</string>
-    <string name="dev_live_update_waiting">分刻みモードで表示されます</string>
+    <string name="trend_falling_fast">急降下</string>
+    <string name="trend_falling">下降</string>
+    <string name="trend_steady">安定</string>
+    <string name="trend_rising">上昇</string>
+    <string name="trend_rising_fast">急上昇</string>
+    <string name="settings_arrow_place_hint">「横」：矢印は数値の横の専用アイコンに表示されます。どちらも正方形いっぱいに描かれるので大きくなります。通知パネルでは矢印に専用の行ができます。</string>
+    <string name="settings_statusbar_tenshi">数値と矢印をどちらも表示しない場合、画面上部には天使ちゃんのアイコンが表示されます。</string>
+    <string name="settings_icons_bundled">このスマホは 2 つのアイコンを 1 つにまとめたため、今は矢印を数値の上に表示しています。「横」をタップすると 2 つのアイコンをもう一度試します。</string>
 </resources>

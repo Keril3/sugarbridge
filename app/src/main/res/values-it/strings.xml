@@ -328,7 +328,6 @@
     <string name="settings_arrow_place">Posizione della freccia</string>
     <string name="arrow_above">Sopra il numero</string>
     <string name="arrow_beside">Accanto</string>
-    <string name="settings_statusbar_preview">A sinistra come nella barra di stato, a destra lo stesso ingrandito</string>
     <string name="home_all_history">Tutto lo storico</string>
     <string name="history_view_loaded">Vedi lo storico caricato</string>
     <string name="history_back">‹ Indietro</string>
@@ -362,16 +361,12 @@
     <string name="feedback_discord_link">Apri il profilo Discord</string>
     <string name="feedback_telegram_link">Apri la chat Telegram</string>
     <string name="feedback_site_link">Apri il sito</string>
-    <string name="settings_chip">Capsula vicino all’orologio</string>
-    <string name="settings_chip_hint">Android 16+: un Live Update, freccia e numero in una capsula vicino all’orologio, grandi come le sue cifre</string>
-    <string name="settings_chip_old">Serve Android 16 o più recente</string>
-    <string name="settings_chip_denied">Android non consente i Live Update di SugarBridge. Consentili nelle impostazioni:</string>
-    <string name="settings_chip_allow">Consenti i Live Update</string>
-    <string name="settings_chip_icon_note">Mentre SugarBridge è aperto, Android nasconde la capsula e mostra l’icona; il suo aspetto si imposta qui sotto. Se il tuo telefono non mostra la capsula, disattivala.</string>
-    <string name="dev_live_update">Live Update</string>
-    <string name="dev_live_update_old">no: Android 15 o precedente</string>
-    <string name="dev_live_update_denied">non consentito da Android</string>
-    <string name="dev_live_update_shown">una capsula vicino all’orologio</string>
-    <string name="dev_live_update_refused">Android non ha reso la notifica un Live Update</string>
-    <string name="dev_live_update_waiting">arriva con la modalità minuto</string>
+    <string name="trend_falling_fast">scende veloce</string>
+    <string name="trend_falling">scende</string>
+    <string name="trend_steady">stabile</string>
+    <string name="trend_rising">sale</string>
+    <string name="trend_rising_fast">sale veloce</string>
+    <string name="settings_arrow_place_hint">«Accanto»: la freccia in un’icona tutta sua accanto a quella del numero. Ognuna occupa un quadrato intero, quindi entrambe sono grandi; nella tendina delle notifiche la freccia ha una riga propria.</string>
+    <string name="settings_statusbar_tenshi">Senza numero e freccia, in alto sullo schermo c’è l’icona di Tenshi-chan.</string>
+    <string name="settings_icons_bundled">Questo telefono ha unito le due icone in una, quindi per ora la freccia sta sopra il numero. Tocca «Accanto» per riprovare con due icone.</string>
 </resources>

@@ -2,6 +2,20 @@
 
 Newest version first. A version's section becomes the release notes on GitHub.
 
+## 1.10.0 — 2026-10-12
+
+- The status bar, anew: with "Beside it" the number and the arrow are two icons side by side, two notifications,
+  each filling its own square, so both are large; "Above the number" keeps them in one icon. Minute mode's
+  notification is now pink, a colourful foreground notification, which Android leaves out of the bundles it
+  makes of an app's notifications; if a phone bundles the two icons all the same, SugarBridge notices it within
+  seconds and shows the arrow over the number in one icon instead of Tenshi-chan, and Settings say so.
+- The Live Update capsule of 1.9.0 is gone: Samsung marked the notification a Live Update but drew no capsule,
+  so the status bar showed the arrow alone.
+- Without the number the status bar shows the arrow alone, without the arrow the number alone; Tenshi-chan's icon
+  comes only without both. Turning the number off no longer greys out the arrow's settings.
+- Settings → Status bar: the arrow's place has its two tiles drawn as the real icons; the second preview under
+  the sizes is gone. ×1.25 makes the number as large as its icon allows for each value, so every step counts.
+
 ## 1.9.0 — 2026-10-12
 
 - Android 16 and newer: minute mode's glucose is a Live Update, a capsule next to the clock. The trend arrow is

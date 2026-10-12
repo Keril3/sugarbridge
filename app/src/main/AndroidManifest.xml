@@ -7,8 +7,6 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <!-- Android 16 and newer: minute mode's glucose as a Live Update, in large text in the status bar -->
-    <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
     <!-- minute mode: keep the CPU awake between polls and start again after a reboot -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />

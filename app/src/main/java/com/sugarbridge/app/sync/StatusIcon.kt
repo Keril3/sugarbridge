@@ -13,14 +13,13 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * The glucose value drawn as the status bar icon. Android shows a notification icon in a small square and
- * shrinks anything wider to fit it, so the number and the trend arrow share one square.
+ * The glucose drawn as status bar icons. Android shows every notification icon in a small square of its own
+ * and shrinks anything wider to fit it. A number and an arrow in one square leave both small, so by default
+ * they are two icons, two notifications side by side: [number] fills its square and [arrow] fills the next
+ * one. [above] keeps both in one square, the arrow over the number, for whoever wants a single icon.
  *
- * The digits always keep the font's own proportions, beside the arrow as above it. The number and the arrow
- * are sized in one unit ([SCALES] of it, from Settings): at the same step the arrow is as tall as the digits.
- * The steps are independent while the number and the arrow fit the square together. When they don't (the
- * largest steps, long values like 10.4 or 250), both are made smaller by the same factor, so they keep the
- * proportion that was chosen. A decimal comma hangs below the digits and doesn't make them smaller.
+ * The digits always keep the font's own proportions; the sizes are steps from Settings ([SCALES]). A decimal
+ * comma hangs below the digits and doesn't make them smaller.
  */
 object StatusIcon {
     /** Pixels of the square; Android scales it down to the status bar, a large one stays crisp. */
@@ -29,70 +28,64 @@ object StatusIcon {
     /** The size steps shown in Settings: two smaller and two larger than the base size. */
     val SCALES = listOf(0.8f, 0.9f, 1.1f, 1.25f)
 
-    // the unit, of the square: the digits' height and the arrow's square at ×1. Beside the number the arrow
-    // takes width, above it height; without an arrow the number gets the whole square
-    private const val UNIT_BESIDE = 0.32f
-    private const val UNIT_ABOVE = 0.36f
-    private const val UNIT_ALONE = 0.49f
+    private const val UNIT_ABOVE = 0.36f   // the digits' height and the arrow's square at ×1 in one icon, of the square
     private const val MARGIN = 0.02f        // of the square, on every side
-    private const val GAP = 0.18f           // between the number and the arrow, of the digits' height
+    private const val GAP = 0.18f           // between the arrow and the number, of the digits' height
     private const val SPACING = 0.07f       // between two characters, of the digits' height
 
-    fun draw(value: String, trend: Int, arrowAbove: Boolean, numberSize: Int, arrowSize: Int, color: Int = Color.WHITE): Bitmap {
+    private fun scale(step: Int) = SCALES[step.coerceIn(SCALES.indices)]
+
+    /**
+     * The number alone. ×1.25 makes it as large as the square allows for this value (as wide as the square for
+     * "6,4" or "10,4", as tall for "45"); every smaller step is that much smaller, so each step counts.
+     */
+    fun number(value: String, numberSize: Int, color: Int = Color.WHITE): Bitmap {
         val s = SIZE.toFloat()
         val bitmap = createBitmap(SIZE, SIZE)
-        val canvas = Canvas(bitmap)
         if (value.isEmpty()) return bitmap
         val inner = s * (1 - 2 * MARGIN)
-        val angle = trendAngle(trend)
         val number = Number(value, color)
-        val unit = s * when {
-            angle == null -> UNIT_ALONE
-            arrowAbove -> UNIT_ABOVE
-            else -> UNIT_BESIDE
-        }
-        var digits = unit * SCALES[numberSize.coerceIn(SCALES.indices)]
-        var arrow = if (angle != null) unit * SCALES[arrowSize.coerceIn(SCALES.indices)] else 0f
+        val largest = min(inner / number.widthFor(1f), inner / number.extentFor(1f))
+        number.size(largest * scale(numberSize) / SCALES.last())
+        number.draw(Canvas(bitmap), (s - number.width) / 2, (s - number.extent) / 2)
+        return bitmap
+    }
 
-        // the whole picture for these sizes; everything in it grows in proportion, so one factor fits it
-        fun gap() = if (arrow > 0f) digits * GAP else 0f
-        val extent = number.extentFor(digits)
-        val width = if (arrowAbove) max(number.widthFor(digits), arrow) else number.widthFor(digits) + gap() + arrow
-        // beside: the arrow is centred on the digits and may stand out above them and below the comma's tail
-        val height = if (arrowAbove) arrow + gap() + extent else max(extent, (digits + arrow) / 2) + max(0f, (arrow - digits) / 2)
+    /** The trend arrow alone: ×1.25 fills the square. null without a trend. */
+    fun arrow(trend: Int, arrowSize: Int = SCALES.lastIndex, color: Int = Color.WHITE): Bitmap? {
+        val angle = trendAngle(trend) ?: return null
+        val s = SIZE.toFloat()
+        val box = s * (1 - 2 * MARGIN) * scale(arrowSize) / SCALES.last()
+        return createBitmap(SIZE, SIZE).also { drawArrow(Canvas(it), s / 2, s / 2, box, angle, color) }
+    }
+
+    /**
+     * The arrow over the number in one square. At the same step the arrow is as tall as the digits; the steps
+     * are independent while both fit, and at the largest ones both are made smaller by the same factor.
+     * Without a trend it is the number alone.
+     */
+    fun above(value: String, trend: Int, numberSize: Int, arrowSize: Int, color: Int = Color.WHITE): Bitmap {
+        val angle = trendAngle(trend) ?: return number(value, numberSize, color)
+        val s = SIZE.toFloat()
+        val bitmap = createBitmap(SIZE, SIZE)
+        if (value.isEmpty()) return bitmap
+        val inner = s * (1 - 2 * MARGIN)
+        val number = Number(value, color)
+        var digits = s * UNIT_ABOVE * scale(numberSize)
+        var arrow = s * UNIT_ABOVE * scale(arrowSize)
+        val width = max(number.widthFor(digits), arrow)
+        val height = arrow + digits * GAP + number.extentFor(digits)
         val fit = min(1f, min(inner / width, inner / height))
         digits *= fit
         arrow *= fit
         number.size(digits)
-        val gap = gap()
-
-        val arrowCenter: Pair<Float, Float>
-        if (arrowAbove) {
-            // the arrow, the gap and the number stand as one block in the middle of the square
-            val top = (s - (arrow + gap + number.extent)) / 2
-            number.draw(canvas, (s - number.width) / 2, top + arrow + gap)
-            arrowCenter = s / 2 to top + arrow / 2
-        } else {
-            // the arrow beside the digits, at their middle; together they stand in the middle of the square
-            val above = max(0f, (arrow - number.height) / 2)                   // the arrow over the digits' top
-            val below = max(number.extent, (number.height + arrow) / 2)       // the lowest point under it
-            val top = (s - (above + below)) / 2 + above
-            val left = (s - (number.width + gap + arrow)) / 2
-            number.draw(canvas, left, top)
-            arrowCenter = left + number.width + gap + arrow / 2 to top + number.height / 2
-        }
-        if (angle != null) drawArrow(canvas, arrowCenter.first, arrowCenter.second, arrow, angle, color)
+        val gap = digits * GAP
+        // the arrow, the gap and the number stand as one block in the middle of the square
+        val top = (s - (arrow + gap + number.extent)) / 2
+        val canvas = Canvas(bitmap)
+        number.draw(canvas, (s - number.width) / 2, top + arrow + gap)
+        drawArrow(canvas, s / 2, top + arrow / 2, arrow, angle, color)
         return bitmap
-    }
-
-    /**
-     * The trend arrow alone, filling the square: the icon of the Live Update capsule, where the number stands
-     * next to it as text (see [LiveUpdate]). null without a trend.
-     */
-    fun arrow(trend: Int, color: Int = Color.WHITE): Bitmap? {
-        val angle = trendAngle(trend) ?: return null
-        val s = SIZE.toFloat()
-        return createBitmap(SIZE, SIZE).also { drawArrow(Canvas(it), s / 2, s / 2, s * (1 - 2 * MARGIN), angle, color) }
     }
 
     /** The digits laid out by their outlines, so a dot or a comma takes only its own width. */
@@ -107,10 +100,6 @@ object StatusIcon {
         private val bottom = text.indices.filter { text[it].isLetterOrDigit() }.maxOfOrNull { glyphs[it].bottom } ?: glyphs.maxOf { it.bottom }
         private val tail = glyphs.maxOf { it.bottom } - bottom   // how far a comma hangs below the digits
         private var scale = 1f       // of text size 100
-
-        /** The digits' height, what the size steps set. */
-        var height = 0f
-            private set
 
         /** The height with a comma's tail. */
         var extent = 0f
@@ -129,7 +118,6 @@ object StatusIcon {
             scale = digits / (bottom - top)
             paint.textSize = 100f * scale
             width = naturalWidth() * scale
-            height = (bottom - top) * scale
             extent = (bottom - top + tail) * scale
         }
 

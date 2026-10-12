@@ -328,7 +328,6 @@
     <string name="settings_arrow_place">Posición de la flecha</string>
     <string name="arrow_above">Sobre el número</string>
     <string name="arrow_beside">Al lado</string>
-    <string name="settings_statusbar_preview">A la izquierda, como en la barra de estado; a la derecha, lo mismo ampliado</string>
     <string name="home_all_history">Todo el historial</string>
     <string name="history_view_loaded">Ver el historial cargado</string>
     <string name="history_back">‹ Atrás</string>
@@ -362,16 +361,12 @@
     <string name="feedback_discord_link">Abrir el perfil de Discord</string>
     <string name="feedback_telegram_link">Abrir el chat de Telegram</string>
     <string name="feedback_site_link">Abrir el sitio web</string>
-    <string name="settings_chip">Cápsula junto al reloj</string>
-    <string name="settings_chip_hint">Android 16+: una Live Update, la flecha y el número en una cápsula junto al reloj, tan grandes como sus cifras</string>
-    <string name="settings_chip_old">Requiere Android 16 o más reciente</string>
-    <string name="settings_chip_denied">Android no permite las Live Updates de SugarBridge. Permítelas en los ajustes:</string>
-    <string name="settings_chip_allow">Permitir Live Updates</string>
-    <string name="settings_chip_icon_note">Mientras SugarBridge está abierto, Android oculta la cápsula y muestra el icono; su aspecto se ajusta abajo. Si tu teléfono no muestra la cápsula, desactívala.</string>
-    <string name="dev_live_update">Live Update</string>
-    <string name="dev_live_update_old">no: Android 15 o anterior</string>
-    <string name="dev_live_update_denied">no permitido por Android</string>
-    <string name="dev_live_update_shown">una cápsula junto al reloj</string>
-    <string name="dev_live_update_refused">Android no convirtió la notificación en una Live Update</string>
-    <string name="dev_live_update_waiting">llega con el modo minuto</string>
+    <string name="trend_falling_fast">baja rápido</string>
+    <string name="trend_falling">baja</string>
+    <string name="trend_steady">estable</string>
+    <string name="trend_rising">sube</string>
+    <string name="trend_rising_fast">sube rápido</string>
+    <string name="settings_arrow_place_hint">«Al lado»: la flecha en un icono propio junto al del número. Cada uno ocupa un cuadrado entero, así que ambos son grandes; en el panel de notificaciones la flecha tiene su propia línea.</string>
+    <string name="settings_statusbar_tenshi">Sin el número ni la flecha, arriba de la pantalla aparece el icono de Tenshi-chan.</string>
+    <string name="settings_icons_bundled">Este teléfono juntó los dos iconos en uno, así que por ahora la flecha está sobre el número. Toca «Al lado» para volver a probar dos iconos.</string>
 </resources>

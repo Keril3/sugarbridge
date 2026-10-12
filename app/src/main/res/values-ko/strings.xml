@@ -328,7 +328,6 @@
     <string name="settings_arrow_place">화살표 위치</string>
     <string name="arrow_above">숫자 위</string>
     <string name="arrow_beside">옆</string>
-    <string name="settings_statusbar_preview">왼쪽은 상태 표시줄에서 보이는 모습, 오른쪽은 확대한 모습이에요</string>
     <string name="home_all_history">전체 기간 기록</string>
     <string name="history_view_loaded">불러온 기록 보기</string>
     <string name="history_back">‹ 뒤로</string>
@@ -362,16 +361,12 @@
     <string name="feedback_discord_link">Discord 프로필 열기</string>
     <string name="feedback_telegram_link">Telegram 채팅 열기</string>
     <string name="feedback_site_link">웹사이트 열기</string>
-    <string name="settings_chip">시계 옆 캡슐</string>
-    <string name="settings_chip_hint">Android 16+: Live Update로 화살표와 숫자를 시계 옆 캡슐에 시계 숫자만큼 크게 표시</string>
-    <string name="settings_chip_old">Android 16 이상이 필요해요</string>
-    <string name="settings_chip_denied">Android가 SugarBridge의 Live Update를 허용하지 않아요. 설정에서 허용해 주세요:</string>
-    <string name="settings_chip_allow">Live Update 허용</string>
-    <string name="settings_chip_icon_note">SugarBridge가 열려 있는 동안 Android는 캡슐을 숨기고 아이콘을 보여 줘요. 아이콘 모양은 아래에서 설정해요. 휴대폰에 캡슐이 나타나지 않으면 꺼 주세요.</string>
-    <string name="dev_live_update">Live Update</string>
-    <string name="dev_live_update_old">없음: Android 15 이하</string>
-    <string name="dev_live_update_denied">Android가 허용하지 않음</string>
-    <string name="dev_live_update_shown">시계 옆 캡슐</string>
-    <string name="dev_live_update_refused">Android가 알림을 Live Update로 만들지 않았어요</string>
-    <string name="dev_live_update_waiting">분 단위 모드와 함께 표시돼요</string>
+    <string name="trend_falling_fast">빠르게 하강</string>
+    <string name="trend_falling">하강</string>
+    <string name="trend_steady">안정</string>
+    <string name="trend_rising">상승</string>
+    <string name="trend_rising_fast">빠르게 상승</string>
+    <string name="settings_arrow_place_hint">‘옆’: 화살표가 숫자 아이콘 옆의 별도 아이콘에 표시돼요. 둘 다 정사각형 하나를 가득 채워서 크게 보여요. 알림 창에서는 화살표가 별도의 줄을 가져요.</string>
+    <string name="settings_statusbar_tenshi">숫자와 화살표를 모두 끄면 화면 위에 천사짱 아이콘이 보여요.</string>
+    <string name="settings_icons_bundled">이 휴대폰이 두 아이콘을 하나로 묶어서 지금은 화살표를 숫자 위에 표시해요. ‘옆’을 누르면 두 아이콘을 다시 시도해요.</string>
 </resources>

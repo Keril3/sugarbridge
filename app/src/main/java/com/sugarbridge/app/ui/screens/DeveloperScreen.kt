@@ -47,7 +47,6 @@ import com.sugarbridge.app.debug.hasUsageAccess
 import com.sugarbridge.app.debug.samsungHealthEvents
 import com.sugarbridge.app.health.SAMSUNG_HEALTH_PACKAGE
 import com.sugarbridge.app.sync.LiveSyncService
-import com.sugarbridge.app.sync.LiveUpdate
 import com.sugarbridge.app.sync.scheduleSync
 import com.sugarbridge.app.ui.AppActions
 import com.sugarbridge.app.ui.components.ButtonRow
@@ -208,7 +207,6 @@ private fun FixButton(fix: DevFix, actions: AppActions, refresh: () -> Unit) {
             DevFix.SAVER -> R.string.dev_fix_saver
             DevFix.HEALTH_PERMISSION -> R.string.settings_permissions
             DevFix.INSTALL_SAMSUNG -> R.string.dev_fix_install_samsung
-            DevFix.LIVE_UPDATE -> R.string.settings_chip_allow
         }
     )
     SecondaryButton(label, onClick = {
@@ -221,7 +219,6 @@ private fun FixButton(fix: DevFix, actions: AppActions, refresh: () -> Unit) {
             DevFix.SAVER -> openSafely(context, Intent(Settings.ACTION_BATTERY_SAVER_SETTINGS))
             DevFix.HEALTH_PERMISSION -> actions.requestHealthPermission()
             DevFix.INSTALL_SAMSUNG -> openSafely(context, Intent(Intent.ACTION_VIEW, "market://details?id=$SAMSUNG_HEALTH_PACKAGE".toUri()))
-            DevFix.LIVE_UPDATE -> LiveUpdate.settings(context)?.let { openSafely(context, it) }
         }
         refresh()
     }, modifier = Modifier.fillMaxWidth())

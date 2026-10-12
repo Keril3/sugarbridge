@@ -9,6 +9,7 @@ import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Icon
 import android.os.SystemClock
+import android.service.notification.StatusBarNotification
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.sugarbridge.app.MainActivity
@@ -156,35 +157,68 @@ class SyncEndToEndTest {
     }
 
     /**
-     * Android 16+: minute mode's notification is a Live Update. Its short text is the number, shown in a capsule
-     * next to the clock, and its icon the arrow alone; while SugarBridge is on screen Android hides the capsule,
-     * so the icon has the number. Turned off in Settings it is an ordinary notification again.
+     * The number and the arrow are two icons side by side: two notifications, each in a group of its own so that
+     * Android doesn't bundle them under one icon, the arrow's a moment older so that it stands right after the
+     * number. Over the number the arrow is in the same icon; without the number the arrow is the only icon, and
+     * Tenshi-chan comes only without both.
      */
     @Test
-    fun theGlucoseIsALiveUpdateCapsule() {
-        assumeTrue("Live Updates need Android 16 and their permission", LiveUpdate.allowed(context))
+    fun theNumberAndTheArrowAreTwoIcons() {
         useAppLanguage(context, "en")
-        SettingsStore(context).save(AppSettings(backgroundMinutes = 0, liveEnabled = true, liveMinutes = 10, liveShowValue = true, liveKeepAwake = false))
+        val settings = AppSettings(backgroundMinutes = 0, liveEnabled = true, liveMinutes = 10, liveShowValue = true, liveKeepAwake = false)
+        SettingsStore(context).save(settings)
         openApp()
         val value = formatGlucose(115.0, GlucoseUnit.MMOL)
-        val arrow = StatusIcon.arrow(4)!!   // LibreLinkUp says 4: rising
-        fun iconIsTheArrow() = looksLike((smallIcon().loadDrawable(context) as BitmapDrawable).bitmap, arrow)
-        waitForOurs { it.flags and Notification.FLAG_PROMOTED_ONGOING != 0 && it.shortCriticalText == value }
-        assertFalse("on screen the icon has the number", iconIsTheArrow())
-
+        waitForNotification { it.contains(LiveSyncService.CHANNEL_LIVE) && it.contains(value) }
         instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_HOME").close()
-        val deadline = SystemClock.uptimeMillis() + 10_000
-        while (!iconIsTheArrow() && SystemClock.uptimeMillis() < deadline) Thread.sleep(250)
-        assertTrue("in the capsule the icon is the arrow", iconIsTheArrow())
-        assertTrue(LiveUpdate.shown(context))
-        Thread.sleep(1500)
-        saveScreenshot("en", "statusbar_capsule")
+        val arrow = StatusIcon.arrow(4, settings.statusArrowSize)!!   // LibreLinkUp says 4: rising
+        val number = StatusIcon.number(value, settings.statusNumberSize)
 
-        SettingsStore(context).update { it.copy(liveChip = false) }
+        val second = waitFor("the arrow's own notification") { arrowNotification() }
+        assertTrue("the arrow's icon", looksLike(iconOf(second), arrow))
+        assertTrue("the number's icon", looksLike(iconOf(ours()), number))
+        assertTrue("right after the number", second.notification.`when` < ours().notification.`when`)
+        Thread.sleep(8000)   // Android bundles an app's notifications a few seconds after they come, if it does
+        assertFalse("bundled under one icon", IconBundling.bundledNow(context))
+        assertTrue(arrowNotification() != null)
+        saveScreenshot("en", "statusbar_two")
+
+        // a phone that bundles them all the same: the arrow goes over the number in one icon
+        IconBundling.markBundled(context)
         LiveSyncService.reload(context)
-        waitForOurs { it.flags and Notification.FLAG_PROMOTED_ONGOING == 0 && it.shortCriticalText == null }
-        assertFalse(iconIsTheArrow())   // the number and the arrow drawn in the square icon
-        assertEquals(Icon.TYPE_BITMAP, smallIcon().type)
+        waitFor("one icon on a bundling phone") {
+            if (arrowNotification() == null && looksLike(iconOf(ours()), StatusIcon.above(value, 4, settings.statusNumberSize, settings.statusArrowSize))) true else null
+        }
+        IconBundling.reset(context)
+
+        LiveSyncService.reload(context)
+        waitFor("two icons again") { arrowNotification() }
+        SettingsStore(context).update { it.copy(statusArrowAbove = true) }   // the arrow over the number: one icon
+        LiveSyncService.reload(context)
+        waitFor("no second notification") { if (arrowNotification() == null) true else null }
+        assertTrue(looksLike(iconOf(ours()), StatusIcon.above(value, 4, settings.statusNumberSize, settings.statusArrowSize)))
+
+        SettingsStore(context).update { it.copy(statusArrowAbove = false, liveStatusValue = false) }   // the arrow alone
+        LiveSyncService.reload(context)
+        waitFor("the arrow alone") { if (arrowNotification() == null && looksLike(iconOf(ours()), arrow)) true else null }
+
+        SettingsStore(context).update { it.copy(liveArrow = false) }   // neither: Tenshi-chan
+        LiveSyncService.reload(context)
+        waitFor("Tenshi-chan") { if (ours().notification.smallIcon.type == Icon.TYPE_RESOURCE) true else null }
+    }
+
+    private fun arrowNotification() = context.getSystemService(NotificationManager::class.java).activeNotifications
+        .firstOrNull { it.id == LiveSyncService.ARROW_ID }
+
+    private fun iconOf(n: StatusBarNotification) = (n.notification.smallIcon.loadDrawable(context) as BitmapDrawable).bitmap
+
+    private fun <T : Any> waitFor(what: String, timeoutMs: Long = 15_000, get: () -> T?): T {
+        val deadline = SystemClock.uptimeMillis() + timeoutMs
+        while (SystemClock.uptimeMillis() < deadline) {
+            runCatching(get).getOrNull()?.let { return it }
+            Thread.sleep(250)
+        }
+        throw AssertionError("timed out waiting for $what")
     }
 
     /** Android scales a posted icon down, so the shapes are compared at one small size by their opacity. */
@@ -197,23 +231,11 @@ class SyncEndToEndTest {
         return diff / (n * n) < 12
     }
 
-    /** Minute mode's own notification, once it matches. */
-    private fun waitForOurs(timeoutMs: Long = 15_000, matches: (Notification) -> Boolean): Notification {
-        val manager = context.getSystemService(NotificationManager::class.java)
-        val deadline = SystemClock.uptimeMillis() + timeoutMs
-        while (SystemClock.uptimeMillis() < deadline) {
-            manager.activeNotifications.firstOrNull { it.id == LiveSyncService.NOTIFICATION_ID }?.notification?.let { if (matches(it)) return it }
-            Thread.sleep(250)
-        }
-        throw AssertionError("minute mode's notification didn't become as expected")
-    }
-
     /** The trend arrow and the number in the status bar each have a switch in Settings. */
     @Test
     fun arrowAndStatusBarNumberCanBeTurnedOff() {
         useAppLanguage(context, "en")
-        // the square icon, not the Live Update capsule whose icon is the arrow alone
-        SettingsStore(context).save(AppSettings(backgroundMinutes = 0, liveEnabled = true, liveMinutes = 10, liveShowValue = true, liveKeepAwake = false, liveChip = false))
+        SettingsStore(context).save(AppSettings(backgroundMinutes = 0, liveEnabled = true, liveMinutes = 10, liveShowValue = true, liveKeepAwake = false))
         openApp()
         val withArrow = waitForNotification { it.contains(LiveSyncService.CHANNEL_LIVE) && it.contains(formatGlucose(115.0, GlucoseUnit.MMOL)) }
         assertTrue(withArrow, withArrow.contains("↗"))   // LibreLinkUp says 4: rising
@@ -327,6 +349,7 @@ class SyncEndToEndTest {
         val manager = context.getSystemService(NotificationManager::class.java)
         val texts = manager.activeNotifications.map { "${it.notification.extras.getCharSequence(Notification.EXTRA_TITLE)}" }
         assertTrue(texts.toString(), texts.none { it.contains(formatGlucose(150.0, GlucoseUnit.MMOL)) })
+        assertTrue("the arrow went with the number", arrowNotification() == null)
     }
 
     /** What the system sends to the service when the user swipes the notification away. */

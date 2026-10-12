@@ -331,7 +331,6 @@
     <string name="settings_arrow_place">Arrow position</string>
     <string name="arrow_above">Above the number</string>
     <string name="arrow_beside">Beside it</string>
-    <string name="settings_statusbar_preview">Left: as in the status bar. Right: the same, enlarged</string>
     <string name="home_all_history">All-time history</string>
     <string name="history_view_loaded">View the loaded history</string>
     <string name="history_back">‹ Back</string>
@@ -365,16 +364,12 @@
     <string name="feedback_discord_link">Open the Discord profile</string>
     <string name="feedback_telegram_link">Open the Telegram chat</string>
     <string name="feedback_site_link">Open the website</string>
-    <string name="settings_chip">Capsule by the clock</string>
-    <string name="settings_chip_hint">Android 16+: a Live Update, the arrow and the number in a capsule next to the clock, as large as its digits</string>
-    <string name="settings_chip_old">Needs Android 16 or newer</string>
-    <string name="settings_chip_denied">Android doesn’t allow SugarBridge Live Updates. Allow them in the settings:</string>
-    <string name="settings_chip_allow">Allow Live Updates</string>
-    <string name="settings_chip_icon_note">While SugarBridge is open, Android hides the capsule and shows the icon; its look is set below. If your phone shows no capsule, turn it off.</string>
-    <string name="dev_live_update">Live Update</string>
-    <string name="dev_live_update_old">none: Android 15 or older</string>
-    <string name="dev_live_update_denied">not allowed by Android</string>
-    <string name="dev_live_update_shown">a capsule by the clock</string>
-    <string name="dev_live_update_refused">Android didn’t make the notification a Live Update</string>
-    <string name="dev_live_update_waiting">comes with minute mode</string>
+    <string name="trend_falling_fast">falling fast</string>
+    <string name="trend_falling">falling</string>
+    <string name="trend_steady">steady</string>
+    <string name="trend_rising">rising</string>
+    <string name="trend_rising_fast">rising fast</string>
+    <string name="settings_arrow_place_hint">“Beside it”: the arrow in an icon of its own next to the number’s. Each fills a whole square, so both are large; in the notification shade the arrow has a line of its own.</string>
+    <string name="settings_statusbar_tenshi">Without the number and the arrow, Tenshi-chan’s icon is at the top of the screen.</string>
+    <string name="settings_icons_bundled">This phone bundled the two icons into one, so the arrow stands over the number for now. Tap “Beside it” to try two icons again.</string>
 </resources>

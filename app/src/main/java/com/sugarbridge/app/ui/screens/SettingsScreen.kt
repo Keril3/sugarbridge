@@ -154,7 +154,7 @@ fun SettingsScreen(vm: MainViewModel, actions: AppActions) {
             Hint(stringResource(R.string.settings_live_hint))
         }
 
-        StatusBarCard(s, ui.sync.recent.lastOrNull(), ui.liveUpdates, vm::updateSettings)
+        StatusBarCard(s, ui.sync.recent.lastOrNull(), vm::updateSettings)
 
         // the notice about background sync leads here
         val backgroundWindow = remember { BringIntoViewRequester() }

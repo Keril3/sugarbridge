@@ -328,7 +328,6 @@
     <string name="settings_arrow_place">Posição da seta</string>
     <string name="arrow_above">Acima do número</string>
     <string name="arrow_beside">Ao lado</string>
-    <string name="settings_statusbar_preview">À esquerda, como na barra de status; à direita, o mesmo ampliado</string>
     <string name="home_all_history">Todo o histórico</string>
     <string name="history_view_loaded">Ver o histórico carregado</string>
     <string name="history_back">‹ Voltar</string>
@@ -362,16 +361,12 @@
     <string name="feedback_discord_link">Abrir o perfil no Discord</string>
     <string name="feedback_telegram_link">Abrir o chat no Telegram</string>
     <string name="feedback_site_link">Abrir o site</string>
-    <string name="settings_chip">Cápsula junto ao relógio</string>
-    <string name="settings_chip_hint">Android 16+: uma Live Update, a seta e o número numa cápsula junto ao relógio, do tamanho dos seus dígitos</string>
-    <string name="settings_chip_old">Requer Android 16 ou mais recente</string>
-    <string name="settings_chip_denied">O Android não permite Live Updates do SugarBridge. Permita nos ajustes:</string>
-    <string name="settings_chip_allow">Permitir Live Updates</string>
-    <string name="settings_chip_icon_note">Enquanto o SugarBridge está aberto, o Android esconde a cápsula e mostra o ícone; a aparência dele é ajustada abaixo. Se o seu celular não mostrar a cápsula, desligue-a.</string>
-    <string name="dev_live_update">Live Update</string>
-    <string name="dev_live_update_old">não: Android 15 ou anterior</string>
-    <string name="dev_live_update_denied">não permitido pelo Android</string>
-    <string name="dev_live_update_shown">uma cápsula junto ao relógio</string>
-    <string name="dev_live_update_refused">O Android não transformou a notificação em Live Update</string>
-    <string name="dev_live_update_waiting">chega com o modo minuto</string>
+    <string name="trend_falling_fast">caindo rápido</string>
+    <string name="trend_falling">caindo</string>
+    <string name="trend_steady">estável</string>
+    <string name="trend_rising">subindo</string>
+    <string name="trend_rising_fast">subindo rápido</string>
+    <string name="settings_arrow_place_hint">“Ao lado”: a seta num ícone próprio ao lado do ícone do número. Cada um ocupa um quadrado inteiro, então os dois ficam grandes; na aba de notificações a seta tem uma linha própria.</string>
+    <string name="settings_statusbar_tenshi">Sem o número e a seta, o ícone da Tenshi-chan aparece no topo da tela.</string>
+    <string name="settings_icons_bundled">Este celular juntou os dois ícones em um, então por enquanto a seta fica acima do número. Toque em “Ao lado” para tentar dois ícones de novo.</string>
 </resources>

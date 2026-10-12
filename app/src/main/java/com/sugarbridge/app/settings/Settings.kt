@@ -17,10 +17,9 @@ data class AppSettings(
     val livePinned: Boolean = false,     // the notification comes straight back if swiped away
     val liveStatusValue: Boolean = true, // the number itself as the status bar icon, instead of Tenshi-chan
     val liveArrow: Boolean = true,       // the trend arrow next to the value in the notification and the status bar
-    val liveChip: Boolean = true,        // Android 16+: the glucose as a Live Update capsule next to the clock
-    val statusArrowAbove: Boolean = true, // in the status bar icon: the arrow above the number (larger), or beside it
+    val statusArrowAbove: Boolean = false, // the arrow over the number in one icon, or beside it in an icon of its own
     val statusNumberSize: Int = 3,       // steps of StatusIcon.SCALES, the largest by default
-    val statusArrowSize: Int = 1,        // steps of StatusIcon.SCALES
+    val statusArrowSize: Int = 2,        // steps of StatusIcon.SCALES
     val backgroundBeforeLive: Int = 0,   // the background interval minute mode switched off, given back when it stops
     val backgroundNotice: Boolean = false, // the notice that minute mode switched background sync off, until closed
     val unit: GlucoseUnit = GlucoseUnit.MMOL,
@@ -70,7 +69,6 @@ class SettingsStore(context: Context) {
             livePinned = prefs.getBoolean("live_pinned", d.livePinned),
             liveStatusValue = prefs.getBoolean("live_status_value", d.liveStatusValue),
             liveArrow = prefs.getBoolean("live_arrow", d.liveArrow),
-            liveChip = prefs.getBoolean("live_chip", d.liveChip),
             statusArrowAbove = prefs.getBoolean("status_arrow_above", d.statusArrowAbove),
             statusNumberSize = prefs.getInt("status_number_size", d.statusNumberSize),
             statusArrowSize = prefs.getInt("status_arrow_size", d.statusArrowSize),
@@ -96,7 +94,6 @@ class SettingsStore(context: Context) {
             putBoolean("live_pinned", s.livePinned)
             putBoolean("live_status_value", s.liveStatusValue)
             putBoolean("live_arrow", s.liveArrow)
-            putBoolean("live_chip", s.liveChip)
             putBoolean("status_arrow_above", s.statusArrowAbove)
             putInt("status_number_size", s.statusNumberSize)
             putInt("status_arrow_size", s.statusArrowSize)

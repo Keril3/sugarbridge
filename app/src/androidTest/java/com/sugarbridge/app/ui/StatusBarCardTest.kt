@@ -9,6 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
@@ -55,7 +56,7 @@ class StatusBarCardTest {
             SugarTheme(settings) {
                 SkyBackground {
                     Column(Modifier.verticalScroll(rememberScrollState()).padding(14.dp)) {
-                        StatusBarCard(settings, Reading(Instant.now(), 115.0, 4), liveUpdates = true) { change -> settings = change(settings) }
+                        StatusBarCard(settings, Reading(Instant.now(), 115.0, 4)) { change -> settings = change(settings) }
                     }
                 }
             }
@@ -66,13 +67,7 @@ class StatusBarCardTest {
     @Test
     fun stepsChangeTheSettingsAndThePreviewFollows() {
         val settings = show(AppSettings(liveEnabled = true, liveShowValue = true))
-        compose.onNodeWithTag("statusbar-preview").assertExists()
-        compose.onNodeWithTag("capsule-preview").assertExists()   // Android allows Live Updates here
         shot("statusbar_settings")
-        compose.onNodeWithTag("chip-switch").performScrollTo().performClick()
-        compose.waitForIdle()
-        assertFalse(settings().liveChip)
-        compose.onNodeWithTag("capsule-preview").assertDoesNotExist()
 
         assertEquals(2, compose.onAllNodesWithText(step(3)).fetchSemanticsNodes().size)   // one in each row
         compose.onAllNodesWithText(step(3))[1].performScrollTo().performClick()   // the arrow's ×1.25
@@ -89,13 +84,24 @@ class StatusBarCardTest {
         assertEquals(0, settings().statusNumberSize)
         assertEquals(3, settings().statusArrowSize)   // the number's step leaves the arrow alone
         shot("statusbar_settings_beside")
+
+        // without the number the arrow stays, alone: its size can still be chosen, where it stands can't
+        compose.onNodeWithText(context.getString(R.string.settings_status_value)).performScrollTo().performClick()
+        compose.waitForIdle()
+        assertFalse(settings().liveStatusValue)
+        compose.onAllNodesWithText(step(3))[1].assertIsEnabled()
+        compose.onAllNodesWithText(step(3))[0].assertIsNotEnabled()
+        compose.onNodeWithTag("place-above").assertIsNotEnabled()
+        compose.onNodeWithText(context.getString(R.string.settings_statusbar_tenshi)).assertDoesNotExist()
+        compose.onNodeWithText(context.getString(R.string.settings_arrow)).performScrollTo().performClick()
+        compose.waitForIdle()
+        compose.onNodeWithText(context.getString(R.string.settings_statusbar_tenshi)).assertExists()   // neither: Tenshi-chan
     }
 
     @Test
     fun withoutMinuteModeTheWindowRests() {
         show(AppSettings(liveEnabled = false))
         compose.onNodeWithText(context.getString(R.string.settings_statusbar_off)).assertExists()
-        compose.onNodeWithTag("statusbar-preview").assertDoesNotExist()
         compose.onAllNodesWithText(step(3))[0].assertIsNotEnabled()
         compose.onNodeWithTag("place-above").assertIsNotEnabled()
     }

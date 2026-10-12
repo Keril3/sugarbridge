@@ -328,7 +328,6 @@
     <string name="settings_arrow_place">箭头位置</string>
     <string name="arrow_above">数字上方</string>
     <string name="arrow_beside">旁边</string>
-    <string name="settings_statusbar_preview">左侧为状态栏中的样子，右侧为放大效果</string>
     <string name="home_all_history">全部历史</string>
     <string name="history_view_loaded">查看已加载的历史</string>
     <string name="history_back">‹ 返回</string>
@@ -362,16 +361,12 @@
     <string name="feedback_discord_link">打开 Discord 个人资料</string>
     <string name="feedback_telegram_link">打开 Telegram 聊天</string>
     <string name="feedback_site_link">打开网站</string>
-    <string name="settings_chip">时钟旁的胶囊</string>
-    <string name="settings_chip_hint">Android 16+：实时更新（Live Update），箭头和数值显示在时钟旁的胶囊中，与时钟数字一样大</string>
-    <string name="settings_chip_old">需要 Android 16 或更高版本</string>
-    <string name="settings_chip_denied">Android 不允许 SugarBridge 的实时更新。请在设置中允许：</string>
-    <string name="settings_chip_allow">允许实时更新</string>
-    <string name="settings_chip_icon_note">SugarBridge 打开时，Android 会隐藏胶囊并显示图标，图标样式在下方设置。如果你的手机不显示胶囊，请关闭此项。</string>
-    <string name="dev_live_update">Live Update</string>
-    <string name="dev_live_update_old">无：Android 15 或更早</string>
-    <string name="dev_live_update_denied">Android 不允许</string>
-    <string name="dev_live_update_shown">时钟旁的胶囊</string>
-    <string name="dev_live_update_refused">Android 未将通知设为实时更新</string>
-    <string name="dev_live_update_waiting">开启分钟模式后显示</string>
+    <string name="trend_falling_fast">快速下降</string>
+    <string name="trend_falling">下降</string>
+    <string name="trend_steady">平稳</string>
+    <string name="trend_rising">上升</string>
+    <string name="trend_rising_fast">快速上升</string>
+    <string name="settings_arrow_place_hint">“旁边”：箭头使用单独的图标，位于数值图标旁边。两者各占一个完整的方格，因此都很大；在通知栏中，箭头有自己的一行。</string>
+    <string name="settings_statusbar_tenshi">不显示数值和箭头时，屏幕顶部会显示天使酱的图标。</string>
+    <string name="settings_icons_bundled">这部手机把两个图标合并成了一个，所以箭头暂时显示在数值上方。点按“旁边”可再次尝试两个图标。</string>
 </resources>
