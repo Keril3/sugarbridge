@@ -23,7 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -63,6 +62,7 @@ import com.sugarbridge.app.ui.components.PrimaryButton
 import com.sugarbridge.app.ui.components.ScreenColumn
 import com.sugarbridge.app.ui.components.SecondaryButton
 import com.sugarbridge.app.ui.components.XpDialog
+import com.sugarbridge.app.ui.components.XpMarquee
 import com.sugarbridge.app.ui.components.XpMeter
 import com.sugarbridge.app.ui.components.XpWindow
 import com.sugarbridge.app.ui.currentLocale
@@ -95,10 +95,8 @@ private fun HistoryStart(vm: MainViewModel, actions: AppActions) {
         Spacer(Modifier.height(2.dp))
         XpWindow(stringResource(R.string.history_title)) {
             if (vm.readingFile) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    CircularProgressIndicator(Modifier.padding(end = 12.dp), strokeWidth = 3.dp)
-                    Text(stringResource(R.string.history_reading_file), style = MaterialTheme.typography.bodyLarge)
-                }
+                Text(stringResource(R.string.history_reading_file), style = MaterialTheme.typography.bodyLarge)
+                XpMarquee(Modifier.fillMaxWidth())
             }
             if (h.loaded) {
                 HistorySummary(h)

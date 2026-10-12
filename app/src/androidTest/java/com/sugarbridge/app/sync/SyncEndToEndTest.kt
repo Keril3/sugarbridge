@@ -36,6 +36,7 @@ import org.junit.runner.RunWith
 import java.io.File
 import java.time.Duration
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import kotlinx.coroutines.runBlocking
 
 /**
@@ -223,6 +224,12 @@ class SyncEndToEndTest {
         assertTrue(all, log.any { it.startsWith("service minute mode on") })
         assertTrue(all, log.any { it.startsWith("sync minute, first:") && it.contains("wrote") })
         assertTrue(all, "phone screen off" in log && "phone screen on" in log)
+
+        // "Clear" empties the log and remembers when, so Samsung Health's lines from before aren't shown again
+        val beforeClear = Instant.now()
+        DebugLog.clear(context)
+        assertTrue(DebugLog.read(context).isEmpty())
+        assertTrue(!DebugLog.clearedAt(context).isBefore(beforeClear.truncatedTo(ChronoUnit.MILLIS)))
     }
 
     private fun smallIcon(): Icon =

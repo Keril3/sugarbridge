@@ -1,6 +1,7 @@
 package com.sugarbridge.app.debug
 
 import android.content.Context
+import androidx.core.content.edit
 import java.io.File
 import java.time.Instant
 import java.time.ZoneId
@@ -16,6 +17,7 @@ class LogEntry(val at: Instant, val kind: String, val text: String)
  */
 object DebugLog {
     private const val FILE = "events.log"
+    private const val PREFS = "debug"
     private const val MAX_BYTES = 400_000L
     private const val KEEP_LINES = 2_000
     private val lock = Any()
@@ -36,7 +38,18 @@ object DebugLog {
         runCatching { file(context).takeIf { it.exists() }?.readLines().orEmpty() }.getOrDefault(emptyList())
     }.mapNotNull(::parse)
 
-    fun clear(context: Context) = synchronized(lock) { file(context).delete() }
+    /**
+     * Empties the log. Samsung Health's lines aren't kept in it but read from Android's usage statistics each
+     * time, so the moment of clearing is remembered and nothing older is shown again (see [clearedAt]).
+     */
+    fun clear(context: Context) {
+        synchronized(lock) { file(context).delete() }
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit { putLong("cleared_at", System.currentTimeMillis()) }
+    }
+
+    /** When the log was last cleared, or the beginning of time. */
+    fun clearedAt(context: Context): Instant =
+        Instant.ofEpochMilli(context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getLong("cleared_at", 0))
 
     /** The log as plain text for copying or sending, newest first. */
     fun format(entries: List<LogEntry>, zone: ZoneId = ZoneId.systemDefault()): String =

@@ -2,6 +2,25 @@
 
 Newest version first. A version's section becomes the release notes on GitHub.
 
+## 1.8.0 — 2026-10-12
+
+- The glucose in the status bar is larger and its sizes are independent. The number is measured by its digits:
+  a decimal comma hangs below them instead of making them about a fifth smaller. The arrow's size never changes
+  the number any more: when the square runs short, the digits get narrower and then the arrow gives way. Beside
+  the number (now the default) the number is as tall as the clock's digits. The sizes are multipliers, two
+  smaller and two larger: ×0.8, ×0.9, ×1.1, ×1.25 instead of S, M, L, XL.
+- "Arrow position" shows both choices as tiles in the app's style, each drawn on a status bar with the real
+  icon; the preview's status bar follows the light or dark theme.
+- Turning minute mode on switches background sync off: it would only fetch the same, less often. A pink notice
+  at the bottom of the screen says so and stays until its link to the setting or its ✕ is tapped. When minute
+  mode is turned off, background sync comes back with its interval.
+- Progress bars behave as in Windows XP: whole blocks appear one after another. Reading a file shows a group of
+  blocks running through the bar.
+- "About SugarBridge": the GitHub button has a chain to show it is a link. A new "About the author" window below
+  it has the website keril.art and the contacts from it: email, Discord and Telegram.
+- Fixed: "Clear" in the developer tools' log left Samsung Health's lines, which are read from Android's usage
+  statistics each time. Lines older than the moment of clearing aren't shown again.
+
 ## 1.7.1 — 2026-10-12
 
 - Fixed: with the notification pinned, every new value moved SugarBridge's icon in the status bar ahead of other

@@ -130,7 +130,7 @@
     <string name="settings_hc_hint">Samsung Health сам забирає цукор із Health Connect — за своїм розкладом; щоб він забрав нове одразу, відкрийте його головний екран і потягніть його вниз. Якщо точок немає — перевірте в Samsung Health → Налаштування → Health Connect, що йому дозволено читати «Рівень глюкози».</string>
     <string name="settings_background_title">Фонова синхронізація</string>
     <string name="settings_off">вимк</string>
-    <string name="settings_background_hint">Частіше ніж раз на 15 хвилин без сповіщення Android не дозволяє. З увімкненим хвилинним режимом її можна лишити як запасну. Щоразу забирається історія за 12 годин, тож пропусків не буде, навіть якщо телефон спав.</string>
+    <string name="settings_background_hint">Частіше ніж раз на 15 хвилин без сповіщення Android не дозволяє. Щоразу забирається історія за 12 годин, тож пропусків не буде, навіть якщо телефон спав.</string>
     <string name="settings_live_title">Хвилинний режим</string>
     <string name="settings_live_switch">Увімкнути</string>
     <string name="settings_live_switch_hint">Цукор потрапляє в Samsung Health через 1–2 хвилини після виміру. Поки режим працює, у шторці висить сповіщення.</string>
@@ -252,7 +252,7 @@
     <string name="target_to">До</string>
     <string name="target_save">Зберегти діапазон</string>
     <string name="target_invalid">Введіть два числа від %1$s до %2$s %3$s, менше — першим</string>
-    <string name="settings_background_intro">Без сповіщення, раз на 15 хвилин або рідше. З хвилинним режимом не пов’язана — для нього її вмикати не треба.</string>
+    <string name="settings_background_intro">Без сповіщення, раз на 15 хвилин або рідше. Поки працює хвилинний режим, вона не потрібна й вимкнена.</string>
     <string name="settings_hc_manage">Дозволи змінюються в Health Connect: знайдіть там SugarBridge.</string>
     <string name="msg_hc_no_dialog">Дозвольте тут: SugarBridge → «Рівень глюкози»</string>
     <string name="cal_from">З</string>
@@ -352,4 +352,16 @@
     <string name="dev_app_info">Інформація про додаток</string>
     <string name="dev_fix_saver">Вимкнути енергозбереження</string>
     <string name="dev_fix_install_samsung">Встановити Samsung Health</string>
+    <string name="notice_background_off">Хвилинний режим увімкнено, тому фонову синхронізацію вимкнено: вона робила б те саме, тільки рідше. Коли вимкнете хвилинний режим, вона ввімкнеться знову.</string>
+    <string name="notice_background_link">Налаштування фонової синхронізації ›</string>
+    <string name="settings_background_paused">Зараз вимкнена: працює хвилинний режим. Увімкнеться знову, коли ви його вимкнете.</string>
+    <string name="author_title">Про автора</string>
+    <string name="author_text">SugarBridge робить Keril³ — розробник-початківець.</string>
+    <string name="author_site">Сайт</string>
+    <string name="author_contact_intro">Зі мною можна зв’язатися тут:</string>
+    <string name="author_email">Пошта</string>
+    <string name="author_email_link">Написати на пошту</string>
+    <string name="author_discord_link">Відкрити профіль у Discord</string>
+    <string name="author_telegram_link">Відкрити чат у Telegram</string>
+    <string name="author_site_link">Відкрити сайт</string>
 </resources>

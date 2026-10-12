@@ -130,7 +130,7 @@
     <string name="settings_hc_hint">Samsung Health 会按自己的时间表自行从 Health Connect 读取血糖；要让它立即读取新数值，请打开它的主屏幕并向下拉。没有数据点？请在 Samsung Health → 设置 → Health Connect 中确认它可以读取“血糖”。</string>
     <string name="settings_background_title">后台同步</string>
     <string name="settings_off">关闭</string>
-    <string name="settings_background_hint">没有通知时，Android 最多允许每 15 分钟运行一次。开启分钟模式时，它可以保留作为备用。每次都会获取最近 12 小时的记录，即使手机休眠也不会遗漏。</string>
+    <string name="settings_background_hint">没有通知时，Android 最多允许每 15 分钟运行一次。每次都会获取最近 12 小时的记录，即使手机休眠也不会遗漏。</string>
     <string name="settings_live_title">分钟模式</string>
     <string name="settings_live_switch">开启</string>
     <string name="settings_live_switch_hint">血糖会在测量后一两分钟内进入 Samsung Health。模式运行期间，通知栏中会保留一条通知。</string>
@@ -252,7 +252,7 @@
     <string name="target_to">到</string>
     <string name="target_save">保存范围</string>
     <string name="target_invalid">请输入 %1$s 到 %2$s %3$s 之间的两个数字，较小的在前</string>
-    <string name="settings_background_intro">无需通知，每 15 分钟或更久一次。它与分钟模式无关：使用分钟模式不需要开启它。</string>
+    <string name="settings_background_intro">无需通知，每 15 分钟或更久一次。分钟模式运行时不需要它，因此处于关闭状态。</string>
     <string name="settings_hc_manage">权限在 Health Connect 中更改：在那里找到 SugarBridge。</string>
     <string name="msg_hc_no_dialog">请在这里允许：SugarBridge → “血糖”</string>
     <string name="cal_from">从</string>
@@ -352,4 +352,16 @@
     <string name="dev_app_info">应用信息</string>
     <string name="dev_fix_saver">关闭省电模式</string>
     <string name="dev_fix_install_samsung">安装 Samsung Health</string>
+    <string name="notice_background_off">分钟模式已开启，因此后台同步已关闭：它只会以更低的频率做同样的事。关闭分钟模式后，它会重新开启。</string>
+    <string name="notice_background_link">后台同步设置 ›</string>
+    <string name="settings_background_paused">目前已关闭：分钟模式正在运行。关闭分钟模式后会重新开启。</string>
+    <string name="author_title">关于作者</string>
+    <string name="author_text">SugarBridge 由初学开发者 Keril³ 制作。</string>
+    <string name="author_site">网站</string>
+    <string name="author_contact_intro">可以通过这些方式联系我：</string>
+    <string name="author_email">邮箱</string>
+    <string name="author_email_link">发送邮件</string>
+    <string name="author_discord_link">打开 Discord 个人资料</string>
+    <string name="author_telegram_link">打开 Telegram 聊天</string>
+    <string name="author_site_link">打开网站</string>
 </resources>

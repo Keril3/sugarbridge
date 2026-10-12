@@ -130,7 +130,7 @@
     <string name="settings_hc_hint">Samsung Health는 자기 일정에 따라 Health Connect에서 혈당을 알아서 가져가요. 새 값을 바로 가져가게 하려면 홈 화면을 열고 아래로 당기세요. 점이 안 보이면 Samsung Health → 설정 → Health Connect에서 ‘혈당’ 읽기가 허용되어 있는지 확인하세요.</string>
     <string name="settings_background_title">백그라운드 동기화</string>
     <string name="settings_off">끔</string>
-    <string name="settings_background_hint">알림이 없으면 Android는 15분보다 자주 작동하는 것을 허용하지 않아요. 분 단위 모드를 쓸 때도 예비용으로 켜 둬도 괜찮아요. 매번 최근 12시간 기록을 가져오므로 휴대폰이 잠들어 있었어도 빠지는 값이 없어요.</string>
+    <string name="settings_background_hint">알림이 없으면 Android는 15분보다 자주 작동하는 것을 허용하지 않아요. 매번 최근 12시간 기록을 가져오므로 휴대폰이 잠들어 있었어도 빠지는 값이 없어요.</string>
     <string name="settings_live_title">분 단위 모드</string>
     <string name="settings_live_switch">켜기</string>
     <string name="settings_live_switch_hint">측정 후 1~2분 안에 혈당이 Samsung Health에 들어가요. 모드가 켜져 있는 동안 알림창에 알림이 표시돼요.</string>
@@ -252,7 +252,7 @@
     <string name="target_to">최대</string>
     <string name="target_save">범위 저장</string>
     <string name="target_invalid">%1$s~%2$s %3$s 사이의 숫자 두 개를 작은 것부터 입력하세요</string>
-    <string name="settings_background_intro">알림 없이 15분마다 또는 더 드물게 동기화해요. 분 단위 모드와는 별개라서 그 모드를 위해 켤 필요는 없어요.</string>
+    <string name="settings_background_intro">알림 없이 15분마다 또는 더 드물게 동기화해요. 분 단위 모드가 작동하는 동안에는 필요 없어서 꺼져요.</string>
     <string name="settings_hc_manage">권한은 Health Connect에서 바꿀 수 있어요. 거기서 SugarBridge를 찾으세요.</string>
     <string name="msg_hc_no_dialog">여기서 허용하세요: SugarBridge → ‘혈당’</string>
     <string name="cal_from">시작</string>
@@ -352,4 +352,16 @@
     <string name="dev_app_info">애플리케이션 정보</string>
     <string name="dev_fix_saver">절전 모드 끄기</string>
     <string name="dev_fix_install_samsung">Samsung Health 설치</string>
+    <string name="notice_background_off">분 단위 모드가 켜져 있어서 백그라운드 동기화는 꺼 두었어요. 같은 일을 더 드물게 할 뿐이거든요. 분 단위 모드를 끄면 다시 켜져요.</string>
+    <string name="notice_background_link">백그라운드 동기화 설정 ›</string>
+    <string name="settings_background_paused">지금은 꺼져 있어요: 분 단위 모드가 작동 중이에요. 분 단위 모드를 끄면 다시 켜져요.</string>
+    <string name="author_title">만든 사람</string>
+    <string name="author_text">SugarBridge는 초보 개발자 Keril³이 만들어요.</string>
+    <string name="author_site">웹사이트</string>
+    <string name="author_contact_intro">여기서 연락할 수 있어요:</string>
+    <string name="author_email">이메일</string>
+    <string name="author_email_link">이메일 보내기</string>
+    <string name="author_discord_link">Discord 프로필 열기</string>
+    <string name="author_telegram_link">Telegram 채팅 열기</string>
+    <string name="author_site_link">웹사이트 열기</string>
 </resources>

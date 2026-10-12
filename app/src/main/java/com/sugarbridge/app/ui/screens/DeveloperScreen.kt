@@ -89,7 +89,8 @@ fun DeveloperDialog(vm: MainViewModel, actions: AppActions, onDismiss: () -> Uni
             val status by produceState<List<StatusLine>>(emptyList(), round) { value = collectStatus(context) }
             val log by produceState<List<LogEntry>>(emptyList(), round) {
                 value = withContext(Dispatchers.IO) {
-                    val since = Instant.now().minus(Duration.ofDays(2))
+                    // two days of Samsung Health's activity, but nothing from before the log was last cleared
+                    val since = maxOf(Instant.now().minus(Duration.ofDays(2)), DebugLog.clearedAt(context))
                     (DebugLog.read(context) + samsungHealthEvents(context, since)).sortedBy { it.at }
                 }
             }

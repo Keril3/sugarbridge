@@ -30,6 +30,7 @@ import com.sugarbridge.app.libre.LoginFailed
 import com.sugarbridge.app.libre.RateLimited
 import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.settings.SettingsStore
+import com.sugarbridge.app.settings.minuteModeOff
 import com.sugarbridge.app.ui.clockFormat
 import java.time.ZoneId
 import kotlinx.coroutines.CancellationException
@@ -111,7 +112,8 @@ class LiveSyncService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_STOP -> {   // the "Stop" button in the notification
-                SettingsStore(this).update { it.copy(liveEnabled = false) }
+                SettingsStore(this).update { it.minuteModeOff() }
+                scheduleSync(this)   // the background sync minute mode switched off is back
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 stopSelf()
                 return START_NOT_STICKY

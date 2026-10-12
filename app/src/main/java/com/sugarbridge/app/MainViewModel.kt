@@ -143,6 +143,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         private set
     private var importRun = 0   // the latest change of the history; an older one still running is dropped
     var historyOpen by mutableStateOf(false)   // the loaded history is shown, not the History start page
+    var focusBackground by mutableStateOf(false)   // Settings scroll to the background sync window once
     var readingFile by mutableStateOf(false)   // a file is being read
         private set
     var pendingMerge by mutableStateOf<PendingMerge?>(null)
@@ -513,6 +514,15 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         if (open) historyOpen = true
         if (save) withContext(Dispatchers.IO) { runCatching { HistoryStore.save(context, saved) } }
     }
+
+    /** The link in the notice: Settings, scrolled to background sync; the notice is done. */
+    fun openBackgroundSettings() {
+        tab = Tab.SETTINGS
+        focusBackground = true
+        updateSettings { it.copy(backgroundNotice = false) }
+    }
+
+    fun dismissBackgroundNotice() = updateSettings { it.copy(backgroundNotice = false) }
 
     /** "All-time history" on the home screen: the History tab, with the loaded history open if there is one. */
     fun openHistory() {

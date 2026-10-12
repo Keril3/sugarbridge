@@ -22,11 +22,14 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.sugarbridge.app.R
 import com.sugarbridge.app.glucose.Reading
 import com.sugarbridge.app.settings.AppSettings
+import com.sugarbridge.app.sync.StatusIcon
 import com.sugarbridge.app.ui.components.SkyBackground
 import com.sugarbridge.app.ui.screens.StatusBarCard
+import com.sugarbridge.app.ui.screens.scaleLabel
 import com.sugarbridge.app.ui.theme.SugarTheme
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -42,6 +45,9 @@ class StatusBarCardTest {
 
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private val context = instrumentation.targetContext
+
+    /** "×1.25" or "×1,25", as the window writes a step in the phone's language. */
+    private fun step(i: Int) = scaleLabel(StatusIcon.SCALES[i], context.resources.configuration.locales[0])
 
     private fun show(start: AppSettings): () -> AppSettings {
         var settings by mutableStateOf(start)
@@ -63,15 +69,20 @@ class StatusBarCardTest {
         compose.onNodeWithTag("statusbar-preview").assertExists()
         shot("statusbar_settings")
 
-        compose.onAllNodesWithText("XL")[1].performScrollTo().performClick()   // the arrow's XL
+        assertEquals(2, compose.onAllNodesWithText(step(3)).fetchSemanticsNodes().size)   // one in each row
+        compose.onAllNodesWithText(step(3))[1].performScrollTo().performClick()   // the arrow's ×1.25
         compose.waitForIdle()
         assertEquals(3, settings().statusArrowSize)
-        compose.onNodeWithText(context.getString(R.string.arrow_beside)).performScrollTo().performClick()
+        compose.onNodeWithTag("place-above").performScrollTo().performClick()
+        compose.waitForIdle()
+        assertTrue(settings().statusArrowAbove)
+        compose.onNodeWithTag("place-beside").performScrollTo().performClick()
         compose.waitForIdle()
         assertFalse(settings().statusArrowAbove)
-        compose.onAllNodesWithText("S")[0].performScrollTo().performClick()   // the number's S
+        compose.onAllNodesWithText(step(0))[0].performScrollTo().performClick()   // the number's ×0.8
         compose.waitForIdle()
         assertEquals(0, settings().statusNumberSize)
+        assertEquals(3, settings().statusArrowSize)   // the number's step leaves the arrow alone
         shot("statusbar_settings_beside")
     }
 
@@ -80,7 +91,8 @@ class StatusBarCardTest {
         show(AppSettings(liveEnabled = false))
         compose.onNodeWithText(context.getString(R.string.settings_statusbar_off)).assertExists()
         compose.onNodeWithTag("statusbar-preview").assertDoesNotExist()
-        compose.onAllNodesWithText("XL")[0].assertIsNotEnabled()
+        compose.onAllNodesWithText(step(3))[0].assertIsNotEnabled()
+        compose.onNodeWithTag("place-above").assertIsNotEnabled()
     }
 
     private fun shot(name: String) {

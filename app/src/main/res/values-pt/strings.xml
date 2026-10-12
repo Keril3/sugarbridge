@@ -130,7 +130,7 @@
     <string name="settings_hc_hint">O Samsung Health pega a glicose do Health Connect sozinho, no ritmo dele; para ele pegar os valores novos na hora, abra a tela inicial dele e puxe-a para baixo. Sem pontos? No Samsung Health → Ajustes → Health Connect, confira se ele pode ler “Glicose no sangue”.</string>
     <string name="settings_background_title">Sincronização em segundo plano</string>
     <string name="settings_off">desligada</string>
-    <string name="settings_background_hint">Sem notificação, o Android não permite mais de uma vez a cada 15 minutos. Com o modo minuto ligado, ela pode ficar ativa como reserva. Cada vez são buscadas as últimas 12 horas, então nada se perde mesmo se o celular estiver dormindo.</string>
+    <string name="settings_background_hint">Sem notificação, o Android não permite mais de uma vez a cada 15 minutos. Cada vez são buscadas as últimas 12 horas, então nada se perde mesmo se o celular estiver dormindo.</string>
     <string name="settings_live_title">Modo minuto</string>
     <string name="settings_live_switch">Ativar</string>
     <string name="settings_live_switch_hint">A glicose chega ao Samsung Health um ou dois minutos após a medição. Enquanto o modo funciona, fica uma notificação na barra.</string>
@@ -252,7 +252,7 @@
     <string name="target_to">Até</string>
     <string name="target_save">Salvar faixa</string>
     <string name="target_invalid">Digite dois números de %1$s a %2$s %3$s, o menor primeiro</string>
-    <string name="settings_background_intro">Sem notificação, a cada 15 minutos ou menos. Não tem relação com o modo minuto: não é preciso ativá-la para ele.</string>
+    <string name="settings_background_intro">Sem notificação, a cada 15 minutos ou menos. Enquanto o modo minuto está ativo, ela não é necessária e fica desligada.</string>
     <string name="settings_hc_manage">As permissões são alteradas no Health Connect: procure o SugarBridge lá.</string>
     <string name="msg_hc_no_dialog">Permita aqui: SugarBridge → “Glicose no sangue”</string>
     <string name="cal_from">De</string>
@@ -352,4 +352,16 @@
     <string name="dev_app_info">Informações do app</string>
     <string name="dev_fix_saver">Desligar a economia de bateria</string>
     <string name="dev_fix_install_samsung">Instalar o Samsung Health</string>
+    <string name="notice_background_off">O modo minuto está ligado, então a sincronização em segundo plano está desligada: ela faria o mesmo, só que menos vezes. Ela volta quando você desliga o modo minuto.</string>
+    <string name="notice_background_link">Ajustes da sincronização em segundo plano ›</string>
+    <string name="settings_background_paused">Desligada por enquanto: o modo minuto está ativo. Ela volta quando você o desligar.</string>
+    <string name="author_title">Sobre o autor</string>
+    <string name="author_text">O SugarBridge é feito por Keril³, um desenvolvedor iniciante.</string>
+    <string name="author_site">Site</string>
+    <string name="author_contact_intro">Você pode falar comigo aqui:</string>
+    <string name="author_email">E-mail</string>
+    <string name="author_email_link">Enviar um e-mail</string>
+    <string name="author_discord_link">Abrir o perfil no Discord</string>
+    <string name="author_telegram_link">Abrir o chat no Telegram</string>
+    <string name="author_site_link">Abrir o site</string>
 </resources>

@@ -24,9 +24,10 @@ from the LibreLinkUp cloud and writes them to Health Connect, where Samsung Heal
 
 - **Glucose in Samsung Health**: in the background every 15 minutes (or less often), without a notification.
 - **Minute mode**: every new reading goes to Samsung Health, and the glucose value with its trend arrow is
-  shown as a number in the status bar: by default the number fills the icon and the arrow stands above it.
-  In Settings → Status bar you set the size of the number and of the arrow and where the arrow stands, with a
-  preview; each can also be turned off. The notification can be made quiet or hidden completely.
+  shown as a number in the status bar, as tall as the clock's digits. In Settings → Status bar you make the
+  number and the arrow smaller or larger (×0.8, ×0.9, ×1.1, ×1.25, each on its own) and put the arrow beside
+  the number or above it, with a preview; each can also be turned off. Background sync is switched off while
+  minute mode runs and comes back when it stops. The notification can be made quiet or hidden completely.
 - **Full history from LibreView**: download the export right in the app, look through it on a chart (a day, a
   week, a month, all of it or any period from a calendar), then choose the days you want in Samsung Health.
   Nothing is written twice, and anything unwanted can be deleted. The history stays in the app until you delete
@@ -36,7 +37,8 @@ from the LibreLinkUp cloud and writes them to Health Connect, where Samsung Heal
 - **Its own chart and statistics** for 12 hours, mmol/L or mg/dL, your own target range. Tap the chart to open it
   full screen and move a finger along it to read every value and its time.
 - **Light and dark theme** in the style of [keril.art](https://keril.art/): a blue sky with a field of dots,
-  Windows XP style windows and a pixel font. The phone's theme by default, or light or dark in Settings.
+  windows and progress bars in the style of Windows XP (the bars fill block by block) and a pixel font. The
+  phone's theme by default, or light or dark in Settings.
 - **Readable for everyone**: four text sizes and a low vision mode with the phone's own font, larger text,
   more contrast and a plain background.
 - **Developer tools** (Settings → About SugarBridge): an event log of every sync and of what Android did
@@ -110,6 +112,7 @@ You need:
    back for hours while the phone lies idle, and Samsung may put the app to sleep.
 7. Optional: **Settings → Minute mode** for a new value every minute; "Pin the notification" brings it back if it
    is swiped away by accident. **Settings → Status bar** sets how large the number and the arrow are there.
+   Minute mode switches background sync off and says so in a notice; it comes back when minute mode stops.
 
 ### Full history from LibreView
 
@@ -161,8 +164,17 @@ restricted settings", confirm, then turn usage access on. The developer tools ha
 than every 15 minutes. It can be made quiet (Settings → "Glucose in the notification") or turned off completely
 ("Hide the notification completely"); the mode keeps working.
 
-**Do I need background sync for minute mode?** No, they are separate. Background sync (every 15 minutes or
-less often, no notification) can stay on as a backup: each run fetches the last 12 hours, so nothing is missed.
+**Do I need background sync for minute mode?** No. Minute mode already fetches every minute what background
+sync (every 15 minutes or less often, no notification) would fetch, so turning minute mode on switches
+background sync off. A notice at the bottom of the screen says so and stays until you tap its link to the
+setting or its ✕. When minute mode is turned off, background sync comes back with the interval it had. You can
+also turn it back on yourself: it does no harm, each run fetches the last 12 hours.
+
+**Why is the number in the status bar not larger?** Android draws every notification icon in a small square,
+the same for every app, and shrinks a wider picture to fit it. So the number and the arrow share one square.
+With the arrow beside the number, the number is as tall as the clock's digits; above the number the arrow takes
+height, so both are a little smaller there. The number's size never depends on the arrow's: when the square
+runs short, the arrow gives way. Long values (10.4, 250) are narrowed a little first.
 
 **Can it work without Health Connect?** No, and it doesn't need to: on Android 14+ it is part of the system,
 not a separate app. Writing to Samsung Health directly requires a Samsung partner key. If Health Connect is
@@ -244,14 +256,19 @@ GitHub Actions builds and signs the APK in Releases when a `v*` tag arrives in t
    ```
 3. **Every release:** add the version's section to [CHANGELOG.md](CHANGELOG.md), then
    ```sh
-   git tag v1.7.1
-   git push origin v1.7.1
+   git tag v1.8.0
+   git push origin v1.8.0
    ```
    A few minutes later `SugarBridge.apk` appears in Releases with the notes from the CHANGELOG.
 
 A signed APK can be built locally too: put `sugarbridge.keystore`, `sugarbridge.keystorePassword`,
 `sugarbridge.keyAlias` and `sugarbridge.keyPassword` into `~/.gradle/gradle.properties` (outside the repository)
-and run `./gradlew assembleRelease -Psugarbridge.version=1.7.1`.
+and run `./gradlew assembleRelease -Psugarbridge.version=1.8.0`.
+
+## Author
+
+SugarBridge is made by Keril³: [keril.art](https://keril.art/). The contacts are on the website and in the app
+(Settings → About the author).
 
 ## Thanks
 

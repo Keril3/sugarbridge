@@ -29,6 +29,8 @@ import com.sugarbridge.app.health.healthConnectSettingsIntent
 import com.sugarbridge.app.health.healthConnectState
 import com.sugarbridge.app.health.healthConnectStoreIntent
 import com.sugarbridge.app.libreview.LibreViewActivity
+import com.sugarbridge.app.settings.minuteModeOff
+import com.sugarbridge.app.settings.minuteModeOn
 import com.sugarbridge.app.settings.setAppLanguage
 import com.sugarbridge.app.sync.LiveSyncService
 import com.sugarbridge.app.sync.createNotificationChannels
@@ -64,7 +66,7 @@ class MainActivity : ComponentActivity(), AppActions {
     // minute mode is turned on either way: without the permission its notification just isn't visible in the shade
     private val notificationPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {
-            vm.updateSettings { it.copy(liveEnabled = true) }
+            vm.updateSettings { it.minuteModeOn() }
         }
 
     private val libreView =
@@ -140,9 +142,9 @@ class MainActivity : ComponentActivity(), AppActions {
     override fun setLive(enabled: Boolean) {
         val needsPermission = checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         when {
-            !enabled -> vm.updateSettings { it.copy(liveEnabled = false) }
+            !enabled -> vm.updateSettings { it.minuteModeOff() }
             needsPermission && vm.ui.settings.liveShowValue -> notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-            else -> vm.updateSettings { it.copy(liveEnabled = true) }
+            else -> vm.updateSettings { it.minuteModeOn() }
         }
     }
 
@@ -193,6 +195,11 @@ class MainActivity : ComponentActivity(), AppActions {
     @SuppressLint("BatteryLife")   // the app is not for Google Play, and sleep gets in the way of minute mode
     override fun requestBatteryUnrestricted() =
         open(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, "package:$packageName".toUri()))
+
+    /** A website, a profile or an email address from the "About the author" window. */
+    override fun openLink(url: String) {
+        open(if (url.startsWith("mailto:")) Intent(Intent.ACTION_SENDTO, url.toUri()) else Intent(Intent.ACTION_VIEW, url.toUri()))
+    }
 
     /** Usage access lets the developer tools show when Samsung Health was opened or worked in the background. */
     override fun openUsageAccess() {

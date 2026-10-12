@@ -3,6 +3,7 @@ package com.sugarbridge.app.ui
 import android.graphics.Bitmap
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
@@ -226,6 +227,21 @@ class ScreenshotTest {
         shot(language, "settings_sync")
         compose.onNodeWithText(text(R.string.settings_about_title)).performScrollTo()
         shot(language, "settings_bottom")
+        compose.onNodeWithTag("author").performScrollTo()
+        shot(language, "settings_author")
+
+        // minute mode turned background sync off: the notice stays until its link or its ✕ is tapped
+        scenario.onActivity { vm.updateSettings { it.copy(backgroundNotice = true) } }
+        compose.onNodeWithTag("background-notice").assertExists()
+        shot(language, "background_notice")
+        compose.onNodeWithTag("window-close").performClick()
+        compose.waitUntil(5_000) { !vm.ui.settings.backgroundNotice }
+        compose.onNodeWithTag("background-notice").assertDoesNotExist()
+        scenario.onActivity { vm.updateSettings { it.copy(backgroundNotice = true) } }
+        compose.onNodeWithTag("background-notice-link").performClick()
+        compose.waitUntil(5_000) { !vm.ui.settings.backgroundNotice }
+        compose.onNodeWithTag("background-notice").assertDoesNotExist()
+        compose.waitUntil(5_000) { runCatching { compose.onNodeWithText(text(R.string.settings_background_intro)).assertIsDisplayed() }.isSuccess }
 
         // the developer tools
         scenario.onActivity { vm.updateSettings { it.copy(developer = true) } }

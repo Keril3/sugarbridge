@@ -17,9 +17,11 @@ data class AppSettings(
     val livePinned: Boolean = false,     // the notification comes straight back if swiped away
     val liveStatusValue: Boolean = true, // the number itself as the status bar icon, instead of Tenshi-chan
     val liveArrow: Boolean = true,       // the trend arrow next to the value in the notification and the status bar
-    val statusArrowAbove: Boolean = true, // in the status bar icon: the arrow above the number, or beside it
-    val statusNumberSize: Int = 3,       // steps of StatusIcon.NUMBER_SIZES, the largest by default
-    val statusArrowSize: Int = 1,        // steps of StatusIcon.ARROW_SIZES
+    val statusArrowAbove: Boolean = false, // in the status bar icon: the arrow above the number, or beside it
+    val statusNumberSize: Int = 3,       // steps of StatusIcon.SCALES, the largest by default
+    val statusArrowSize: Int = 1,        // steps of StatusIcon.SCALES
+    val backgroundBeforeLive: Int = 0,   // the background interval minute mode switched off, given back when it stops
+    val backgroundNotice: Boolean = false, // the notice that minute mode switched background sync off, until closed
     val unit: GlucoseUnit = GlucoseUnit.MMOL,
     val lowMgDl: Double = 70.0,          // 3.9 mmol/L
     val highMgDl: Double = 180.0,        // 10.0 mmol/L
@@ -33,6 +35,24 @@ data class AppSettings(
         val LIVE_CHOICES = listOf(1, 2, 5, 10)
         val TEXT_SCALES = listOf(0.9f, 1f, 1.15f, 1.3f)
     }
+}
+
+/**
+ * Minute mode on. The background job would only repeat what minute mode already does every minute, so it is
+ * switched off; its interval is kept to come back when minute mode stops, and a notice tells about it.
+ */
+fun AppSettings.minuteModeOn(): AppSettings = when {
+    liveEnabled -> this
+    backgroundMinutes > 0 -> copy(liveEnabled = true, backgroundMinutes = 0, backgroundBeforeLive = backgroundMinutes, backgroundNotice = true)
+    else -> copy(liveEnabled = true)
+}
+
+/** Minute mode off: the background sync it switched off comes back, so the glucose keeps coming. */
+fun AppSettings.minuteModeOff(): AppSettings = when {
+    !liveEnabled -> this
+    backgroundMinutes == 0 && backgroundBeforeLive > 0 ->
+        copy(liveEnabled = false, backgroundMinutes = backgroundBeforeLive, backgroundBeforeLive = 0, backgroundNotice = false)
+    else -> copy(liveEnabled = false, backgroundBeforeLive = 0, backgroundNotice = false)
 }
 
 class SettingsStore(context: Context) {
@@ -52,6 +72,8 @@ class SettingsStore(context: Context) {
             statusArrowAbove = prefs.getBoolean("status_arrow_above", d.statusArrowAbove),
             statusNumberSize = prefs.getInt("status_number_size", d.statusNumberSize),
             statusArrowSize = prefs.getInt("status_arrow_size", d.statusArrowSize),
+            backgroundBeforeLive = prefs.getInt("background_before_live", d.backgroundBeforeLive),
+            backgroundNotice = prefs.getBoolean("background_notice", d.backgroundNotice),
             unit = GlucoseUnit.entries.getOrElse(prefs.getInt("unit", d.unit.ordinal)) { d.unit },
             lowMgDl = prefs.getFloat("low_mgdl", d.lowMgDl.toFloat()).toDouble(),
             highMgDl = prefs.getFloat("high_mgdl", d.highMgDl.toFloat()).toDouble(),
@@ -75,6 +97,8 @@ class SettingsStore(context: Context) {
             putBoolean("status_arrow_above", s.statusArrowAbove)
             putInt("status_number_size", s.statusNumberSize)
             putInt("status_arrow_size", s.statusArrowSize)
+            putInt("background_before_live", s.backgroundBeforeLive)
+            putBoolean("background_notice", s.backgroundNotice)
             putInt("unit", s.unit.ordinal)
             putFloat("low_mgdl", s.lowMgDl.toFloat())
             putFloat("high_mgdl", s.highMgDl.toFloat())

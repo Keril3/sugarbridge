@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -33,7 +34,9 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -51,11 +54,18 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -64,11 +74,13 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.sugarbridge.app.R
 import com.sugarbridge.app.glucose.trendAngle
 import com.sugarbridge.app.ui.theme.LocalNight
 import com.sugarbridge.app.ui.theme.LocalXp
 import com.sugarbridge.app.ui.theme.ProvideTextScale
 import com.sugarbridge.app.ui.theme.Tenshi
+import kotlinx.coroutines.delay
 
 // ---------------------------------------------------------------------------------------------------------
 // The sky
@@ -155,6 +167,7 @@ fun XpWindow(
     onBodyClick: (() -> Unit)? = null,
     framed: Boolean = true,
     colors: WindowColors? = null,
+    onClose: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val xp = LocalXp.current
@@ -174,6 +187,7 @@ fun XpWindow(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             OutlinedTitle(title, Modifier.weight(1f))
+            if (onClose != null) CloseButton(onClose)
         }
         Column(
             Modifier
@@ -183,6 +197,26 @@ fun XpWindow(
             verticalArrangement = Arrangement.spacedBy(10.dp),
             content = content,
         )
+    }
+}
+
+/** The red ✕ of an XP window, for the few windows that can be closed. */
+@Composable
+private fun CloseButton(onClose: () -> Unit) {
+    val shape = RoundedCornerShape(5.dp)
+    val label = stringResource(R.string.close)
+    Box(
+        Modifier
+            .size(26.dp)
+            .clip(shape)
+            .border(1.dp, Color.White, shape)
+            .background(Brush.verticalGradient(Tenshi.CloseGloss))
+            .clickable(role = Role.Button, onClickLabel = label, onClick = onClose)
+            .semantics { contentDescription = label }
+            .testTag("window-close"),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text("✕", color = Color.White, style = MaterialTheme.typography.labelLarge)
     }
 }
 
@@ -231,6 +265,7 @@ private fun XpButton(
     textColor: Color,
     minHeight: Dp = 44.dp,
     textStyle: TextStyle = MaterialTheme.typography.labelLarge,
+    icon: Int? = null,
 ) {
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
@@ -251,6 +286,11 @@ private fun XpButton(
     ) {
         if (loading) {
             CircularProgressIndicator(Modifier.size(20.dp), color = Tenshi.ButtonText, strokeWidth = 2.dp)
+        } else if (icon != null) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Icon(painterResource(icon), contentDescription = null, tint = Color.Unspecified, modifier = Modifier.size(16.dp))
+                Text(text, color = textColor, style = textStyle, textAlign = TextAlign.Center)
+            }
         } else {
             Text(text, color = textColor, style = textStyle, textAlign = TextAlign.Center)
         }
@@ -262,15 +302,35 @@ private fun XpButton(
 fun PrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, loading: Boolean = false) =
     XpButton(text, onClick, modifier, enabled, loading, Tenshi.ButtonBorder, Tenshi.ButtonGloss, Tenshi.ButtonText)
 
-/** A light secondary button; [danger] makes it red for deleting and signing out. */
+/** A light secondary button; [danger] makes it red for deleting and signing out; [icon] stands before the text. */
 @Composable
-fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, danger: Boolean = false) =
+fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, danger: Boolean = false, icon: Int? = null) =
     XpButton(
         text, onClick, modifier, enabled, false,
         if (danger) Tenshi.DangerBorder else Tenshi.SecondaryBorder,
         if (danger) Tenshi.DangerGloss else Tenshi.SecondaryGloss,
         if (danger) Tenshi.DangerText else Tenshi.ButtonText,
+        icon = icon,
     )
+
+/** The small square glossy button with a chain that opens a link, as on keril.art; [label] is for screen readers. */
+@Composable
+fun LinkButton(label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val shape = RoundedCornerShape(6.dp)
+    Box(
+        modifier
+            .size(width = 34.dp, height = 32.dp)
+            .shadow(2.dp, shape, spotColor = Color(0x4014468C))
+            .clip(shape)
+            .border(1.dp, Tenshi.SmallButtonBorder, shape)
+            .background(Brush.verticalGradient(0f to Color(0xFFF4FAFF), 0.48f to Color(0xFFCFE6FB), 0.52f to Color(0xFFA9D0F3), 1f to Color(0xFF7FB4E8)))
+            .clickable(role = Role.Button, onClickLabel = label, onClick = onClick)
+            .semantics { contentDescription = label },
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(painterResource(R.drawable.ic_link_chain), contentDescription = null, tint = Color.Unspecified, modifier = Modifier.size(18.dp))
+    }
+}
 
 /** Buttons in a row; whatever doesn't fit wraps to the next line as a whole. */
 @OptIn(ExperimentalLayoutApi::class)
@@ -367,32 +427,90 @@ fun DottedDivider(modifier: Modifier = Modifier) {
     }
 }
 
-/** An XP progress bar: glossy blocks in a rounded trough. */
+private val MeterBlock = 7.dp
+private val MeterGap = 2.dp
+private val MeterInset = 2.dp
+private const val METER_STEP_MS = 45L      // a new block every 45 ms, like Windows XP: tick, tick, tick
+private const val MARQUEE_STEP_MS = 90L
+
+/** How many whole blocks fit a bar [width] wide. */
+internal fun meterCapacity(width: Float, block: Float, gap: Float, inset: Float): Int =
+    if (width <= 2 * inset + block) 0 else ((width - 2 * inset + gap) / (block + gap)).toInt()
+
+/** The blocks shown for [fraction]: whole blocks only, all of them at 100%. */
+internal fun meterBlocks(fraction: Float, capacity: Int): Int =
+    if (fraction >= 1f) capacity else (fraction.coerceAtLeast(0f) * capacity).toInt()
+
+/** The trough of an XP bar: a rounded frame with a light (by night, dark) inside. */
 @Composable
-fun XpMeter(fraction: Float, modifier: Modifier = Modifier, color: Color = Color(0xFF4FA8E8)) {
+private fun Modifier.meterTrough(): Modifier {
     val night = LocalNight.current
     val shape = RoundedCornerShape(6.dp)
+    return this
+        .height(12.dp)
+        .clip(shape)
+        .border(1.dp, if (night) Color(0xFF6F8FEA) else Tenshi.ButtonBorder, shape)
+        .background(if (night) Color(0xCC050A24) else Color(0xFFEAF6FF))
+}
+
+/** One glossy block at [index] of the bar. */
+private fun DrawScope.meterBlock(index: Int, color: Color) {
+    val inset = MeterInset.toPx()
+    val step = MeterBlock.toPx() + MeterGap.toPx()
+    val x = inset + index * step
+    val size = Size(MeterBlock.toPx(), this.size.height - 2 * inset)
+    drawRect(color, Offset(x, inset), size)
+    drawRect(Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.75f), Color.Transparent), startY = inset, endY = this.size.height * 0.6f), Offset(x, inset), size)
+}
+
+/**
+ * An XP progress bar: glossy blocks in a rounded trough. As in Windows XP it never shows part of a block, and
+ * when the value grows the new blocks appear one after another; a smaller value is shown at once.
+ */
+@Composable
+fun XpMeter(fraction: Float, modifier: Modifier = Modifier, color: Color = Color(0xFF4FA8E8)) {
+    val density = LocalDensity.current
+    var capacity by remember { mutableIntStateOf(0) }
+    val target = meterBlocks(fraction, capacity)
+    var shown by remember { mutableIntStateOf(0) }
+    LaunchedEffect(target) {
+        if (target < shown) shown = target
+        while (shown < target) {
+            delay(METER_STEP_MS)
+            shown++
+        }
+    }
     Canvas(
         modifier
-            .height(12.dp)
-            .clip(shape)
-            .border(1.dp, if (night) Color(0xFF6F8FEA) else Tenshi.ButtonBorder, shape)
-            .background(if (night) Color(0xCC050A24) else Color(0xFFEAF6FF)),
+            .meterTrough()
+            .onSizeChanged { capacity = with(density) { meterCapacity(it.width.toFloat(), MeterBlock.toPx(), MeterGap.toPx(), MeterInset.toPx()) } },
     ) {
-        val inset = 2.dp.toPx()
-        val block = 7.dp.toPx()
-        val gap = 2.dp.toPx()
-        val end = inset + (size.width - 2 * inset) * fraction.coerceIn(0f, 1f)
-        var x = inset
-        while (x < end) {
-            val w = minOf(block, end - x)
-            drawRect(color, Offset(x, inset), Size(w, size.height - 2 * inset))
-            drawRect(
-                Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.75f), Color.Transparent), startY = inset, endY = size.height * 0.6f),
-                Offset(x, inset), Size(w, size.height - 2 * inset),
-            )
-            x += block + gap
+        repeat(shown.coerceAtMost(capacity)) { meterBlock(it, color) }
+    }
+}
+
+/**
+ * An XP bar for work of unknown length: a group of three blocks runs through the trough block by block and
+ * starts over, the way Windows XP showed it was busy.
+ */
+@Composable
+fun XpMarquee(modifier: Modifier = Modifier, color: Color = Color(0xFF4FA8E8)) {
+    val density = LocalDensity.current
+    var capacity by remember { mutableIntStateOf(0) }
+    var head by remember { mutableIntStateOf(0) }
+    LaunchedEffect(capacity) {
+        while (capacity > 0) {
+            delay(MARQUEE_STEP_MS)
+            head = (head + 1) % (capacity + 3)
         }
+    }
+    Canvas(
+        modifier
+            .meterTrough()
+            .onSizeChanged { capacity = with(density) { meterCapacity(it.width.toFloat(), MeterBlock.toPx(), MeterGap.toPx(), MeterInset.toPx()) } }
+            .testTag("xp-marquee"),
+    ) {
+        for (i in head - 2..head) if (i in 0 until capacity) meterBlock(i, color)
     }
 }
 

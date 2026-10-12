@@ -130,7 +130,7 @@
     <string name="settings_hc_hint">Samsung Health holt den Zucker selbst aus Health Connect, nach eigenem Zeitplan; damit es neue Werte sofort holt, öffne seinen Startbildschirm und zieh ihn nach unten. Keine Punkte? Prüfe in Samsung Health → Einstellungen → Health Connect, ob es „Blutzucker“ lesen darf.</string>
     <string name="settings_background_title">Hintergrund-Synchronisierung</string>
     <string name="settings_off">aus</string>
-    <string name="settings_background_hint">Öfter als alle 15 Minuten erlaubt Android ohne Benachrichtigung nicht. Mit dem Minutenmodus kann sie als Reserve eingeschaltet bleiben. Jedes Mal werden die letzten 12 Stunden geholt, es fehlt also nichts, auch wenn das Handy geschlafen hat.</string>
+    <string name="settings_background_hint">Öfter als alle 15 Minuten erlaubt Android ohne Benachrichtigung nicht. Jedes Mal werden die letzten 12 Stunden geholt, es fehlt also nichts, auch wenn das Handy geschlafen hat.</string>
     <string name="settings_live_title">Minutenmodus</string>
     <string name="settings_live_switch">Einschalten</string>
     <string name="settings_live_switch_hint">Der Zucker ist ein bis zwei Minuten nach der Messung in Samsung Health. Solange der Modus läuft, steht eine Benachrichtigung in der Leiste.</string>
@@ -252,7 +252,7 @@
     <string name="target_to">Bis</string>
     <string name="target_save">Bereich speichern</string>
     <string name="target_invalid">Gib zwei Zahlen von %1$s bis %2$s %3$s ein, die kleinere zuerst</string>
-    <string name="settings_background_intro">Ohne Benachrichtigung, alle 15 Minuten oder seltener. Sie hat nichts mit dem Minutenmodus zu tun – für ihn musst du sie nicht einschalten.</string>
+    <string name="settings_background_intro">Ohne Benachrichtigung, alle 15 Minuten oder seltener. Solange der Minutenmodus läuft, wird sie nicht gebraucht und ist aus.</string>
     <string name="settings_hc_manage">Berechtigungen änderst du in Health Connect: Such dort SugarBridge.</string>
     <string name="msg_hc_no_dialog">Erlaube es hier: SugarBridge → „Blutzucker“</string>
     <string name="cal_from">Von</string>
@@ -352,4 +352,16 @@
     <string name="dev_app_info">App-Info</string>
     <string name="dev_fix_saver">Energiesparmodus ausschalten</string>
     <string name="dev_fix_install_samsung">Samsung Health installieren</string>
+    <string name="notice_background_off">Der Minutenmodus ist an, darum ist die Hintergrund-Synchronisierung aus: Sie würde dasselbe nur seltener tun. Wenn du den Minutenmodus ausschaltest, geht sie wieder an.</string>
+    <string name="notice_background_link">Einstellungen der Hintergrund-Synchronisierung ›</string>
+    <string name="settings_background_paused">Gerade aus: Der Minutenmodus läuft. Sie geht wieder an, wenn du ihn ausschaltest.</string>
+    <string name="author_title">Über den Autor</string>
+    <string name="author_text">SugarBridge macht Keril³, ein angehender Entwickler.</string>
+    <string name="author_site">Website</string>
+    <string name="author_contact_intro">Hier kannst du mich erreichen:</string>
+    <string name="author_email">E-Mail</string>
+    <string name="author_email_link">E-Mail schreiben</string>
+    <string name="author_discord_link">Discord-Profil öffnen</string>
+    <string name="author_telegram_link">Telegram-Chat öffnen</string>
+    <string name="author_site_link">Website öffnen</string>
 </resources>

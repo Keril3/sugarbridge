@@ -61,6 +61,70 @@ class StatusIconTest {
         assertTrue((0..2).all { arrowHeight(it) < arrowHeight(it + 1) })
     }
 
+    /** Rows with a visible pixel left of column [before]: beside the number, everything but the arrow. */
+    private fun rowsLeftOf(b: Bitmap, before: Int): IntRange {
+        val rows = (0 until SIZE).filter { y -> (0 until before).any { x -> visible(b, x, y) } }
+        return rows.first()..rows.last()
+    }
+
+    /** The height of the first digit alone, without a comma's tail. */
+    private fun firstDigitHeight(icon: Bitmap) = height(rowsLeftOf(icon, runs(icon, rows = false).first().last + 1))
+
+    /** The number's drawn height: above it is everything under the arrow, beside it everything left of the arrow. */
+    private fun numberHeight(icon: Bitmap, above: Boolean): Int =
+        if (above) runs(icon, rows = true).drop(1).let { it.last().last - it.first().first + 1 }
+        else height(rowsLeftOf(icon, runs(icon, rows = false).last().first))
+
+    /**
+     * The arrow's step never changes the number, for short and long values, with a dot or a comma, beside and
+     * above. When the square runs short, the arrow gives way instead.
+     */
+    @Test
+    fun theArrowsStepNeverChangesTheNumber() {
+        for (value in listOf("6,2", "6.4", "10.4", "22,2", "115", "250")) {
+            for (above in listOf(false, true)) {
+                for (numberStep in 0..3) {
+                    val heights = (0..3).map { arrowStep -> numberHeight(StatusIcon.draw(value, 3, above, numberStep, arrowStep), above) }
+                    assertTrue("$value, above $above, number $numberStep: $heights", heights.max() - heights.min() <= 1)
+                }
+            }
+        }
+    }
+
+    /** Above the number every step of the number draws it larger, with a comma too. */
+    @Test
+    fun aboveTheNumberEveryStepCounts() {
+        for (value in listOf("6,4", "6.4")) {
+            val heights = (0..3).map { numberHeight(StatusIcon.draw(value, 3, true, it, 3), above = true) }
+            assertTrue("$value: $heights", (0..2).all { heights[it] < heights[it + 1] })
+        }
+    }
+
+    /** Next to a number of usual size the arrow grows with its step, and the number's step doesn't change it. */
+    @Test
+    fun theArrowKeepsItsSizeWhileThereIsRoom() {
+        fun arrowWidth(numberStep: Int, arrowStep: Int) = height(runs(StatusIcon.draw("6,2", 3, false, numberStep, arrowStep), rows = false).last())
+        assertTrue((0..2).all { arrowWidth(1, it) < arrowWidth(1, it + 1) })
+        assertTrue((0..2).all { abs(arrowWidth(0, it) - arrowWidth(2, it)) <= 1 })
+        assertTrue(arrowWidth(3, 3) <= arrowWidth(0, 3))   // at the largest number the largest arrow gives way
+    }
+
+    /** The comma's tail hangs below the digits: "6,4" has digits as tall as "6.4". */
+    @Test
+    fun aCommaDoesNotMakeTheDigitsSmaller() {
+        fun firstDigit(value: String) = firstDigitHeight(StatusIcon.draw(value, 0, false, 2, 1))
+        assertTrue("${firstDigit("6,4")} vs ${firstDigit("6.4")}", abs(firstDigit("6,4") - firstDigit("6.4")) <= 1)
+    }
+
+    /** Alone, the largest number is about as tall as the icon: as tall as the clock's digits in the status bar. */
+    @Test
+    fun theLargestNumberFillsTheIcon() {
+        for (value in listOf("6.4", "6,2")) {
+            val digit = firstDigitHeight(StatusIcon.draw(value, 0, false, 3, 1))
+            assertTrue("$value: $digit of $SIZE", digit >= SIZE * 0.74)
+        }
+    }
+
     @Test
     fun withoutATrendTheNumberIsInTheMiddle() {
         val number = runs(StatusIcon.draw("6.4", 0, true, 3, 1), rows = true).single()

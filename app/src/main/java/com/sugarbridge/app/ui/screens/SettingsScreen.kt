@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -14,6 +16,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -153,9 +156,20 @@ fun SettingsScreen(vm: MainViewModel, actions: AppActions) {
 
         StatusBarCard(s, ui.sync.recent.lastOrNull(), vm::updateSettings)
 
-        XpWindow(stringResource(R.string.settings_background_title)) {
+        // the notice about background sync leads here
+        val backgroundWindow = remember { BringIntoViewRequester() }
+        LaunchedEffect(vm.focusBackground) {
+            if (vm.focusBackground) {
+                backgroundWindow.bringIntoView()
+                vm.focusBackground = false
+            }
+        }
+        XpWindow(stringResource(R.string.settings_background_title), Modifier.bringIntoViewRequester(backgroundWindow)) {
             // first the answer to "do I need this for the minute mode?"
             Text(stringResource(R.string.settings_background_intro), style = MaterialTheme.typography.bodyMedium)
+            if (s.liveEnabled && s.backgroundMinutes == 0 && s.backgroundBeforeLive > 0) {
+                Text(stringResource(R.string.settings_background_paused), style = MaterialTheme.typography.bodyMedium, color = LocalXp.current.accent)
+            }
             ChoiceRow(
                 options = AppSettings.BACKGROUND_CHOICES,
                 selected = s.backgroundMinutes,
@@ -223,6 +237,7 @@ fun SettingsScreen(vm: MainViewModel, actions: AppActions) {
 
         LanguageCard(actions)
         AboutCard(vm, actions)
+        AuthorCard(actions)
         BottomSpace()
     }
 }
@@ -272,7 +287,7 @@ private fun AboutCard(vm: MainViewModel, actions: AppActions) {
                 onClick = { vm.checkForUpdate() },
                 enabled = !update.checking && progress == null,
             )
-            SecondaryButton("GitHub", onClick = actions::openGitHub)
+            SecondaryButton("GitHub", onClick = actions::openGitHub, icon = R.drawable.ic_link_chain)
         }
         DottedDivider()
         Hint(stringResource(R.string.settings_about_hint))

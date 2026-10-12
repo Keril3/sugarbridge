@@ -130,7 +130,7 @@
     <string name="settings_hc_hint">Samsung Health は自分のスケジュールで Health Connect から血糖値を取り込みます。新しい値をすぐ取り込ませるには、ホーム画面を開いて下に引いてください。点が出ない場合は、Samsung Health → 設定 → Health Connect で「血糖値」の読み取りが許可されているか確認してください。</string>
     <string name="settings_background_title">バックグラウンド同期</string>
     <string name="settings_off">オフ</string>
-    <string name="settings_background_hint">通知なしでは、Android は 15 分より短い間隔を許可しません。分刻みモードと一緒に予備としてオンのままでも構いません。毎回直近 12 時間の記録を取得するので、スマホがスリープしていても抜けは出ません。</string>
+    <string name="settings_background_hint">通知なしでは、Android は 15 分より短い間隔を許可しません。毎回直近 12 時間の記録を取得するので、スマホがスリープしていても抜けは出ません。</string>
     <string name="settings_live_title">分刻みモード</string>
     <string name="settings_live_switch">オンにする</string>
     <string name="settings_live_switch_hint">測定から 1～2 分で血糖値が Samsung Health に届きます。動作中は通知領域に通知が表示されます。</string>
@@ -252,7 +252,7 @@
     <string name="target_to">上限</string>
     <string name="target_save">範囲を保存</string>
     <string name="target_invalid">%1$s～%2$s %3$s の数値を 2 つ、小さいほうを先に入力してください</string>
-    <string name="settings_background_intro">通知なしで、15 分ごとかそれより少ない頻度で動作します。分刻みモードとは別のもので、そのためにオンにする必要はありません。</string>
+    <string name="settings_background_intro">通知なしで、15 分ごとかそれより少ない頻度で動作します。分刻みモードの動作中は不要なのでオフになります。</string>
     <string name="settings_hc_manage">権限は Health Connect で変更できます。そこで SugarBridge を開いてください。</string>
     <string name="msg_hc_no_dialog">ここで許可してください：SugarBridge →「血糖値」</string>
     <string name="cal_from">開始</string>
@@ -352,4 +352,16 @@
     <string name="dev_app_info">アプリ情報</string>
     <string name="dev_fix_saver">バッテリーセーバーをオフにする</string>
     <string name="dev_fix_install_samsung">Samsung Health をインストール</string>
+    <string name="notice_background_off">分刻みモードがオンなので、バックグラウンド同期はオフにしました。同じことをより少ない頻度で行うだけだからです。分刻みモードをオフにすると、再びオンになります。</string>
+    <string name="notice_background_link">バックグラウンド同期の設定 ›</string>
+    <string name="settings_background_paused">現在オフ：分刻みモードが動作中です。分刻みモードをオフにすると再びオンになります。</string>
+    <string name="author_title">作者について</string>
+    <string name="author_text">SugarBridge は駆け出しの開発者 Keril³ が作っています。</string>
+    <string name="author_site">ウェブサイト</string>
+    <string name="author_contact_intro">連絡先はこちらです：</string>
+    <string name="author_email">メール</string>
+    <string name="author_email_link">メールを送る</string>
+    <string name="author_discord_link">Discord のプロフィールを開く</string>
+    <string name="author_telegram_link">Telegram のチャットを開く</string>
+    <string name="author_site_link">ウェブサイトを開く</string>
 </resources>

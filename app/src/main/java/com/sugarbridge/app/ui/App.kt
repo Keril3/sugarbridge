@@ -37,6 +37,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.sugarbridge.app.MainViewModel
@@ -76,6 +77,7 @@ interface AppActions {
     fun openSamsungHealth()
     fun openGitHub()
     fun openUsageAccess()
+    fun openLink(url: String)
     fun installUpdate()
 }
 
@@ -100,7 +102,13 @@ fun SugarApp(vm: MainViewModel, actions: AppActions) {
             else -> Scaffold(
                 containerColor = Color.Transparent,
                 topBar = { Spacer(Modifier.statusBarsPadding().height(8.dp)) },
-                bottomBar = { Dock(vm.tab) { vm.tab = it } },
+                bottomBar = {
+                    Column {
+                        // minute mode switched background sync off: this stays until it is read and closed
+                        if (vm.ui.settings.backgroundNotice) BackgroundNotice(vm::openBackgroundSettings, vm::dismissBackgroundNotice)
+                        Dock(vm.tab) { vm.tab = it }
+                    }
+                },
                 snackbarHost = { TenshiSnackbarHost(snackbar) },
             ) { padding ->
                 Box(Modifier.fillMaxSize().padding(padding)) {
@@ -181,6 +189,29 @@ private fun TenshiSnackbarHost(state: SnackbarHostState, modifier: Modifier = Mo
         ) {
             Text(data.visuals.message, style = MaterialTheme.typography.bodyMedium)
         }
+    }
+}
+
+/**
+ * Minute mode switched background sync off. The pink notice says so and stays until its link to the setting
+ * or its ✕ is tapped.
+ */
+@Composable
+private fun BackgroundNotice(onOpen: () -> Unit, onClose: () -> Unit) {
+    XpWindow(
+        "SugarBridge ♡",
+        Modifier.padding(horizontal = 12.dp).padding(top = 6.dp).testTag("background-notice"),
+        bodyPadding = PaddingValues(start = 14.dp, top = 14.dp, end = 14.dp, bottom = 12.dp),
+        colors = pinkWindow(),
+        onClose = onClose,
+    ) {
+        Text(stringResource(R.string.notice_background_off), style = MaterialTheme.typography.bodyMedium)
+        Text(
+            stringResource(R.string.notice_background_link),
+            style = MaterialTheme.typography.bodyMedium.copy(textDecoration = TextDecoration.Underline),
+            color = LocalXp.current.accent,
+            modifier = Modifier.clip(RoundedCornerShape(4.dp)).clickable(role = Role.Button, onClick = onOpen).padding(vertical = 4.dp).testTag("background-notice-link"),
+        )
     }
 }
 

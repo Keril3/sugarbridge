@@ -133,7 +133,7 @@
     <string name="settings_hc_hint">Samsung Health takes glucose from Health Connect by itself, on its own schedule; to make it take the new values now, open its home screen and pull it down. No points? In Samsung Health → Settings → Health Connect, check that it may read “Blood glucose”.</string>
     <string name="settings_background_title">Background sync</string>
     <string name="settings_off">off</string>
-    <string name="settings_background_hint">Android allows no more than every 15 minutes without a notification. With the minute mode on, it can stay on as a backup. Each run fetches the last 12 hours, so nothing is missed even if the phone slept.</string>
+    <string name="settings_background_hint">Android allows no more than every 15 minutes without a notification. Each run fetches the last 12 hours, so nothing is missed even if the phone slept.</string>
     <string name="settings_live_title">Minute mode</string>
     <string name="settings_live_switch">Turn on</string>
     <string name="settings_live_switch_hint">Glucose reaches Samsung Health a minute or two after the sensor reads it. A notification stays in the shade while it runs.</string>
@@ -255,7 +255,7 @@
     <string name="target_to">To</string>
     <string name="target_save">Save range</string>
     <string name="target_invalid">Enter two numbers from %1$s to %2$s %3$s, the lower one first</string>
-    <string name="settings_background_intro">Without a notification, every 15 minutes or less often. It is separate from the minute mode: you don’t need it for that.</string>
+    <string name="settings_background_intro">Without a notification, every 15 minutes or less often. While minute mode runs it isn’t needed and is off.</string>
     <string name="settings_hc_manage">Permissions are changed in Health Connect: find SugarBridge there.</string>
     <string name="msg_hc_no_dialog">Allow it here: SugarBridge → “Blood glucose”</string>
     <string name="cal_from">From</string>
@@ -355,4 +355,16 @@
     <string name="dev_app_info">App info</string>
     <string name="dev_fix_saver">Turn off battery saver</string>
     <string name="dev_fix_install_samsung">Install Samsung Health</string>
+    <string name="notice_background_off">Minute mode is on, so background sync is off: it would only do the same less often. It comes back when you turn minute mode off.</string>
+    <string name="notice_background_link">Background sync settings ›</string>
+    <string name="settings_background_paused">Off for now: minute mode is on. It comes back when you turn minute mode off.</string>
+    <string name="author_title">About the author</string>
+    <string name="author_text">SugarBridge is made by Keril³, a beginner developer.</string>
+    <string name="author_site">Website</string>
+    <string name="author_contact_intro">You can reach me here:</string>
+    <string name="author_email">Email</string>
+    <string name="author_email_link">Send an email</string>
+    <string name="author_discord_link">Open the Discord profile</string>
+    <string name="author_telegram_link">Open the Telegram chat</string>
+    <string name="author_site_link">Open the website</string>
 </resources>
