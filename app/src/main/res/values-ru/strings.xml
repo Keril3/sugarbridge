@@ -363,4 +363,16 @@
     <string name="feedback_site_link">Открыть сайт</string>
     <string name="settings_arrow_place_hint">Над числом цифры получаются крупнее: справа стрелка в квадратном значке отнимает у числа ширину.</string>
     <string name="settings_statusbar_tenshi">Без числа и стрелки вверху экрана будет значок Тэнси-тян.</string>
+    <string name="settings_update_auto">Проверять обновления автоматически</string>
+    <string name="settings_update_auto_hint">При открытии приложения, не чаще раза в 6 часов: SugarBridge спрашивает у GitHub последнюю версию</string>
+    <string name="settings_update_prompt">Предлагать установить</string>
+    <string name="settings_update_prompt_hint">Окно в приложении, а когда приложение закрыто — проверка раз в день и уведомление; один раз для каждой новой версии</string>
+    <string name="update_offer_text">Вышел SugarBridge %1$s, у вас %2$s. Скачать и установить?</string>
+    <string name="update_notes">Что нового</string>
+    <string name="update_later">Позже</string>
+    <string name="notif_update_text">Нажмите, чтобы скачать и установить</string>
+    <string name="channel_updates">Обновления</string>
+    <string name="channel_updates_description">Новая версия SugarBridge на GitHub</string>
+    <string name="error_github_server">GitHub ответил кодом %1$d</string>
+    <string name="error_github_network">нет связи с GitHub</string>
 </resources>

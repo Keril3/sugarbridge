@@ -32,6 +32,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -62,6 +63,8 @@ import com.sugarbridge.app.ui.screens.SettingsScreen
 import com.sugarbridge.app.ui.screens.UpdateBanner
 import com.sugarbridge.app.ui.theme.LocalXp
 import com.sugarbridge.app.ui.theme.Tenshi
+import com.sugarbridge.app.update.Release
+import com.sugarbridge.app.update.Updater
 
 /** What only the Activity can do: permission dialogs, other apps, system settings, the app language and updates. */
 interface AppActions {
@@ -121,6 +124,17 @@ fun SugarApp(vm: MainViewModel, actions: AppActions) {
             }
         }
         if (vm.ui.healthConnect != HealthConnectState.AVAILABLE) HealthConnectGate(vm.ui.healthConnect, actions)
+        vm.updateOffer?.let { release ->
+            UpdateOfferDialog(
+                release,
+                onInstall = {
+                    vm.closeUpdateOffer()
+                    actions.installUpdate()
+                },
+                onNotes = { actions.openLink(release.pageUrl) },
+                onLater = vm::closeUpdateOffer,
+            )
+        }
     }
 }
 
@@ -212,6 +226,28 @@ private fun BackgroundNotice(onOpen: () -> Unit, onClose: () -> Unit) {
             color = LocalXp.current.accent,
             modifier = Modifier.clip(RoundedCornerShape(4.dp)).clickable(role = Role.Button, onClick = onOpen).padding(vertical = 4.dp).testTag("background-notice-link"),
         )
+    }
+}
+
+/**
+ * A new version is out: the window offers to download and install it, once for each version (see UpdateOffer).
+ * "Later" closes it; the banner on the home screen and the About window still offer the version.
+ */
+@Composable
+private fun UpdateOfferDialog(release: Release, onInstall: () -> Unit, onNotes: () -> Unit, onLater: () -> Unit) {
+    val context = LocalContext.current
+    val installed = remember { Updater.installedVersion(context).substringBefore('-') }
+    XpDialog(onDismissRequest = onLater) {
+        XpWindow(stringResource(R.string.update_title), Modifier.testTag("update-offer")) {
+            Mascot(Mood.HAPPY, size = 88.dp, modifier = Modifier.align(Alignment.CenterHorizontally))
+            Text(stringResource(R.string.update_offer_text, release.version, installed), style = MaterialTheme.typography.bodyMedium)
+            PrimaryButton(stringResource(R.string.update_install), onClick = onInstall, modifier = Modifier.fillMaxWidth())
+            ButtonRow {
+                SecondaryButton(stringResource(R.string.update_notes), onClick = onNotes, icon = R.drawable.ic_link_chain)
+                SecondaryButton(stringResource(R.string.update_later), onClick = onLater)
+            }
+            Hint(stringResource(R.string.update_play_protect))
+        }
     }
 }
 

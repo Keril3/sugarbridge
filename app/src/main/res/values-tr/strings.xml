@@ -363,4 +363,16 @@
     <string name="feedback_site_link">Web sitesini aç</string>
     <string name="settings_arrow_place_hint">Sayının üstünde rakamlar daha büyük olur: yanında ok, kare simgede sayıdan genişlik alır.</string>
     <string name="settings_statusbar_tenshi">Sayı ve ok olmadan ekranın üstünde Tenshi-chan’ın simgesi görünür.</string>
+    <string name="settings_update_auto">Güncellemeleri kendisi denetlesin</string>
+    <string name="settings_update_auto_hint">Uygulama açıldığında, en fazla 6 saatte bir: SugarBridge GitHub’a en son sürümü sorar</string>
+    <string name="settings_update_prompt">Yüklemeyi öner</string>
+    <string name="settings_update_prompt_hint">Uygulamada bir pencere; uygulama kapalıyken de günde bir denetim ve bildirim. Her yeni sürüm için bir kez</string>
+    <string name="update_offer_text">SugarBridge %1$s çıktı, sizdeki %2$s. İndirip yüklensin mi?</string>
+    <string name="update_notes">Yenilikler</string>
+    <string name="update_later">Sonra</string>
+    <string name="notif_update_text">İndirip yüklemek için dokunun</string>
+    <string name="channel_updates">Güncellemeler</string>
+    <string name="channel_updates_description">GitHub’da SugarBridge’in yeni sürümü</string>
+    <string name="error_github_server">GitHub %1$d koduyla yanıt verdi</string>
+    <string name="error_github_network">GitHub ile bağlantı yok</string>
 </resources>

@@ -9,7 +9,6 @@ import android.content.pm.PackageManager
 import androidx.core.content.edit
 import com.sugarbridge.app.MainActivity
 import com.sugarbridge.app.libre.HttpTransport
-import com.sugarbridge.app.libre.ServerError
 import com.sugarbridge.app.libre.UrlConnectionTransport
 import java.io.File
 import java.io.IOException
@@ -17,6 +16,9 @@ import java.net.HttpURLConnection
 import java.net.URI
 import java.time.Duration
 import java.time.Instant
+
+/** GitHub answered with an error: the message names GitHub, not LibreLinkUp. */
+class GitHubError(val code: Int) : IOException("GitHub answered with HTTP $code")
 
 /** Why a downloaded file can't be installed. */
 class UpdateRejected(val reason: Reason) : Exception("Update rejected: $reason") {
@@ -48,7 +50,7 @@ object Updater {
             null,
         )
         if (resp.code == 404) return null   // no releases yet
-        if (resp.code != 200) throw ServerError(resp.code)
+        if (resp.code != 200) throw GitHubError(resp.code)
         return parseLatestRelease(resp.body)
     }
 
@@ -87,7 +89,7 @@ object Updater {
         conn.readTimeout = 60_000
         conn.setRequestProperty("User-Agent", "SugarBridge")
         try {
-            if (conn.responseCode != 200) throw ServerError(conn.responseCode)
+            if (conn.responseCode != 200) throw GitHubError(conn.responseCode)
             val total = conn.contentLengthLong
             conn.inputStream.use { input ->
                 file.outputStream().use { output ->

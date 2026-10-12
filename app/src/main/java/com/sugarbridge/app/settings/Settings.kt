@@ -29,6 +29,8 @@ data class AppSettings(
     val textScale: Float = 1f,           // on top of the phone's font size
     val lowVision: Boolean = false,      // a plain readable font, larger and with more contrast, no dots
     val developer: Boolean = false,      // the developer tools in Settings
+    val autoUpdateCheck: Boolean = true, // ask GitHub for a new version by itself
+    val updatePrompt: Boolean = true,    // offer it once in a window and, with the app closed, in a notification
 ) {
     companion object {
         val BACKGROUND_CHOICES = listOf(15, 30, 60, 180, 0)   // 15 minutes is the WorkManager minimum
@@ -81,6 +83,8 @@ class SettingsStore(context: Context) {
             textScale = prefs.getFloat("text_scale", d.textScale),
             lowVision = prefs.getBoolean("low_vision", d.lowVision),
             developer = prefs.getBoolean("developer", d.developer),
+            autoUpdateCheck = prefs.getBoolean("auto_update_check", d.autoUpdateCheck),
+            updatePrompt = prefs.getBoolean("update_prompt", d.updatePrompt),
         )
     }
 
@@ -106,6 +110,8 @@ class SettingsStore(context: Context) {
             putFloat("text_scale", s.textScale)
             putBoolean("low_vision", s.lowVision)
             putBoolean("developer", s.developer)
+            putBoolean("auto_update_check", s.autoUpdateCheck)
+            putBoolean("update_prompt", s.updatePrompt)
         }
     }
 

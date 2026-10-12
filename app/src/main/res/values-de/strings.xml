@@ -363,4 +363,16 @@
     <string name="feedback_site_link">Website öffnen</string>
     <string name="settings_arrow_place_hint">Über der Zahl werden die Ziffern größer: daneben nimmt der Pfeil der Zahl im quadratischen Symbol Breite weg.</string>
     <string name="settings_statusbar_tenshi">Ohne Zahl und Pfeil steht oben auf dem Bildschirm Tenshi-chans Symbol.</string>
+    <string name="settings_update_auto">Selbst nach Updates suchen</string>
+    <string name="settings_update_auto_hint">Beim Öffnen der App, höchstens alle 6 Stunden: SugarBridge fragt GitHub nach der neuesten Version</string>
+    <string name="settings_update_prompt">Installation anbieten</string>
+    <string name="settings_update_prompt_hint">Ein Fenster in der App und, solange die App geschlossen ist, eine tägliche Prüfung mit Benachrichtigung; einmal pro neuer Version</string>
+    <string name="update_offer_text">SugarBridge %1$s ist da, du hast %2$s. Herunterladen und installieren?</string>
+    <string name="update_notes">Was ist neu</string>
+    <string name="update_later">Später</string>
+    <string name="notif_update_text">Tippe, um herunterzuladen und zu installieren</string>
+    <string name="channel_updates">Updates</string>
+    <string name="channel_updates_description">Eine neue Version von SugarBridge auf GitHub</string>
+    <string name="error_github_server">GitHub antwortete mit Code %1$d</string>
+    <string name="error_github_network">keine Verbindung zu GitHub</string>
 </resources>

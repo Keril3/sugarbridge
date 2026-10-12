@@ -2,6 +2,20 @@
 
 Newest version first. A version's section becomes the release notes on GitHub.
 
+## 1.12.0 — 2026-10-12
+
+- Settings → About SugarBridge: "Check for updates by itself" (when the app opens, at most every 6 hours) and
+  "Offer to install" can be turned off. Without the check by itself SugarBridge asks GitHub only when "Check for
+  updates" is tapped.
+- A new version is offered in a window that pops up when the app finds it: "Download and install", "What's new"
+  (the release page) or "Later". While the app is closed a daily check offers it in a notification that pops up,
+  with "Download and install". Each version is offered once in each way; the banner on the home screen and the
+  About window keep showing it.
+- Fixed: an update that failed on the network said "no connection to LibreLinkUp", and a failure on GitHub's side
+  "LibreLinkUp answered with code …". They now name GitHub.
+- Tests: the notification once per version and only with both switches on, the window's answer, the daily check
+  following the switches, GitHub's errors, the window on screen.
+
 ## 1.11.0 — 2026-10-12
 
 - One status bar icon again: the two notifications of 1.10.0 (one for the number, one for the arrow) are gone,

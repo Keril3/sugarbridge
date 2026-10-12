@@ -1,5 +1,6 @@
 package com.sugarbridge.app.ui
 
+import android.content.Context
 import android.graphics.Bitmap
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.semantics.SemanticsActions
@@ -38,6 +39,8 @@ import com.sugarbridge.app.health.healthConnectState
 import com.sugarbridge.app.health.insertReadings
 import com.sugarbridge.app.libre.Account
 import com.sugarbridge.app.libre.AccountStore
+import com.sugarbridge.app.libre.HttpResponse
+import com.sugarbridge.app.libre.HttpTransport
 import com.sugarbridge.app.libre.Libre
 import com.sugarbridge.app.libre.Session
 import com.sugarbridge.app.libre.sha256
@@ -47,8 +50,14 @@ import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.settings.SettingsStore
 import com.sugarbridge.app.settings.ThemeMode
 import com.sugarbridge.app.sync.SyncStore
+import com.sugarbridge.app.update.APK_NAME
+import com.sugarbridge.app.update.GITHUB_PAGE
+import com.sugarbridge.app.update.GITHUB_REPO
+import com.sugarbridge.app.update.UpdateOffer
+import com.sugarbridge.app.update.Updater
 import com.sugarbridge.app.useAppLanguage
 import org.junit.After
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -113,7 +122,8 @@ class ScreenshotTest {
     @Before
     fun seed() {
         // background sync is off: with the demo account LibreLinkUp would answer "wrong password"
-        SettingsStore(context).save(AppSettings(backgroundMinutes = 0, liveEnabled = false))
+        // no check for updates by itself: a newer version on GitHub would cover the screens with its offer
+        SettingsStore(context).save(AppSettings(backgroundMinutes = 0, liveEnabled = false, autoUpdateCheck = false))
         HistoryStore.clear(context)   // a history kept from another run would replace the empty History tab
         SettingsStore(context).languageChosen = true
         AccountStore(context).save(Account("tenshi@example.com", "demo", Session("ru", "demo-token", sha256("demo"))))
@@ -138,6 +148,8 @@ class ScreenshotTest {
         useAppLanguage(context, null)
         Libre.signOut(context)
         SyncStore(context).clearDisplay()
+        Updater.transportForTests = null
+        context.getSharedPreferences("update", Context.MODE_PRIVATE).edit().clear().commit()
     }
 
     private fun shot(language: String, name: String) {
@@ -303,6 +315,23 @@ class ScreenshotTest {
         compose.waitUntil(5_000) { vm.ui.languageChosen }
         compose.onNodeWithText(text(R.string.login_title)).assertExists()
         shot(language, "login")
+
+        // a new version is out (GitHub is a stand-in here): the check by itself offers it in a window, once
+        context.getSharedPreferences("update", Context.MODE_PRIVATE).edit().clear().commit()
+        Updater.transportForTests = HttpTransport { _, _, _, _ ->
+            HttpResponse(
+                200,
+                """{"tag_name": "v99.0.0", "html_url": "$GITHUB_PAGE", "assets": [{"name": "$APK_NAME",
+                   "browser_download_url": "https://github.com/$GITHUB_REPO/releases/download/v99.0.0/$APK_NAME"}]}""",
+            )
+        }
+        scenario.onActivity { vm.updateSettings { it.copy(autoUpdateCheck = true) } }
+        compose.waitUntil(10_000) { vm.updateOffer != null }
+        compose.onNodeWithTag("update-offer").assertExists()
+        shot(language, "update_offer")
+        compose.onNodeWithText(text(R.string.update_later)).performClick()
+        compose.waitUntil(5_000) { vm.updateOffer == null }
+        assertTrue("offered again", !UpdateOffer.shouldOffer(context, vm.ui.settings, Updater.known(context)!!))
         scenario.close()
     }
 }

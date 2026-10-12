@@ -48,7 +48,8 @@ from the LibreLinkUp cloud and writes them to Health Connect, where Samsung Heal
 - **12 languages**: English, Русский, Українська, Deutsch, Français, Español, Português, Italiano, Türkçe,
   简体中文, 日本語, 한국어. Chosen on the first start, changeable in Settings or in Android's per-app language settings.
 - **The password is protected by the Android Keystore** and stays on the phone.
-- **Updates in the app**: SugarBridge finds a new version on GitHub, downloads it and hands it to Android to install.
+- **Updates in the app**: SugarBridge finds a new version on GitHub, offers it once in a window (and, while the app is
+  closed, in a notification), downloads it and hands it to Android to install. Both can be turned off in Settings.
 - **Tenshi-chan**, a chibi angel mascot who is happy, worried, flustered or sleepy depending on your glucose.
   Tap her and she tilts her head, closes her eyes and smiles.
 
@@ -89,7 +90,9 @@ You need:
 3. If Play Protect warns about an unknown app, choose "Install anyway".
 4. **Updating:** from version 1.4.0 SugarBridge looks for updates itself: a window on the home screen (or
    Settings → About SugarBridge → "Check for updates") downloads the new version, and Android asks you to confirm
-   the install. The first time Android asks to allow SugarBridge to install apps; if Play Protect blocks the app as
+   the install. From 1.12.0 a new version is also offered once in a window that pops up, and while the app is
+   closed in a notification; Settings → About SugarBridge turns off "Check for updates by itself" or "Offer to
+   install". The first time Android asks to allow SugarBridge to install apps; if Play Protect blocks the app as
    one from an unknown developer, tap "More details" → "Install anyway". Older versions are updated by
    installing the new APK from the link above over them. Your sign-in and settings are kept either way.
 
@@ -205,7 +208,9 @@ partner key. So SugarBridge shows an estimated HbA1c (GMI) itself: it is an esti
 glucose (Bergenstal formula, 2018), not a blood test. A lab HbA1c can be entered manually in Samsung Health.
 
 **Where does the password go?** Only to LibreLinkUp. On the phone it is encrypted with an Android Keystore key
-that can't be taken off the phone. SugarBridge has no server, analytics or ads.
+that can't be taken off the phone. SugarBridge has no server, analytics or ads. Besides LibreLinkUp and Health
+Connect it talks only to GitHub, to ask for the latest version and download it; with "Check for updates by
+itself" off, only when you tap "Check for updates".
 
 **My language is missing or a translation is off.** Open an issue or a pull request: all texts are in
 `app/src/main/res/values-*/strings.xml`, and a unit test checks that every language has every string.
@@ -271,14 +276,14 @@ GitHub Actions builds and signs the APK in Releases when a `v*` tag arrives in t
    ```
 3. **Every release:** add the version's section to [CHANGELOG.md](CHANGELOG.md), then
    ```sh
-   git tag v1.11.0
-   git push origin v1.11.0
+   git tag v1.12.0
+   git push origin v1.12.0
    ```
    A few minutes later `SugarBridge.apk` appears in Releases with the notes from the CHANGELOG.
 
 A signed APK can be built locally too: put `sugarbridge.keystore`, `sugarbridge.keystorePassword`,
 `sugarbridge.keyAlias` and `sugarbridge.keyPassword` into `~/.gradle/gradle.properties` (outside the repository)
-and run `./gradlew assembleRelease -Psugarbridge.version=1.11.0`.
+and run `./gradlew assembleRelease -Psugarbridge.version=1.12.0`.
 
 ## Feedback
 

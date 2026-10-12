@@ -363,4 +363,16 @@
     <string name="feedback_site_link">打开网站</string>
     <string name="settings_arrow_place_hint">箭头在数值上方时数字更大：放在旁边时，箭头会在方形图标中占用数值的宽度。</string>
     <string name="settings_statusbar_tenshi">不显示数值和箭头时，屏幕顶部会显示天使酱的图标。</string>
+    <string name="settings_update_auto">自动检查更新</string>
+    <string name="settings_update_auto_hint">打开应用时检查，最多每 6 小时一次：SugarBridge 会向 GitHub 查询最新版本</string>
+    <string name="settings_update_prompt">提示安装</string>
+    <string name="settings_update_prompt_hint">在应用中弹出窗口；应用关闭时每天检查一次并发送通知。每个新版本只提示一次</string>
+    <string name="update_offer_text">SugarBridge %1$s 已发布，你当前的版本是 %2$s。要下载并安装吗？</string>
+    <string name="update_notes">新功能</string>
+    <string name="update_later">稍后</string>
+    <string name="notif_update_text">点按即可下载并安装</string>
+    <string name="channel_updates">更新</string>
+    <string name="channel_updates_description">GitHub 上的 SugarBridge 新版本</string>
+    <string name="error_github_server">GitHub 返回了代码 %1$d</string>
+    <string name="error_github_network">无法连接到 GitHub</string>
 </resources>

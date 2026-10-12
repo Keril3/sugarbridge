@@ -52,10 +52,14 @@ import com.sugarbridge.app.sync.syncAndRecord
 import com.sugarbridge.app.ui.UiText
 import com.sugarbridge.app.ui.clockFormat
 import com.sugarbridge.app.ui.uiText
+import com.sugarbridge.app.update.GitHubError
 import com.sugarbridge.app.update.Release
+import com.sugarbridge.app.update.UpdateOffer
 import com.sugarbridge.app.update.UpdateRejected
 import com.sugarbridge.app.update.Updater
+import com.sugarbridge.app.update.scheduleUpdateChecks
 import java.io.File
+import java.io.IOException
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
@@ -150,6 +154,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         private set
     var update by mutableStateOf(UpdateUi())
         private set
+    var updateOffer by mutableStateOf<Release?>(null)   // the window offering a new version
+        private set
     var tab by mutableStateOf(Tab.NOW)
 
     private var gmiJob: Job? = null
@@ -226,7 +232,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             autoSync()
             if (hc == HealthConnectState.AVAILABLE) refreshGmi()
         }
-        checkForUpdate(force = false)
+        // by itself only with the switch on; a version found before is still shown
+        if (ui.settings.autoUpdateCheck) checkForUpdate(force = false) else update = update.copy(available = Updater.known(context))
     }
 
     /** Looks for a newer version on GitHub: by itself on start at most every 6 hours, or when asked. */
@@ -237,10 +244,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             try {
                 val found = withContext(Dispatchers.IO) { Updater.check(context, force) }
                 update = update.copy(available = found, checkedNothing = force && found == null)
+                // the check by itself offers a new version in a window, once; "Check for updates" shows it in place
+                if (!force && found != null && UpdateOffer.shouldOffer(context, ui.settings, found)) updateOffer = found
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                if (force) sayError(R.string.update_failed, e)
+                if (force) sayUpdateError(e)
             } finally {
                 update = update.copy(checking = false)
             }
@@ -271,11 +280,34 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 }
                 say { res -> res.getString(R.string.update_failed, res.getString(reason)) }
             } catch (e: Exception) {
-                sayError(R.string.update_failed, e)
+                sayUpdateError(e)
             } finally {
                 update = update.copy(progress = null)
             }
         }
+    }
+
+    /** An update failure in GitHub's words: the update doesn't come from LibreLinkUp. */
+    private fun sayUpdateError(e: Exception) = say { res ->
+        val reason = when (e) {
+            is GitHubError -> res.getString(R.string.error_github_server, e.code)
+            is IOException -> res.getString(R.string.error_github_network)
+            else -> e.message ?: e.javaClass.simpleName
+        }
+        res.getString(R.string.update_failed, reason)
+    }
+
+    /** The notification about a new version was tapped: offer it in the window. */
+    fun showUpdateOffer() {
+        val release = Updater.known(context) ?: return
+        update = update.copy(available = release)
+        updateOffer = release
+    }
+
+    /** The offer window was answered; it doesn't come back for this version. */
+    fun closeUpdateOffer() {
+        updateOffer?.let { UpdateOffer.markOffered(context, it.version) }
+        updateOffer = null
     }
 
     /** What Android's installer answered, for the Activity. */
@@ -403,9 +435,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val after = settingsStore.update(change)
         ui = ui.copy(settings = after)
         if (after.backgroundMinutes != before.backgroundMinutes) scheduleSync(context, after)
+        if (after.autoUpdateCheck != before.autoUpdateCheck || after.updatePrompt != before.updatePrompt) {
+            scheduleUpdateChecks(context, after)
+            if (after.autoUpdateCheck && !before.autoUpdateCheck) checkForUpdate(force = false)
+        }
         // only what the minute service shows or does matters to it, the theme too: its notification follows it
         val liveChanged = after.copy(
-            backgroundMinutes = before.backgroundMinutes,
+            backgroundMinutes = before.backgroundMinutes, autoUpdateCheck = before.autoUpdateCheck, updatePrompt = before.updatePrompt,
             textScale = before.textScale, lowVision = before.lowVision, developer = before.developer,
         ) != before
         when {

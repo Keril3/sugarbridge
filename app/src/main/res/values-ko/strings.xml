@@ -363,4 +363,16 @@
     <string name="feedback_site_link">웹사이트 열기</string>
     <string name="settings_arrow_place_hint">숫자 위에 두면 숫자가 더 커져요. 옆에 두면 정사각형 아이콘 안에서 화살표가 숫자의 너비를 차지해요.</string>
     <string name="settings_statusbar_tenshi">숫자와 화살표를 모두 끄면 화면 위에 천사짱 아이콘이 보여요.</string>
+    <string name="settings_update_auto">업데이트 자동 확인</string>
+    <string name="settings_update_auto_hint">앱을 열 때 최대 6시간에 한 번: SugarBridge가 GitHub에 최신 버전을 물어봐요</string>
+    <string name="settings_update_prompt">설치 제안</string>
+    <string name="settings_update_prompt_hint">앱 안의 창과, 앱이 닫혀 있을 때는 하루 한 번 확인 후 알림. 새 버전마다 한 번만 보여 줘요</string>
+    <string name="update_offer_text">SugarBridge %1$s 버전이 나왔어요(현재 버전: %2$s). 다운로드해서 설치할까요?</string>
+    <string name="update_notes">새로운 기능</string>
+    <string name="update_later">나중에</string>
+    <string name="notif_update_text">눌러서 다운로드하고 설치</string>
+    <string name="channel_updates">업데이트</string>
+    <string name="channel_updates_description">GitHub의 SugarBridge 새 버전</string>
+    <string name="error_github_server">GitHub가 코드 %1$d로 응답했어요</string>
+    <string name="error_github_network">GitHub에 연결할 수 없어요</string>
 </resources>

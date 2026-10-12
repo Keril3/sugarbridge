@@ -40,7 +40,9 @@ import com.sugarbridge.app.ui.SugarApp
 import com.sugarbridge.app.ui.theme.LocalNight
 import com.sugarbridge.app.ui.theme.SugarTheme
 import com.sugarbridge.app.update.GITHUB_PAGE
+import com.sugarbridge.app.update.UpdateOffer
 import com.sugarbridge.app.update.Updater
+import com.sugarbridge.app.update.scheduleUpdateChecks
 
 class MainActivity : ComponentActivity(), AppActions {
 
@@ -82,6 +84,7 @@ class MainActivity : ComponentActivity(), AppActions {
         enableEdgeToEdge()
         createNotificationChannels(this)
         scheduleSync(this)   // safe to call on every start
+        scheduleUpdateChecks(this)
         if (savedInstanceState == null) handleIntent(intent)
         setContent {
             SugarTheme(vm.ui.settings) {
@@ -117,9 +120,14 @@ class MainActivity : ComponentActivity(), AppActions {
 
     /** A CSV opened with SugarBridge from a browser, a file manager or "Share"; or the package installer answering. */
     private fun handleIntent(intent: Intent?) {
-        if (intent?.action == Updater.ACTION_INSTALL_STATUS) {
-            onInstallStatus(intent)
-            return
+        when (intent?.action) {
+            Updater.ACTION_INSTALL_STATUS -> return onInstallStatus(intent)
+            UpdateOffer.ACTION_OFFER -> return vm.showUpdateOffer()
+            UpdateOffer.ACTION_INSTALL -> {   // "Download and install" in the notification
+                vm.showUpdateOffer()
+                vm.closeUpdateOffer()
+                return installUpdate()
+            }
         }
         val uri = when (intent?.action) {
             Intent.ACTION_VIEW -> intent.data

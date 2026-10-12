@@ -363,4 +363,16 @@
     <string name="feedback_site_link">ウェブサイトを開く</string>
     <string name="settings_arrow_place_hint">数値の上に置くと数字が大きくなります。横に置くと、正方形のアイコンの中で矢印が数値の幅を使ってしまいます。</string>
     <string name="settings_statusbar_tenshi">数値と矢印をどちらも表示しない場合、画面上部には天使ちゃんのアイコンが表示されます。</string>
+    <string name="settings_update_auto">アップデートを自動で確認</string>
+    <string name="settings_update_auto_hint">アプリを開いたとき、6 時間に 1 回まで：SugarBridge が GitHub に最新バージョンを問い合わせます</string>
+    <string name="settings_update_prompt">インストールを提案</string>
+    <string name="settings_update_prompt_hint">アプリ内のウィンドウと、アプリを閉じている間は 1 日 1 回の確認と通知。新しいバージョンごとに 1 回だけです</string>
+    <string name="update_offer_text">SugarBridge %1$s が公開されました（現在は %2$s）。ダウンロードしてインストールしますか？</string>
+    <string name="update_notes">新機能</string>
+    <string name="update_later">あとで</string>
+    <string name="notif_update_text">タップしてダウンロード・インストール</string>
+    <string name="channel_updates">アップデート</string>
+    <string name="channel_updates_description">GitHub の SugarBridge の新しいバージョン</string>
+    <string name="error_github_server">GitHub がコード %1$d を返しました</string>
+    <string name="error_github_network">GitHub に接続できません</string>
 </resources>

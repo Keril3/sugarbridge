@@ -289,6 +289,22 @@ private fun AboutCard(vm: MainViewModel, actions: AppActions) {
             )
             SecondaryButton("GitHub", onClick = actions::openGitHub, icon = R.drawable.ic_link_chain)
         }
+        val s = vm.ui.settings
+        SwitchRow(
+            stringResource(R.string.settings_update_auto),
+            stringResource(R.string.settings_update_auto_hint),
+            checked = s.autoUpdateCheck,
+            onChange = { on -> vm.updateSettings { it.copy(autoUpdateCheck = on) } },
+            modifier = Modifier.testTag("update-auto"),
+        )
+        SwitchRow(
+            stringResource(R.string.settings_update_prompt),
+            stringResource(R.string.settings_update_prompt_hint),
+            checked = s.updatePrompt,
+            onChange = { on -> vm.updateSettings { it.copy(updatePrompt = on) } },
+            enabled = s.autoUpdateCheck,   // nothing to offer without the check by itself
+            modifier = Modifier.testTag("update-prompt"),
+        )
         DottedDivider()
         Hint(stringResource(R.string.settings_about_hint))
         SwitchRow(
