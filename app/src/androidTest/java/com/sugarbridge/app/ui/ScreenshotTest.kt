@@ -56,6 +56,8 @@ import com.sugarbridge.app.update.GITHUB_REPO
 import com.sugarbridge.app.update.UpdateOffer
 import com.sugarbridge.app.update.Updater
 import com.sugarbridge.app.useAppLanguage
+import com.sugarbridge.app.withUpdateOffers
+import com.sugarbridge.app.withoutUpdateOffers
 import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -121,6 +123,7 @@ class ScreenshotTest {
 
     @Before
     fun seed() {
+        withoutUpdateOffers(context)   // and no version found by an earlier check: its banner would be on the screens
         // background sync is off: with the demo account LibreLinkUp would answer "wrong password"
         // no check for updates by itself: a newer version on GitHub would cover the screens with its offer
         SettingsStore(context).save(AppSettings(backgroundMinutes = 0, liveEnabled = false, autoUpdateCheck = false))
@@ -148,8 +151,7 @@ class ScreenshotTest {
         useAppLanguage(context, null)
         Libre.signOut(context)
         SyncStore(context).clearDisplay()
-        Updater.transportForTests = null
-        context.getSharedPreferences("update", Context.MODE_PRIVATE).edit().clear().commit()
+        withUpdateOffers(context)
     }
 
     private fun shot(language: String, name: String) {

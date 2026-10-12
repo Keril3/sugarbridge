@@ -30,6 +30,8 @@ import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.settings.SettingsStore
 import com.sugarbridge.app.settings.ThemeMode
 import com.sugarbridge.app.useAppLanguage
+import com.sugarbridge.app.withUpdateOffers
+import com.sugarbridge.app.withoutUpdateOffers
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -65,6 +67,7 @@ class SyncEndToEndTest {
     @Before
     fun setUp() {
         assumeTrue("Health Connect is not available", healthConnectState(context) == HealthConnectState.AVAILABLE)
+        withoutUpdateOffers(context)
         instrumentation.uiAutomation.grantRuntimePermission(context.packageName, WRITE_GLUCOSE)
         instrumentation.uiAutomation.grantRuntimePermission(context.packageName, Manifest.permission.POST_NOTIFICATIONS)
         cloud = FakeCloud(start = Instant.now().minusSeconds(180))   // the latest reading is 3.5 minutes old
@@ -78,6 +81,7 @@ class SyncEndToEndTest {
 
     @After
     fun tearDown() {
+        withUpdateOffers(context)
         LiveSyncService.stop(context)
         SettingsStore(context).save(AppSettings(backgroundMinutes = 0))
         runBlocking { deleteOwnGlucose(context, from, to) }

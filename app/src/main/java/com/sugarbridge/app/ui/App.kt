@@ -124,6 +124,7 @@ fun SugarApp(vm: MainViewModel, actions: AppActions) {
             }
         }
         if (vm.ui.healthConnect != HealthConnectState.AVAILABLE) HealthConnectGate(vm.ui.healthConnect, actions)
+        if (vm.privacyOpen) PrivacyDialog(onClose = { vm.privacyOpen = false })
         vm.updateOffer?.let { release ->
             UpdateOfferDialog(
                 release,
@@ -226,6 +227,22 @@ private fun BackgroundNotice(onOpen: () -> Unit, onClose: () -> Unit) {
             color = LocalXp.current.accent,
             modifier = Modifier.clip(RoundedCornerShape(4.dp)).clickable(role = Role.Button, onClick = onOpen).padding(vertical = 4.dp).testTag("background-notice-link"),
         )
+    }
+}
+
+/**
+ * What SugarBridge does with the data: what it writes to and reads from Health Connect, where the password
+ * goes and where nothing goes. Health Connect's "privacy policy" link opens it, and so does About.
+ */
+@Composable
+private fun PrivacyDialog(onClose: () -> Unit) {
+    XpDialog(onDismissRequest = onClose) {
+        XpWindow(stringResource(R.string.privacy_title), Modifier.testTag("privacy")) {
+            Text(stringResource(R.string.privacy_health), style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.privacy_password), style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.privacy_nothing_else), style = MaterialTheme.typography.bodyMedium)
+            PrimaryButton(stringResource(R.string.close), onClick = onClose, modifier = Modifier.fillMaxWidth())
+        }
     }
 }
 

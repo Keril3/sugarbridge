@@ -41,12 +41,16 @@ class HistoryRestoreTest {
 
     @Before
     fun setUp() {
+        withoutUpdateOffers(context)
         SettingsStore(context).languageChosen = true
         HistoryStore.clear(context)
     }
 
     @After
-    fun cleanUp() = HistoryStore.clear(context)
+    fun cleanUp() {
+        HistoryStore.clear(context)
+        withUpdateOffers(context)
+    }
 
     private fun <T> withViewModel(block: (ActivityScenario<MainActivity>, MainViewModel) -> T): T =
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->

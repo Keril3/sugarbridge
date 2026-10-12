@@ -123,6 +123,11 @@ class MainActivity : ComponentActivity(), AppActions {
         when (intent?.action) {
             Updater.ACTION_INSTALL_STATUS -> return onInstallStatus(intent)
             UpdateOffer.ACTION_OFFER -> return vm.showUpdateOffer()
+            // Health Connect's "privacy policy" link, on the permission screen and in the permission settings
+            ACTION_PERMISSIONS_RATIONALE, Intent.ACTION_VIEW_PERMISSION_USAGE -> {
+                vm.privacyOpen = true
+                return
+            }
             UpdateOffer.ACTION_INSTALL -> {   // "Download and install" in the notification
                 vm.showUpdateOffer()
                 vm.closeUpdateOffer()
@@ -232,5 +237,8 @@ class MainActivity : ComponentActivity(), AppActions {
     private companion object {
         /** Faster than anyone can read and answer the Health Connect dialog. */
         const val SILENT_REFUSAL_MS = 1_000L
+
+        /** Health Connect's link to an app's privacy policy (see the manifest). */
+        const val ACTION_PERMISSIONS_RATIONALE = "androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE"
     }
 }

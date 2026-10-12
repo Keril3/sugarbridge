@@ -2,6 +2,20 @@
 
 Newest version first. A version's section becomes the release notes on GitHub.
 
+## 1.12.1 — 2026-10-12
+
+- Health Connect's "privacy policy" link for SugarBridge, on its permission screen and in the permission
+  settings, opened just the home screen. It now opens a Privacy window: SugarBridge writes only blood glucose
+  and reads back only its own records, the password goes only to LibreLinkUp, the app talks to nothing but
+  LibreLinkUp and GitHub, and nothing is collected. Settings → About SugarBridge has a button for it too.
+- The app icon is drawn at 86%: the halo and its glow and the wing tips now stay inside the area every
+  launcher shows, where round masks used to cut the halo. The themed (monochrome) icon matches.
+- Health Connect's screens showing SugarBridge with an old icon: the READMEs explain why (Health Connect keeps
+  the icons it loaded and stores the one from the first write) and what helps.
+- Tests: the privacy window from both Health Connect links. The device tests that open the app get a GitHub
+  without releases, so an update offer can't cover their screens. The latency test opens the app again when
+  Android drops the start after a long run of tests, which made it fail now and then.
+
 ## 1.12.0 — 2026-10-12
 
 - Settings → About SugarBridge: "Check for updates by itself" (when the app opens, at most every 6 hours) and

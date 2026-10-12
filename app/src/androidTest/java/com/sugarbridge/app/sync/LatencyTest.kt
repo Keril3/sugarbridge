@@ -25,6 +25,8 @@ import com.sugarbridge.app.libre.Libre
 import com.sugarbridge.app.openApp
 import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.settings.SettingsStore
+import com.sugarbridge.app.withUpdateOffers
+import com.sugarbridge.app.withoutUpdateOffers
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.After
@@ -84,6 +86,7 @@ class LatencyTest {
     @Before
     fun setUp() {
         assumeTrue("Health Connect is not available", healthConnectState(context) == HealthConnectState.AVAILABLE)
+        withoutUpdateOffers(context)
         instrumentation.uiAutomation.grantRuntimePermission(context.packageName, WRITE_GLUCOSE)
         instrumentation.uiAutomation.grantRuntimePermission(context.packageName, Manifest.permission.POST_NOTIFICATIONS)
         Libre.signOut(context)
@@ -95,6 +98,7 @@ class LatencyTest {
 
     @After
     fun tearDown() {
+        withUpdateOffers(context)
         LiveSyncService.stop(context)
         SettingsStore(context).save(AppSettings(backgroundMinutes = 0))
         runBlocking { deleteOwnGlucose(context, started.minus(Duration.ofHours(14)), started.plus(Duration.ofHours(1))) }
@@ -123,13 +127,25 @@ class LatencyTest {
         return "locked $locked, screen on $interactive, resumed [$resumed], service ${LiveSyncService.running}"
     }
 
+    /**
+     * Opens the app, which starts minute mode. After a long run of tests Android now and then drops the start and
+     * the screen never comes up: then it is opened again, up to three times. The latency is what is measured here.
+     */
+    private fun openUntilMinuteModeRuns() {
+        repeat(3) {
+            // a lock screen left by an earlier test would keep MainActivity from coming to the front
+            shell("input keyevent KEYCODE_WAKEUP")
+            shell("wm dismiss-keyguard")
+            openApp()
+            val deadline = SystemClock.uptimeMillis() + 8_000
+            while (!LiveSyncService.running && SystemClock.uptimeMillis() < deadline) Thread.sleep(200)
+            if (LiveSyncService.running) return
+        }
+    }
+
     private fun measure(doze: Boolean) {
-        // a lock screen left by an earlier test would keep MainActivity from coming to the front and starting the service
-        shell("input keyevent KEYCODE_WAKEUP")
-        shell("wm dismiss-keyguard")
         SettingsStore(context).save(AppSettings(backgroundMinutes = 0, liveEnabled = true, liveMinutes = 1, liveKeepAwake = true))
-        openApp()
-        Thread.sleep(3000)   // MainActivity starts the service
+        openUntilMinuteModeRuns()
         val phone = phoneState()
         shell("input keyevent KEYCODE_HOME")
         if (doze) {

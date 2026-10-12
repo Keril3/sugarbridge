@@ -156,6 +156,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         private set
     var updateOffer by mutableStateOf<Release?>(null)   // the window offering a new version
         private set
+    var privacyOpen by mutableStateOf(false)   // the privacy window: from Health Connect's link or About
     var tab by mutableStateOf(Tab.NOW)
 
     private var gmiJob: Job? = null

@@ -375,4 +375,8 @@
     <string name="channel_updates_description">GitHub의 SugarBridge 새 버전</string>
     <string name="error_github_server">GitHub가 코드 %1$d로 응답했어요</string>
     <string name="error_github_network">GitHub에 연결할 수 없어요</string>
+    <string name="privacy_title">개인정보 보호</string>
+    <string name="privacy_health">SugarBridge는 LibreLinkUp 계정의 혈당만 Health Connect에 기록해요. 읽는 것도 자신이 기록한 데이터뿐이며, 기록과 예상 HbA1c에 써요. 다른 앱의 건강 데이터는 건드리지 않아요.</string>
+    <string name="privacy_password">LibreLinkUp 비밀번호는 Android Keystore 키로 암호화해 휴대폰에 저장하고 LibreLinkUp에만 보내요. 앱은 LibreLinkUp 외에는 새 버전을 확인하고 다운로드하기 위해 GitHub에만 연결해요.</string>
+    <string name="privacy_nothing_else">SugarBridge에는 자체 서버, 분석, 광고가 없어요. 아무것도 수집하지 않고, 다른 곳으로 보내거나 팔지 않아요. 기록한 데이터는 Health Connect나 기록 탭에서 삭제할 수 있어요.</string>
 </resources>

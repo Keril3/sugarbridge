@@ -375,4 +375,8 @@
     <string name="channel_updates_description">Eine neue Version von SugarBridge auf GitHub</string>
     <string name="error_github_server">GitHub antwortete mit Code %1$d</string>
     <string name="error_github_network">keine Verbindung zu GitHub</string>
+    <string name="privacy_title">Datenschutz</string>
+    <string name="privacy_health">SugarBridge schreibt nur den Blutzucker aus deinem LibreLinkUp-Konto in Health Connect. Es liest dort nur seine eigenen Einträge, für den Verlauf und den geschätzten HbA1c; Gesundheitsdaten anderer Apps bleiben unberührt.</string>
+    <string name="privacy_password">Das LibreLinkUp-Passwort bleibt auf dem Handy, verschlüsselt mit einem Android-Keystore-Schlüssel, und geht nur an LibreLinkUp. Außer mit LibreLinkUp spricht die App nur mit GitHub, um von einer neuen Version zu erfahren und sie herunterzuladen.</string>
+    <string name="privacy_nothing_else">SugarBridge hat keinen Server, keine Analyse und keine Werbung: Nichts wird gesammelt, anderswohin gesendet oder verkauft. Was es geschrieben hat, lässt sich in Health Connect oder im Verlauf löschen.</string>
 </resources>

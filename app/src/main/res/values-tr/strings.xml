@@ -375,4 +375,8 @@
     <string name="channel_updates_description">GitHub’da SugarBridge’in yeni sürümü</string>
     <string name="error_github_server">GitHub %1$d koduyla yanıt verdi</string>
     <string name="error_github_network">GitHub ile bağlantı yok</string>
+    <string name="privacy_title">Gizlilik</string>
+    <string name="privacy_health">SugarBridge, Health Connect’e yalnızca LibreLinkUp hesabınızdaki kan şekerini yazar. Oradan yalnızca kendi kayıtlarını okur; geçmiş ve tahmini HbA1c için. Diğer uygulamaların sağlık verilerine dokunmaz.</string>
+    <string name="privacy_password">LibreLinkUp şifresi telefonda, Android Keystore anahtarıyla şifrelenmiş olarak saklanır ve yalnızca LibreLinkUp’a gider. Uygulama LibreLinkUp dışında yalnızca GitHub ile konuşur: yeni sürümü öğrenmek ve indirmek için.</string>
+    <string name="privacy_nothing_else">SugarBridge’in sunucusu, analitiği ve reklamı yoktur: hiçbir şey toplanmaz, başka yere gönderilmez ya da satılmaz. Yazdıkları Health Connect’te veya Geçmiş’te silinebilir.</string>
 </resources>

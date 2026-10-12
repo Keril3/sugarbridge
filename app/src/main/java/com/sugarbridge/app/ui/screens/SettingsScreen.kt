@@ -307,6 +307,7 @@ private fun AboutCard(vm: MainViewModel, actions: AppActions) {
         )
         DottedDivider()
         Hint(stringResource(R.string.settings_about_hint))
+        SecondaryButton(stringResource(R.string.privacy_title), onClick = { vm.privacyOpen = true }, modifier = Modifier.testTag("privacy-open"))
         SwitchRow(
             stringResource(R.string.settings_developer),
             stringResource(R.string.settings_developer_hint),

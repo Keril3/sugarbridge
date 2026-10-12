@@ -11,8 +11,11 @@ import com.sugarbridge.app.libre.Libre
 import com.sugarbridge.app.resourcesIn
 import com.sugarbridge.app.settings.SettingsStore
 import com.sugarbridge.app.useAppLanguage
+import com.sugarbridge.app.withUpdateOffers
+import com.sugarbridge.app.withoutUpdateOffers
 import org.junit.After
 import org.junit.Assert.assertSame
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -29,8 +32,14 @@ class LanguageSwitchTest {
 
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
 
+    @Before
+    fun setUp() = withoutUpdateOffers(context)
+
     @After
-    fun cleanUp() = useAppLanguage(context, null)
+    fun cleanUp() {
+        useAppLanguage(context, null)
+        withUpdateOffers(context)
+    }
 
     @Test
     fun languageChangesWithoutRestartingTheScreen() {

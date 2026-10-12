@@ -207,10 +207,19 @@ glucose, and that's what Samsung Health gets from it. Writing to Samsung Health 
 partner key. So SugarBridge shows an estimated HbA1c (GMI) itself: it is an estimate from the average sensor
 glucose (Bergenstal formula, 2018), not a blood test. A lab HbA1c can be entered manually in Samsung Health.
 
+**Health Connect's settings show SugarBridge with an old icon.** The app's icon is current: the launcher and
+Android get it from the app itself. Health Connect's screens keep the icons they have loaded and don't reload
+them when an app updates; Health Connect also stores an app's icon from the first time it wrote data and never
+refreshes it for an installed app. The old icon shown is the one of 1.4.0, the ice fairy with a blue bow. Restart the
+phone, or stop "Health Connect" in Settings → Apps (show system apps) → Force stop, and open the screen again.
+If the old icon is still there, your phone shows Health Connect's stored copy: only a system update can change
+that, and it has no effect on your data or permissions.
+
 **Where does the password go?** Only to LibreLinkUp. On the phone it is encrypted with an Android Keystore key
 that can't be taken off the phone. SugarBridge has no server, analytics or ads. Besides LibreLinkUp and Health
 Connect it talks only to GitHub, to ask for the latest version and download it; with "Check for updates by
-itself" off, only when you tap "Check for updates".
+itself" off, only when you tap "Check for updates". The same in short is in the app: Settings → About
+SugarBridge → Privacy, and Health Connect's "privacy policy" link for SugarBridge opens it.
 
 **My language is missing or a translation is off.** Open an issue or a pull request: all texts are in
 `app/src/main/res/values-*/strings.xml`, and a unit test checks that every language has every string.
@@ -276,14 +285,14 @@ GitHub Actions builds and signs the APK in Releases when a `v*` tag arrives in t
    ```
 3. **Every release:** add the version's section to [CHANGELOG.md](CHANGELOG.md), then
    ```sh
-   git tag v1.12.0
-   git push origin v1.12.0
+   git tag v1.12.1
+   git push origin v1.12.1
    ```
    A few minutes later `SugarBridge.apk` appears in Releases with the notes from the CHANGELOG.
 
 A signed APK can be built locally too: put `sugarbridge.keystore`, `sugarbridge.keystorePassword`,
 `sugarbridge.keyAlias` and `sugarbridge.keyPassword` into `~/.gradle/gradle.properties` (outside the repository)
-and run `./gradlew assembleRelease -Psugarbridge.version=1.12.0`.
+and run `./gradlew assembleRelease -Psugarbridge.version=1.12.1`.
 
 ## Feedback
 
