@@ -190,8 +190,14 @@ HbA1c в Samsung Health можно внести вручную в разделе
 **Нет моего языка или перевод неточный.** Заведите issue или pull request: все тексты лежат в
 `app/src/main/res/values-*/strings.xml`, а unit-тест проверяет, что в каждом языке есть все строки.
 
-Нашли ошибку? [Заведите issue](../../issues/new?template=bug_report.md): шаги, что ожидали, что
-получилось, кусок Logcat по тегу `SugarSync`.
+**Есть ли SugarBridge в Google Play? А версия для iPhone?** Пока нет: SugarBridge ставится из APK в Releases и
+сам обновляется оттуда. Сборке для Google Play пришлось бы обойтись без встроенного обновления (Play не разрешает
+приложениям обновлять себя самим) и пройти декларацию Health apps с политикой конфиденциальности. Версии для
+iPhone нет, и это приложение ею стать не может: Health Connect и минутный сервис — части Android, а на iPhone
+сахар шёл бы в Apple Health, и это было бы отдельное приложение.
+
+Нашли ошибку? [Заведите issue](../../issues/new?template=bug_report.md): шаги, что ожидали и что получилось.
+Быстрее всего причину покажет журнал событий: Настройки → О SugarBridge → «Для разработчиков» → «Поделиться».
 
 ## Для разработчиков
 
@@ -245,14 +251,14 @@ APK в Releases собирает и подписывает GitHub Actions, ко�
    ```
 3. **Каждый выпуск:** допишите раздел версии в [CHANGELOG.md](CHANGELOG.md) (на английском), затем
    ```sh
-   git tag v1.7.0
-   git push origin v1.7.0
+   git tag v1.7.1
+   git push origin v1.7.1
    ```
    Через несколько минут в Releases появится `SugarBridge.apk` с описанием из CHANGELOG.
 
 Подписанный APK можно собрать и у себя: пропишите в `~/.gradle/gradle.properties` (вне репозитория)
 `sugarbridge.keystore`, `sugarbridge.keystorePassword`, `sugarbridge.keyAlias`, `sugarbridge.keyPassword`
-и запустите `./gradlew assembleRelease -Psugarbridge.version=1.7.0`.
+и запустите `./gradlew assembleRelease -Psugarbridge.version=1.7.1`.
 
 ## Благодарности
 

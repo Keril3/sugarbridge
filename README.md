@@ -183,8 +183,15 @@ that can't be taken off the phone. SugarBridge has no server, analytics or ads.
 **My language is missing or a translation is off.** Open an issue or a pull request: all texts are in
 `app/src/main/res/values-*/strings.xml`, and a unit test checks that every language has every string.
 
-Found a bug? [Open an issue](../../issues/new?template=bug_report.md): the steps, what you expected, what
-happened, and a piece of Logcat for the `SugarSync` tag.
+**Is SugarBridge on Google Play? Is there an iPhone version?** Not yet: the APK from Releases is the way to get
+it, and the app updates itself from there. A Google Play build would have to leave out the self-updater (Play
+doesn't let apps update themselves) and go through Play's Health apps declaration with a privacy policy. There
+is no iPhone version, and this app can't become one: Health Connect and the minute service are Android parts,
+and on an iPhone glucose would go to Apple Health, which would be a separate app.
+
+Found a bug? [Open an issue](../../issues/new?template=bug_report.md) with the steps, what you expected and what
+happened. The quickest way to show the cause is the event log: Settings → About SugarBridge → Developer tools →
+"Share".
 
 ## For developers
 
@@ -237,14 +244,14 @@ GitHub Actions builds and signs the APK in Releases when a `v*` tag arrives in t
    ```
 3. **Every release:** add the version's section to [CHANGELOG.md](CHANGELOG.md), then
    ```sh
-   git tag v1.7.0
-   git push origin v1.7.0
+   git tag v1.7.1
+   git push origin v1.7.1
    ```
    A few minutes later `SugarBridge.apk` appears in Releases with the notes from the CHANGELOG.
 
 A signed APK can be built locally too: put `sugarbridge.keystore`, `sugarbridge.keystorePassword`,
 `sugarbridge.keyAlias` and `sugarbridge.keyPassword` into `~/.gradle/gradle.properties` (outside the repository)
-and run `./gradlew assembleRelease -Psugarbridge.version=1.7.0`.
+and run `./gradlew assembleRelease -Psugarbridge.version=1.7.1`.
 
 ## Thanks
 

@@ -21,6 +21,7 @@ import com.sugarbridge.app.health.deleteOwnGlucose
 import com.sugarbridge.app.health.healthConnectState
 import com.sugarbridge.app.health.ownMinuteKeys
 import com.sugarbridge.app.libre.Libre
+import com.sugarbridge.app.openApp
 import com.sugarbridge.app.resourcesIn
 import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.settings.SettingsStore
@@ -114,7 +115,7 @@ class SyncEndToEndTest {
         SettingsStore(context).save(AppSettings(backgroundMinutes = 0, liveEnabled = true, liveShowValue = true, liveKeepAwake = false))
         // with the app on screen Android allows starting the service; MainActivity starts it by itself.
         // No ActivityScenario: it waits for the main thread to go idle, and animations on the emulator never let it
-        context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        openApp()
 
         val unit = res.getString(R.string.unit_mmol)
         val withValue = waitForNotification { it.contains(LiveSyncService.CHANNEL_LIVE) && it.contains(unit) }
@@ -140,7 +141,7 @@ class SyncEndToEndTest {
     fun notificationFollowsSyncsMadeOutsideTheService() {
         useAppLanguage(context, "en")
         SettingsStore(context).save(AppSettings(backgroundMinutes = 0, liveEnabled = true, liveMinutes = 10, liveShowValue = true, liveKeepAwake = false))
-        context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        openApp()
         val before = waitForNotification { it.contains(LiveSyncService.CHANNEL_LIVE) && it.contains(formatGlucose(115.0, GlucoseUnit.MMOL)) }
         instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_HOME").close()
 
@@ -155,7 +156,7 @@ class SyncEndToEndTest {
     fun arrowAndStatusBarNumberCanBeTurnedOff() {
         useAppLanguage(context, "en")
         SettingsStore(context).save(AppSettings(backgroundMinutes = 0, liveEnabled = true, liveMinutes = 10, liveShowValue = true, liveKeepAwake = false))
-        context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        openApp()
         val withArrow = waitForNotification { it.contains(LiveSyncService.CHANNEL_LIVE) && it.contains(formatGlucose(115.0, GlucoseUnit.MMOL)) }
         assertTrue(withArrow, withArrow.contains("↗"))   // LibreLinkUp says 4: rising
         assertEquals(Icon.TYPE_BITMAP, smallIcon().type)   // the number drawn as the icon
@@ -176,13 +177,39 @@ class SyncEndToEndTest {
         assertTrue(waitForNotification { it.contains(LiveSyncService.CHANNEL_LIVE) }.contains(formatGlucose(115.0, GlucoseUnit.MMOL)))
     }
 
+    /**
+     * A new value updates the notification in place: its time stays the same, so Android keeps its place among
+     * other ongoing notifications instead of moving it first on every update (it used to swap with a VPN's).
+     */
+    @Test
+    fun updatesKeepTheNotificationsPlace() {
+        useAppLanguage(context, "en")
+        SettingsStore(context).save(AppSettings(backgroundMinutes = 0, liveEnabled = true, liveMinutes = 10, liveShowValue = true, liveKeepAwake = false))
+        openApp()
+        waitForNotification { it.contains(LiveSyncService.CHANNEL_LIVE) && it.contains(formatGlucose(115.0, GlucoseUnit.MMOL)) }
+        instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_HOME").close()
+        val before = ours()
+
+        Thread.sleep(1500)   // so that a new post time would differ
+        cloud.tick(60, 160.0)
+        runBlocking { syncAndRecord(context) }
+        waitForNotification(timeoutMs = 10_000) { it.contains(formatGlucose(160.0, GlucoseUnit.MMOL)) }
+        val after = ours()
+
+        assertTrue("it was not updated: ${before.postTime} → ${after.postTime}", after.postTime > before.postTime)
+        assertEquals("the time Android sorts by changed", before.notification.`when`, after.notification.`when`)
+    }
+
+    private fun ours() = context.getSystemService(NotificationManager::class.java).activeNotifications
+        .first { it.id == LiveSyncService.NOTIFICATION_ID }
+
     /** The developer log gets every sync with its trigger, and the screen going off and on while minute mode runs. */
     @Test
     fun theLogRecordsSyncsAndTheScreen() {
         DebugLog.clear(context)
         useAppLanguage(context, "en")
         SettingsStore(context).save(AppSettings(backgroundMinutes = 0, liveEnabled = true, liveMinutes = 10, liveShowValue = true, liveKeepAwake = false))
-        context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        openApp()
         waitForNotification { it.contains(LiveSyncService.CHANNEL_LIVE) && it.contains(formatGlucose(115.0, GlucoseUnit.MMOL)) }
         instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_SLEEP").close()
         Thread.sleep(2000)
@@ -209,7 +236,7 @@ class SyncEndToEndTest {
         SettingsStore(context).save(
             AppSettings(backgroundMinutes = 0, liveEnabled = true, liveMinutes = 10, liveShowValue = true, liveKeepAwake = false, livePinned = true)
         )
-        context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        openApp()
         waitForNotification { it.contains(LiveSyncService.CHANNEL_LIVE) && it.contains(formatGlucose(115.0, GlucoseUnit.MMOL)) }
         instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_HOME").close()
 
@@ -225,7 +252,7 @@ class SyncEndToEndTest {
         SettingsStore(context).save(
             AppSettings(backgroundMinutes = 0, liveEnabled = true, liveMinutes = 10, liveShowValue = true, liveKeepAwake = false, livePinned = false)
         )
-        context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        openApp()
         waitForNotification { it.contains(LiveSyncService.CHANNEL_LIVE) && it.contains(formatGlucose(115.0, GlucoseUnit.MMOL)) }
         instrumentation.uiAutomation.executeShellCommand("input keyevent KEYCODE_HOME").close()
 

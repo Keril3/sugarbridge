@@ -2,6 +2,19 @@
 
 Newest version first. A version's section becomes the release notes on GitHub.
 
+## 1.7.1 — 2026-10-12
+
+- Fixed: with the notification pinned, every new value moved SugarBridge's icon in the status bar ahead of other
+  ongoing notifications (a VPN's, say) and a moment later back again. The notification now keeps one time while
+  minute mode runs, so Android keeps it in its place and only the number and the arrow change.
+- Russian and Ukrainian say «Эл. почта» / «Ел. пошта» instead of "Email". All texts in the 12 languages checked
+  again for untranslated words, quotes, spaces and names.
+- The bug report form on GitHub asks for the developer tools' event log, which shows the cause fastest. The
+  READMEs answer whether SugarBridge is on Google Play or the iPhone.
+- Tests: the notification keeps its time across updates while its content changes. The device tests open the app
+  the way the launcher does: their own start counted as one from the background, which Android silently drops
+  some time after the app was last on screen, so a test that ran after a long one sometimes never started.
+
 ## 1.7.0 — 2026-10-12
 
 - The glucose in the status bar is much larger: the number fills the icon and the trend arrow stands above it

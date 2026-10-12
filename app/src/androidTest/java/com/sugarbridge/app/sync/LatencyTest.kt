@@ -1,13 +1,16 @@
 package com.sugarbridge.app.sync
 
 import android.Manifest
+import android.app.KeyguardManager
 import android.content.Context
-import android.content.Intent
+import android.os.PowerManager
 import android.os.SystemClock
 import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
+import androidx.test.runner.lifecycle.Stage
 import com.sugarbridge.app.MainActivity
 import com.sugarbridge.app.debug.DebugLog
 import com.sugarbridge.app.health.HealthConnectState
@@ -19,6 +22,7 @@ import com.sugarbridge.app.libre.HttpResponse
 import com.sugarbridge.app.libre.HttpTransport
 import com.sugarbridge.app.libre.LIBRE_TIME
 import com.sugarbridge.app.libre.Libre
+import com.sugarbridge.app.openApp
 import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.settings.SettingsStore
 import org.json.JSONArray
@@ -108,13 +112,25 @@ class LatencyTest {
 
     private fun shell(command: String) = instrumentation.uiAutomation.executeShellCommand(command).close()
 
+    /** The lock screen, the screen and the screens of the app in front: if the start fails, the report says why. */
+    private fun phoneState(): String {
+        val locked = context.getSystemService(KeyguardManager::class.java).isKeyguardLocked
+        val interactive = context.getSystemService(PowerManager::class.java).isInteractive
+        var resumed = ""
+        instrumentation.runOnMainSync {
+            resumed = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED).joinToString { it.javaClass.simpleName }
+        }
+        return "locked $locked, screen on $interactive, resumed [$resumed], service ${LiveSyncService.running}"
+    }
+
     private fun measure(doze: Boolean) {
         // a lock screen left by an earlier test would keep MainActivity from coming to the front and starting the service
         shell("input keyevent KEYCODE_WAKEUP")
         shell("wm dismiss-keyguard")
         SettingsStore(context).save(AppSettings(backgroundMinutes = 0, liveEnabled = true, liveMinutes = 1, liveKeepAwake = true))
-        context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        openApp()
         Thread.sleep(3000)   // MainActivity starts the service
+        val phone = phoneState()
         shell("input keyevent KEYCODE_HOME")
         if (doze) {
             shell("dumpsys battery unplug")
@@ -152,6 +168,7 @@ class LatencyTest {
                 appendLine("reading $time → in Health Connect at $appeared (+${Duration.between(time.plus(CLOUD_LAG), appeared).seconds} s after the cloud had it)")
             }
             appendLine("values: ${seen.size}, SugarBridge delay s: min ${delays.minOrNull()} median ${delays.sorted().getOrNull(delays.size / 2)} max ${delays.maxOrNull()}")
+            appendLine("when minute mode was started: $phone")
             appendLine("event log:")
             DebugLog.read(context).filter { it.at.isAfter(started) }.forEach { appendLine("  ${it.at} ${it.kind} ${it.text}") }
         }

@@ -60,6 +60,13 @@ class LiveSyncService : Service() {
     @Volatile private var problem: Problem? = null  // the last failure, until a sync succeeds
 
     /**
+     * The notification's time, fixed while the service runs. Android sorts ongoing notifications by it; a new
+     * time on every update moved SugarBridge first each minute and back again when another app (a VPN, say)
+     * updated its own. With a fixed time only the number and the arrow change.
+     */
+    private val shownSince = System.currentTimeMillis()
+
+    /**
      * The app syncs outside this service too: when it is opened, with "Sync now" and in the background job.
      * Every saved sync redraws the notification at once, so it never lags behind the app.
      */
@@ -290,6 +297,7 @@ class LiveSyncService : Service() {
             .setContentIntent(open)
             .setDeleteIntent(dismissed)
             .setOngoing(true)
+            .setWhen(shownSince)      // the same time on every update: the notification keeps its place
             .setShowWhen(false)
             .setOnlyAlertOnce(true)   // update silently, without sound or vibration
             .setColor(0xFFF06FA4.toInt())

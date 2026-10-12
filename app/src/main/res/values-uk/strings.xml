@@ -31,7 +31,7 @@
     <!-- Sign-in -->
     <string name="login_tagline">Цукор із Libre — просто в Samsung Health ✧</string>
     <string name="login_title">Вхід у LibreLinkUp</string>
-    <string name="login_email">Email</string>
+    <string name="login_email">Ел. пошта</string>
     <string name="login_password">Пароль</string>
     <string name="login_button">Увійти</string>
     <string name="login_hint">Акаунт LibreLinkUp, який ви запросили з LibreLink. Пароль зберігається на телефоні в зашифрованому вигляді й надсилається лише до LibreLinkUp.</string>
@@ -184,7 +184,7 @@
     <string name="msg_delete_failed">Не вдалося видалити: %1$s</string>
 
     <!-- Errors -->
-    <string name="error_wrong_credentials">неправильний email або пароль</string>
+    <string name="error_wrong_credentials">неправильна ел. пошта або пароль</string>
     <string name="error_login">вхід не вдався: %1$s</string>
     <string name="error_login_step">відкрийте застосунок LibreLinkUp, підтвердьте там крок «%1$s» і увійдіть знову</string>
     <string name="error_rate_limited">забагато запитів, LibreLinkUp просить зачекати %1$d с</string>
