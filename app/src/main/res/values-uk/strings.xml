@@ -281,7 +281,7 @@
     <string name="text_size_large">Більший</string>
     <string name="text_size_huge">Ще більший</string>
     <string name="settings_low_vision">Режим для слабозорих</string>
-    <string name="settings_low_vision_hint">Звичайний шрифт замість піксельного, більший і контрастніший, однотонний фон</string>
+    <string name="settings_low_vision_hint">Більший і контрастніший текст, однотонний фон; шрифт телефона замість піксельного</string>
     <string name="settings_developer">Для розробників</string>
     <string name="settings_developer_hint">Журнал подій і перевірки, які показують, де губиться час</string>
     <string name="settings_developer_open">Відкрити інструменти</string>
@@ -379,4 +379,36 @@
     <string name="privacy_health">SugarBridge записує в Health Connect лише рівень цукру з вашого акаунта LibreLinkUp. Читає звідти він лише власні записи — для історії та розрахункового HbA1c; дані інших застосунків не чіпає.</string>
     <string name="privacy_password">Пароль LibreLinkUp зберігається на телефоні, зашифрований ключем Android Keystore, і йде лише до LibreLinkUp. Крім LibreLinkUp, застосунок звертається лише до GitHub — дізнатися про нову версію й завантажити її.</string>
     <string name="privacy_nothing_else">У SugarBridge немає власного сервера, аналітики й реклами: нічого не збирається, нікуди більше не надсилається й не продається. Записане ним можна видалити в Health Connect або в «Історії».</string>
+
+    <!-- Added in 1.13.0 -->
+    <string name="settings_tab_sync">Зв’язок</string>
+    <string name="settings_tab_glucose">Цукор</string>
+    <string name="settings_tab_look">Вигляд</string>
+    <string name="settings_tab_app">Застосунок</string>
+    <string name="theme_neutral">Нейтральна</string>
+    <string name="theme_neutral_hint">Нейтральна: м’які сірі тони без зірок і яскравих кольорів, не втомлює очі. Світла або темна, як телефон.</string>
+    <string name="font_title">Шрифт</string>
+    <string name="font_system">Як на пристрої</string>
+    <string name="font_pixel">Піксельний</string>
+    <string name="font_hint">«Як на пристрої» — шрифт, вибраний у налаштуваннях екрана телефона. Решта вбудовані в застосунок і однаково виглядають усіма мовами.</string>
+    <string name="settings_developer_switch">Увімкнути інструменти розробника</string>
+    <string name="dev_log_keep">Зберігати журнал</string>
+    <string name="dev_log_show">Показувати</string>
+    <string name="dev_kind_all">Усі</string>
+    <string name="dev_kind_sync">Синхронізація</string>
+    <string name="dev_kind_service">Хвилинний режим</string>
+    <string name="dev_kind_worker">Фон</string>
+    <string name="dev_kind_phone">Телефон</string>
+    <string name="dev_kind_error">Помилка</string>
+    <string name="history_auto_title">Нові записи</string>
+    <string name="history_auto_switch">Додавати нові записи в історію</string>
+    <string name="history_auto_hint">Кожна синхронізація додає свої значення, по одному на 15 хвилин, як у LibreView, тож новий CSV не потрібен. Після ввімкнення час від кінця історії заповнюється записами SugarBridge з Health Connect.</string>
+    <string name="history_auto_empty">Історії ще немає: вона почнеться із записів SugarBridge у Health Connect за останні 90 днів або з наступної синхронізації.</string>
+    <string name="history_delete_all_auto">«Додавати нові записи» теж вимкнеться, інакше наступна синхронізація почне нову історію.</string>
+    <plurals name="days_count">
+        <item quantity="one">%d день</item>
+        <item quantity="few">%d дні</item>
+        <item quantity="many">%d днів</item>
+        <item quantity="other">%d дня</item>
+    </plurals>
 </resources>

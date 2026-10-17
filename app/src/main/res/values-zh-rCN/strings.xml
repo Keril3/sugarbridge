@@ -281,7 +281,7 @@
     <string name="text_size_large">较大</string>
     <string name="text_size_huge">最大</string>
     <string name="settings_low_vision">低视力模式</string>
-    <string name="settings_low_vision_hint">用普通字体代替像素字体，更大、对比度更高，背景为纯色</string>
+    <string name="settings_low_vision_hint">更大、对比度更高，背景为纯色；用手机的字体代替像素字体</string>
     <string name="settings_developer">开发者工具</string>
     <string name="settings_developer_hint">事件日志和检查，帮助找出时间耗在了哪里</string>
     <string name="settings_developer_open">打开工具</string>
@@ -379,4 +379,33 @@
     <string name="privacy_health">SugarBridge 只把你的 LibreLinkUp 账号中的血糖写入 Health Connect，也只读取它自己写入的记录，用于历史记录和估算 HbA1c；不会碰其他应用的健康数据。</string>
     <string name="privacy_password">LibreLinkUp 密码保存在手机上，用 Android Keystore 密钥加密，只发送给 LibreLinkUp。除了 LibreLinkUp，应用只会连接 GitHub，用来了解新版本并下载。</string>
     <string name="privacy_nothing_else">SugarBridge 没有自己的服务器、分析或广告：不会收集任何数据，也不会发送到别处或出售。它写入的数据可以在 Health Connect 或“历史”中删除。</string>
+
+    <!-- Added in 1.13.0 -->
+    <string name="settings_tab_sync">同步</string>
+    <string name="settings_tab_glucose">血糖</string>
+    <string name="settings_tab_look">外观</string>
+    <string name="settings_tab_app">应用</string>
+    <string name="theme_neutral">中性</string>
+    <string name="theme_neutral_hint">中性：柔和的灰色，没有星星和鲜艳的颜色，不累眼睛。浅色或深色跟随手机。</string>
+    <string name="font_title">字体</string>
+    <string name="font_system">跟随手机</string>
+    <string name="font_pixel">像素</string>
+    <string name="font_hint">“跟随手机”是手机显示设置中选择的字体。其他字体随应用提供，在所有语言中看起来都一样。</string>
+    <string name="settings_developer_switch">开启开发者工具</string>
+    <string name="dev_log_keep">日志保留</string>
+    <string name="dev_log_show">显示</string>
+    <string name="dev_kind_all">全部</string>
+    <string name="dev_kind_sync">同步</string>
+    <string name="dev_kind_service">分钟模式</string>
+    <string name="dev_kind_worker">后台</string>
+    <string name="dev_kind_phone">手机</string>
+    <string name="dev_kind_error">错误</string>
+    <string name="history_auto_title">新读数</string>
+    <string name="history_auto_switch">将新读数添加到历史</string>
+    <string name="history_auto_hint">每次同步都会添加读数，像 LibreView 一样每 15 分钟一个，因此无需再下载新的 CSV。开启时，历史末尾之后的时间会用 SugarBridge 在 Health Connect 中的记录补齐。</string>
+    <string name="history_auto_empty">还没有历史：它将从 SugarBridge 在 Health Connect 中最近 90 天的记录开始，或从下一次同步开始。</string>
+    <string name="history_delete_all_auto">“将新读数添加到历史”也会关闭，否则下一次同步会开始新的历史。</string>
+    <plurals name="days_count">
+        <item quantity="other">%d 天</item>
+    </plurals>
 </resources>

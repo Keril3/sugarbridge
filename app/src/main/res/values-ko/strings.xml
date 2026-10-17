@@ -281,7 +281,7 @@
     <string name="text_size_large">크게</string>
     <string name="text_size_huge">가장 크게</string>
     <string name="settings_low_vision">저시력 모드</string>
-    <string name="settings_low_vision_hint">픽셀 글꼴 대신 일반 글꼴로, 더 크고 대비를 높이며 배경을 단색으로 해요</string>
+    <string name="settings_low_vision_hint">더 크고 대비를 높이며 배경을 단색으로 해요. 픽셀 글꼴 대신 휴대전화 글꼴을 써요</string>
     <string name="settings_developer">개발자 도구</string>
     <string name="settings_developer_hint">어디서 시간이 지체되는지 보여 주는 이벤트 기록과 점검</string>
     <string name="settings_developer_open">도구 열기</string>
@@ -379,4 +379,33 @@
     <string name="privacy_health">SugarBridge는 LibreLinkUp 계정의 혈당만 Health Connect에 기록해요. 읽는 것도 자신이 기록한 데이터뿐이며, 기록과 예상 HbA1c에 써요. 다른 앱의 건강 데이터는 건드리지 않아요.</string>
     <string name="privacy_password">LibreLinkUp 비밀번호는 Android Keystore 키로 암호화해 휴대폰에 저장하고 LibreLinkUp에만 보내요. 앱은 LibreLinkUp 외에는 새 버전을 확인하고 다운로드하기 위해 GitHub에만 연결해요.</string>
     <string name="privacy_nothing_else">SugarBridge에는 자체 서버, 분석, 광고가 없어요. 아무것도 수집하지 않고, 다른 곳으로 보내거나 팔지 않아요. 기록한 데이터는 Health Connect나 기록 탭에서 삭제할 수 있어요.</string>
+
+    <!-- Added in 1.13.0 -->
+    <string name="settings_tab_sync">동기화</string>
+    <string name="settings_tab_glucose">혈당</string>
+    <string name="settings_tab_look">화면</string>
+    <string name="settings_tab_app">앱</string>
+    <string name="theme_neutral">뉴트럴</string>
+    <string name="theme_neutral_hint">뉴트럴: 별이나 선명한 색 없이 부드러운 회색이라 눈이 편해요. 라이트나 다크는 휴대전화를 따라요.</string>
+    <string name="font_title">글꼴</string>
+    <string name="font_system">휴대전화와 같게</string>
+    <string name="font_pixel">픽셀</string>
+    <string name="font_hint">‘휴대전화와 같게’는 휴대전화 화면 설정에서 고른 글꼴이에요. 나머지는 앱에 들어 있고 모든 언어에서 똑같이 보여요.</string>
+    <string name="settings_developer_switch">개발자 도구 켜기</string>
+    <string name="dev_log_keep">기록 보관 기간</string>
+    <string name="dev_log_show">표시</string>
+    <string name="dev_kind_all">전체</string>
+    <string name="dev_kind_sync">동기화</string>
+    <string name="dev_kind_service">분 단위 모드</string>
+    <string name="dev_kind_worker">백그라운드</string>
+    <string name="dev_kind_phone">휴대전화</string>
+    <string name="dev_kind_error">오류</string>
+    <string name="history_auto_title">새 측정값</string>
+    <string name="history_auto_switch">새 측정값을 기록에 추가</string>
+    <string name="history_auto_hint">동기화할 때마다 LibreView처럼 15분에 하나씩 측정값이 추가되어 새 CSV가 필요 없어요. 켜면 기록의 끝부터 지금까지를 Health Connect에 있는 SugarBridge의 기록으로 채워요.</string>
+    <string name="history_auto_empty">아직 기록이 없어요. Health Connect에 있는 최근 90일간의 SugarBridge 기록이나 다음 동기화부터 시작돼요.</string>
+    <string name="history_delete_all_auto">‘새 측정값을 기록에 추가’도 꺼져요. 그렇지 않으면 다음 동기화가 새 기록을 시작해요.</string>
+    <plurals name="days_count">
+        <item quantity="other">%d일</item>
+    </plurals>
 </resources>

@@ -4,8 +4,14 @@ import android.content.Context
 import androidx.core.content.edit
 import com.sugarbridge.app.glucose.GlucoseUnit
 
-/** Light or dark look; SYSTEM follows the phone. */
-enum class ThemeMode { SYSTEM, LIGHT, DARK }
+/** Light or dark look; SYSTEM follows the phone; NEUTRAL is a calm, muted look, light or dark as the phone is. */
+enum class ThemeMode { SYSTEM, LIGHT, DARK, NEUTRAL }
+
+/**
+ * The app's font. SYSTEM is the one chosen on the phone; the others come with the app and look the same in all
+ * of its languages (see AppFonts).
+ */
+enum class AppFont { SYSTEM, PIXEL, SANS, SERIF }
 
 /** App settings. The range bounds are stored in mg/dL and shown in the chosen unit. */
 data class AppSettings(
@@ -26,16 +32,20 @@ data class AppSettings(
     val lowMgDl: Double = 70.0,          // 3.9 mmol/L
     val highMgDl: Double = 180.0,        // 10.0 mmol/L
     val theme: ThemeMode = ThemeMode.SYSTEM,
+    val font: AppFont = AppFont.SYSTEM,
     val textScale: Float = 1f,           // on top of the phone's font size
-    val lowVision: Boolean = false,      // a plain readable font, larger and with more contrast, no dots
+    val lowVision: Boolean = false,      // larger, more contrast, no dots; the phone's font instead of the pixel one
     val developer: Boolean = false,      // the developer tools in Settings
     val autoUpdateCheck: Boolean = true, // ask GitHub for a new version by itself
     val updatePrompt: Boolean = true,    // offer it once in a window and, with the app closed, in a notification
+    val logDays: Int = 3,                // the developer tools' log keeps this many days
+    val historyAutoAdd: Boolean = false, // each sync adds its new readings to the loaded history
 ) {
     companion object {
         val BACKGROUND_CHOICES = listOf(15, 30, 60, 180, 0)   // 15 minutes is the WorkManager minimum
         val LIVE_CHOICES = listOf(1, 2, 5, 10)
         val TEXT_SCALES = listOf(0.9f, 1f, 1.15f, 1.3f)
+        val LOG_DAYS = listOf(1, 3, 7, 14)
     }
 }
 
@@ -80,11 +90,14 @@ class SettingsStore(context: Context) {
             lowMgDl = prefs.getFloat("low_mgdl", d.lowMgDl.toFloat()).toDouble(),
             highMgDl = prefs.getFloat("high_mgdl", d.highMgDl.toFloat()).toDouble(),
             theme = ThemeMode.entries.firstOrNull { it.name == prefs.getString("theme", null) } ?: d.theme,
+            font = AppFont.entries.firstOrNull { it.name == prefs.getString("font", null) } ?: d.font,
             textScale = prefs.getFloat("text_scale", d.textScale),
             lowVision = prefs.getBoolean("low_vision", d.lowVision),
             developer = prefs.getBoolean("developer", d.developer),
             autoUpdateCheck = prefs.getBoolean("auto_update_check", d.autoUpdateCheck),
             updatePrompt = prefs.getBoolean("update_prompt", d.updatePrompt),
+            logDays = prefs.getInt("log_days", d.logDays),
+            historyAutoAdd = prefs.getBoolean("history_auto_add", d.historyAutoAdd),
         )
     }
 
@@ -107,11 +120,14 @@ class SettingsStore(context: Context) {
             putFloat("low_mgdl", s.lowMgDl.toFloat())
             putFloat("high_mgdl", s.highMgDl.toFloat())
             putString("theme", s.theme.name)
+            putString("font", s.font.name)
             putFloat("text_scale", s.textScale)
             putBoolean("low_vision", s.lowVision)
             putBoolean("developer", s.developer)
             putBoolean("auto_update_check", s.autoUpdateCheck)
             putBoolean("update_prompt", s.updatePrompt)
+            putInt("log_days", s.logDays)
+            putBoolean("history_auto_add", s.historyAutoAdd)
         }
     }
 

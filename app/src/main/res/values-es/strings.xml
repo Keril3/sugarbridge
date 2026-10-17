@@ -281,7 +281,7 @@
     <string name="text_size_large">Más grande</string>
     <string name="text_size_huge">El más grande</string>
     <string name="settings_low_vision">Modo para baja visión</string>
-    <string name="settings_low_vision_hint">Una fuente normal en lugar de la pixelada, más grande y con más contraste, sobre un fondo liso</string>
+    <string name="settings_low_vision_hint">Más grande y con más contraste, sobre un fondo liso; la fuente del teléfono en lugar de la pixelada</string>
     <string name="settings_developer">Herramientas para desarrolladores</string>
     <string name="settings_developer_hint">Un registro de eventos y comprobaciones que muestran dónde se pierde el tiempo</string>
     <string name="settings_developer_open">Abrir las herramientas</string>
@@ -379,4 +379,35 @@
     <string name="privacy_health">SugarBridge solo escribe en Health Connect la glucosa de tu cuenta de LibreLinkUp. Solo lee allí sus propios registros, para el historial y la HbA1c estimada; los datos de salud de otras apps no se tocan.</string>
     <string name="privacy_password">La contraseña de LibreLinkUp se guarda en el teléfono, cifrada con una clave de Android Keystore, y solo va a LibreLinkUp. Aparte de LibreLinkUp, la app solo se comunica con GitHub, para saber de una versión nueva y descargarla.</string>
     <string name="privacy_nothing_else">SugarBridge no tiene servidor, analíticas ni anuncios: no se recopila nada, no se envía a ningún otro sitio ni se vende. Lo que escribió se puede borrar en Health Connect o en el historial.</string>
+
+    <!-- Added in 1.13.0 -->
+    <string name="settings_tab_sync">Conexión</string>
+    <string name="settings_tab_glucose">Glucosa</string>
+    <string name="settings_tab_look">Aspecto</string>
+    <string name="settings_tab_app">App</string>
+    <string name="theme_neutral">Neutro</string>
+    <string name="theme_neutral_hint">Neutro: grises suaves sin estrellas ni colores vivos, descansa la vista. Claro u oscuro como el teléfono.</string>
+    <string name="font_title">Fuente</string>
+    <string name="font_system">Como el teléfono</string>
+    <string name="font_pixel">Píxel</string>
+    <string name="font_hint">«Como el teléfono» es la fuente elegida en los ajustes de pantalla del teléfono. Las demás vienen con la app y se ven igual en todos los idiomas.</string>
+    <string name="settings_developer_switch">Activar las herramientas para desarrolladores</string>
+    <string name="dev_log_keep">Guardar el registro</string>
+    <string name="dev_log_show">Mostrar</string>
+    <string name="dev_kind_all">Todo</string>
+    <string name="dev_kind_sync">Sincronización</string>
+    <string name="dev_kind_service">Modo minuto</string>
+    <string name="dev_kind_worker">Segundo plano</string>
+    <string name="dev_kind_phone">Teléfono</string>
+    <string name="dev_kind_error">Error</string>
+    <string name="history_auto_title">Nuevas mediciones</string>
+    <string name="history_auto_switch">Añadir las nuevas mediciones al historial</string>
+    <string name="history_auto_hint">Cada sincronización añade sus valores, uno cada 15 minutos como LibreView, así que no hace falta un CSV nuevo. Al activarlo, el tiempo desde el final del historial se completa con los registros de SugarBridge en Health Connect.</string>
+    <string name="history_auto_empty">Aún no hay historial: empezará con los registros de SugarBridge en Health Connect de los últimos 90 días, o con la próxima sincronización.</string>
+    <string name="history_delete_all_auto">«Añadir las nuevas mediciones» también se desactiva; si no, la próxima sincronización empezaría un historial nuevo.</string>
+    <plurals name="days_count">
+        <item quantity="one">%d día</item>
+        <item quantity="many">%d días</item>
+        <item quantity="other">%d días</item>
+    </plurals>
 </resources>

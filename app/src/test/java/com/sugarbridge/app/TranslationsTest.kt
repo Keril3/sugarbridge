@@ -10,8 +10,9 @@ import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 
 /**
- * Every language has every string, with the same placeholders as English. A missing or extra %1$d would
- * crash the app or show garbage only in that one language, so it is checked here instead of by hand.
+ * Every language has every string, with the same placeholders as English, and every plural with the quantities
+ * its language needs. A missing or extra %1$d would crash the app or show garbage only in that one language, so
+ * it is checked here instead of by hand.
  */
 class TranslationsTest {
 
@@ -51,6 +52,43 @@ class TranslationsTest {
                 val text = translated.getValue(key).text
                 assertTrue("$folder/$key is empty", text.isNotBlank())
                 assertEquals("$folder/$key: placeholders", placeholders(entry.text), placeholders(text))
+            }
+        }
+    }
+
+    /** The quantities Android picks for whole numbers in each language (CLDR plural rules). */
+    private val quantities = mapOf(
+        "en" to setOf("one", "other"), "de" to setOf("one", "other"), "tr" to setOf("one", "other"),
+        "ru" to setOf("one", "few", "many", "other"), "uk" to setOf("one", "few", "many", "other"),
+        "fr" to setOf("one", "many", "other"), "es" to setOf("one", "many", "other"),
+        "pt" to setOf("one", "many", "other"), "it" to setOf("one", "many", "other"),
+        "zh-CN" to setOf("other"), "ja" to setOf("other"), "ko" to setOf("other"),
+    )
+
+    private fun plurals(folder: String): Map<String, Map<String, String>> {
+        val doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(File(res, "$folder/strings.xml"))
+        val nodes = doc.getElementsByTagName("plurals")
+        return (0 until nodes.length).associate { i ->
+            val e = nodes.item(i) as Element
+            val items = e.getElementsByTagName("item")
+            e.getAttribute("name") to (0 until items.length).associate { j ->
+                val item = items.item(j) as Element
+                item.getAttribute("quantity") to item.textContent
+            }
+        }
+    }
+
+    @Test
+    fun everyLanguageHasEveryPluralWithTheQuantitiesItNeeds() {
+        val english = plurals("values")
+        assertEquals(LANGUAGES.map { it.tag }.toSet(), quantities.keys)
+        for (language in LANGUAGES) {
+            val folder = folderOf(language.tag)
+            val translated = plurals(folder)
+            assertEquals("$folder: plurals", english.keys.sorted(), translated.keys.sorted())
+            for ((name, items) in translated) {
+                assertEquals("$folder/$name: quantities", quantities.getValue(language.tag), items.keys)
+                for ((quantity, text) in items) assertTrue("$folder/$name/$quantity has no %d", "%d" in text)
             }
         }
     }

@@ -1,5 +1,6 @@
 package com.sugarbridge.app.ui.components
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -25,7 +26,10 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -77,6 +81,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.sugarbridge.app.R
@@ -303,19 +308,56 @@ private fun XpButton(
     }
 }
 
+/**
+ * One tab of a row of tabs: an icon over its name, the chosen one a pressed glossy button. A long name gets
+ * smaller instead of wrapping, so four tabs fit in one row in every language and text size.
+ */
+@Composable
+fun RowScope.TabItem(label: String, @DrawableRes icon: Int, selected: Boolean, onClick: () -> Unit, iconSize: Dp = 24.dp) {
+    val xp = LocalXp.current
+    val shape = RoundedCornerShape(9.dp)
+    val color = if (selected) xp.buttonText else xp.text
+    val style = MaterialTheme.typography.labelMedium
+    Column(
+        Modifier
+            .weight(1f)
+            .clip(shape)
+            .then(
+                if (selected) {
+                    Modifier
+                        .border(1.dp, xp.buttonBorder, shape)
+                        .background(Brush.verticalGradient(0f to xp.buttonGloss[0], 0.48f to xp.buttonGloss[1], 0.5f to xp.buttonGloss[2], 1f to xp.buttonGloss[3]))
+                } else {
+                    Modifier
+                }
+            )
+            .selectable(selected = selected, role = Role.Tab, onClick = onClick)
+            .padding(horizontal = 4.dp, vertical = 6.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Icon(painterResource(icon), contentDescription = null, tint = color, modifier = Modifier.size(iconSize))
+        BasicText(
+            label,
+            style = style.copy(color = color, textAlign = TextAlign.Center),
+            maxLines = 1,
+            autoSize = TextAutoSize.StepBased(minFontSize = (style.fontSize.value * 0.6f).sp, maxFontSize = style.fontSize),
+        )
+    }
+}
+
 /** The main glossy blue button. */
 @Composable
 fun PrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, loading: Boolean = false) =
-    XpButton(text, onClick, modifier, enabled, loading, Tenshi.ButtonBorder, Tenshi.ButtonGloss, Tenshi.ButtonText)
+    XpButton(text, onClick, modifier, enabled, loading, LocalXp.current.buttonBorder, LocalXp.current.buttonGloss, LocalXp.current.buttonText)
 
 /** A light secondary button; [danger] makes it red for deleting and signing out; [icon] stands before the text. */
 @Composable
 fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, danger: Boolean = false, icon: Int? = null) =
     XpButton(
         text, onClick, modifier, enabled, false,
-        if (danger) Tenshi.DangerBorder else Tenshi.SecondaryBorder,
-        if (danger) Tenshi.DangerGloss else Tenshi.SecondaryGloss,
-        if (danger) Tenshi.DangerText else Tenshi.ButtonText,
+        if (danger) Tenshi.DangerBorder else LocalXp.current.secondaryBorder,
+        if (danger) Tenshi.DangerGloss else LocalXp.current.secondaryGloss,
+        if (danger) Tenshi.DangerText else LocalXp.current.buttonText,
         icon = icon,
     )
 
@@ -323,7 +365,7 @@ fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modi
 @Composable
 fun SmallButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) =
     XpButton(
-        text, onClick, modifier, enabled, false, Tenshi.SecondaryBorder, Tenshi.SecondaryGloss, Tenshi.ButtonText,
+        text, onClick, modifier, enabled, false, LocalXp.current.secondaryBorder, LocalXp.current.secondaryGloss, LocalXp.current.buttonText,
         minHeight = 34.dp, textStyle = MaterialTheme.typography.labelMedium, horizontalPadding = 10.dp,
     )
 
@@ -357,7 +399,7 @@ fun LinkButton(label: String, onClick: () -> Unit, modifier: Modifier = Modifier
             .size(width = 34.dp, height = 32.dp)
             .shadow(2.dp, shape, spotColor = Color(0x4014468C))
             .clip(shape)
-            .border(1.dp, Tenshi.SmallButtonBorder, shape)
+            .border(1.dp, LocalXp.current.smallButtonBorder, shape)
             .background(Brush.verticalGradient(0f to Color(0xFFF4FAFF), 0.48f to Color(0xFFCFE6FB), 0.52f to Color(0xFFA9D0F3), 1f to Color(0xFF7FB4E8)))
             .clickable(role = Role.Button, onClickLabel = label, onClick = onClick)
             .semantics { contentDescription = label },
@@ -383,9 +425,9 @@ fun <T> ChoiceRow(options: List<T>, selected: T, label: @Composable (T) -> Strin
             val on = option == selected
             XpButton(
                 label(option), { onSelect(option) }, Modifier, enabled, false,
-                if (on) Tenshi.ButtonBorder else Tenshi.SecondaryBorder,
-                if (on) Tenshi.ButtonGloss else Tenshi.SecondaryGloss,
-                Tenshi.ButtonText,
+                if (on) LocalXp.current.buttonBorder else LocalXp.current.secondaryBorder,
+                if (on) LocalXp.current.buttonGloss else LocalXp.current.secondaryGloss,
+                LocalXp.current.buttonText,
                 minHeight = 36.dp,
                 textStyle = MaterialTheme.typography.labelMedium,
             )
@@ -415,7 +457,7 @@ fun SwitchRow(title: String, subtitle: String?, checked: Boolean, onChange: (Boo
             colors = SwitchDefaults.colors(
                 checkedTrackColor = Color(0xFF3C82D6),
                 checkedThumbColor = Color.White,
-                checkedBorderColor = Tenshi.ButtonBorder,
+                checkedBorderColor = LocalXp.current.buttonBorder,
                 uncheckedTrackColor = xp.windowBody,
                 uncheckedBorderColor = Color(0xFF8EBDE8),
                 uncheckedThumbColor = Color(0xFF8EBDE8),
@@ -489,7 +531,7 @@ private fun Modifier.meterTrough(): Modifier {
     return this
         .height(12.dp)
         .clip(shape)
-        .border(1.dp, if (night) Color(0xFF6F8FEA) else Tenshi.ButtonBorder, shape)
+        .border(1.dp, if (night) Color(0xFF6F8FEA) else LocalXp.current.buttonBorder, shape)
         .background(if (night) Color(0xCC050A24) else Color(0xFFEAF6FF))
 }
 
@@ -532,7 +574,7 @@ private fun DrawScope.meterBlocks(indices: Iterable<Int>, capacity: Int, color: 
  * gets [XpMarquee] instead.
  */
 @Composable
-fun XpMeter(fraction: Float, modifier: Modifier = Modifier, color: Color = Color(0xFF4FA8E8)) {
+fun XpMeter(fraction: Float, modifier: Modifier = Modifier, color: Color = LocalXp.current.meter) {
     val density = LocalDensity.current
     var capacity by remember { mutableIntStateOf(0) }
     val target = meterBlocks(fraction, capacity)
@@ -565,7 +607,7 @@ fun XpMeter(fraction: Float, modifier: Modifier = Modifier, color: Color = Color
  * starts over, the way Windows XP showed it was busy.
  */
 @Composable
-fun XpMarquee(modifier: Modifier = Modifier, color: Color = Color(0xFF4FA8E8)) {
+fun XpMarquee(modifier: Modifier = Modifier, color: Color = LocalXp.current.meter) {
     val density = LocalDensity.current
     var capacity by remember { mutableIntStateOf(0) }
     var head by remember { mutableIntStateOf(0) }

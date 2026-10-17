@@ -1,10 +1,13 @@
 package com.sugarbridge.app.ui.screens
 
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
@@ -18,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -39,6 +43,7 @@ import com.sugarbridge.app.glucose.TARGET_MIN_MGDL
 import com.sugarbridge.app.glucose.formatGlucose
 import com.sugarbridge.app.glucose.isValidTarget
 import com.sugarbridge.app.glucose.parseGlucose
+import com.sugarbridge.app.settings.AppFont
 import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.settings.LANGUAGES
 import com.sugarbridge.app.settings.ThemeMode
@@ -48,12 +53,14 @@ import com.sugarbridge.app.ui.components.BottomSpace
 import com.sugarbridge.app.ui.components.ButtonRow
 import com.sugarbridge.app.ui.components.ChoiceRow
 import com.sugarbridge.app.ui.components.DottedDivider
+import com.sugarbridge.app.ui.components.GlassBar
 import com.sugarbridge.app.ui.components.Hint
 import com.sugarbridge.app.ui.components.OutlinedTitle
 import com.sugarbridge.app.ui.components.PrimaryButton
 import com.sugarbridge.app.ui.components.ScreenColumn
 import com.sugarbridge.app.ui.components.SecondaryButton
 import com.sugarbridge.app.ui.components.SwitchRow
+import com.sugarbridge.app.ui.components.TabItem
 import com.sugarbridge.app.ui.components.XpMeter
 import com.sugarbridge.app.ui.components.XpWindow
 import com.sugarbridge.app.ui.currentLocale
@@ -62,184 +69,281 @@ import com.sugarbridge.app.ui.theme.LocalXp
 import com.sugarbridge.app.ui.theme.Tenshi
 import kotlin.math.roundToInt
 
+/** The tabs of Settings: what keeps the glucose coming, how it is shown, how the app looks, the app itself. */
+enum class SettingsTab(@param:StringRes val label: Int, @param:DrawableRes val icon: Int) {
+    SYNC(R.string.settings_tab_sync, R.drawable.ic_settings_sync),
+    GLUCOSE(R.string.settings_tab_glucose, R.drawable.ic_settings_glucose),
+    LOOK(R.string.settings_tab_look, R.drawable.ic_settings_look),
+    APP(R.string.settings_tab_app, R.drawable.ic_settings_app),
+}
+
+/**
+ * Settings in four tabs, so nothing is far to scroll to. The title and the tabs stay in place, and each tab
+ * starts at its top.
+ */
 @Composable
 fun SettingsScreen(vm: MainViewModel, actions: AppActions) {
+    Column(Modifier.fillMaxSize()) {
+        Column(Modifier.padding(horizontal = 14.dp).padding(top = 2.dp, bottom = 10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            OutlinedTitle(stringResource(R.string.settings_title).uppercase(currentLocale()), style = MaterialTheme.typography.headlineSmall)
+            GlassBar(Modifier.fillMaxWidth().testTag("settings-tabs")) {
+                SettingsTab.entries.forEach { tab ->
+                    TabItem(stringResource(tab.label), tab.icon, selected = tab == vm.settingsTab, onClick = { vm.settingsTab = tab }, iconSize = 20.dp)
+                }
+            }
+        }
+        key(vm.settingsTab) {
+            ScreenColumn(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+                when (vm.settingsTab) {
+                    SettingsTab.SYNC -> SyncTab(vm, actions)
+                    SettingsTab.GLUCOSE -> GlucoseTab(vm)
+                    SettingsTab.LOOK -> LookTab(vm, actions)
+                    SettingsTab.APP -> AppTab(vm, actions)
+                }
+                BottomSpace()
+            }
+        }
+    }
+}
+
+/** LibreLinkUp, Health Connect, the minute mode and background sync. */
+@Composable
+private fun SyncTab(vm: MainViewModel, actions: AppActions) {
     val ui = vm.ui
     val s = ui.settings
-
-    ScreenColumn(Modifier.verticalScroll(rememberScrollState())) {
-        Spacer(Modifier.height(2.dp))
-        OutlinedTitle(stringResource(R.string.settings_title).uppercase(currentLocale()), style = MaterialTheme.typography.headlineSmall)
-
-        XpWindow("LibreLinkUp") {
-            Text(ui.email ?: "—", style = MaterialTheme.typography.bodyLarge)
-            ButtonRow {
-                PrimaryButton(stringResource(R.string.settings_check), onClick = vm::checkLibre, loading = ui.checking)
-                SecondaryButton(stringResource(R.string.settings_sign_out), onClick = vm::signOut, danger = true)
-            }
-            // what LibreLinkUp answered stays here, in its own window, instead of a message that slips away
-            ui.checkResult?.let { result ->
-                Text(
-                    result.text.resolve(LocalResources.current),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (result.ok) Tenshi.InRange else MaterialTheme.colorScheme.error,
-                    modifier = Modifier.testTag("check-result"),
-                )
-            }
+    XpWindow("LibreLinkUp") {
+        Text(ui.email ?: "—", style = MaterialTheme.typography.bodyLarge)
+        ButtonRow {
+            PrimaryButton(stringResource(R.string.settings_check), onClick = vm::checkLibre, loading = ui.checking)
+            SecondaryButton(stringResource(R.string.settings_sign_out), onClick = vm::signOut, danger = true)
         }
-
-        XpWindow(stringResource(R.string.settings_hc_title)) {
+        // what LibreLinkUp answered stays here, in its own window, instead of a message that slips away
+        ui.checkResult?.let { result ->
             Text(
-                stringResource(
-                    when (ui.canWrite) {
-                        true -> R.string.settings_hc_allowed
-                        false -> R.string.settings_hc_denied
-                        null -> R.string.settings_hc_checking
-                    }
-                ),
-                style = MaterialTheme.typography.bodyLarge,
-                color = if (ui.canWrite == false) MaterialTheme.colorScheme.error else LocalXp.current.text,
-            )
-            // once writing is allowed there is nothing to ask for: Health Connect itself changes permissions
-            if (ui.canWrite == false) {
-                PrimaryButton(stringResource(R.string.settings_permissions), onClick = actions::requestHealthPermission, modifier = Modifier.fillMaxWidth())
-            }
-            ButtonRow {
-                SecondaryButton(stringResource(R.string.settings_open_hc), onClick = actions::openHealthConnect)
-                if (ui.samsungHealth) SecondaryButton(stringResource(R.string.settings_open_samsung), onClick = actions::openSamsungHealth)
-            }
-            if (ui.canWrite == true) Hint(stringResource(R.string.settings_hc_manage))
-            Hint(stringResource(R.string.settings_hc_hint))
-        }
-
-        XpWindow(stringResource(R.string.settings_live_title)) {
-            SwitchRow(
-                stringResource(R.string.settings_live_switch),
-                stringResource(R.string.settings_live_switch_hint),
-                checked = s.liveEnabled,
-                onChange = actions::setLive,
-            )
-            ChoiceRow(
-                options = AppSettings.LIVE_CHOICES,
-                selected = s.liveMinutes,
-                label = { if (it == 1) stringResource(R.string.settings_live_every_minute) else stringResource(R.string.settings_live_every, it) },
-                onSelect = { minutes -> vm.updateSettings { it.copy(liveMinutes = minutes) } },
-                enabled = s.liveEnabled,
-            )
-            SwitchRow(
-                stringResource(R.string.settings_live_value),
-                stringResource(R.string.settings_live_value_hint),
-                checked = s.liveShowValue,
-                onChange = { on -> vm.updateSettings { it.copy(liveShowValue = on) } },
-                enabled = s.liveEnabled,
-            )
-            SwitchRow(
-                stringResource(R.string.settings_pinned),
-                stringResource(R.string.settings_pinned_hint),
-                checked = s.livePinned,
-                onChange = { on -> vm.updateSettings { it.copy(livePinned = on) } },
-                enabled = s.liveEnabled,
-            )
-            SwitchRow(
-                stringResource(R.string.settings_keep_awake),
-                stringResource(R.string.settings_keep_awake_hint),
-                checked = s.liveKeepAwake,
-                onChange = { on -> vm.updateSettings { it.copy(liveKeepAwake = on) } },
-                enabled = s.liveEnabled,
-            )
-            SecondaryButton(stringResource(R.string.settings_hide_notification), onClick = actions::hideNotification, enabled = s.liveEnabled, modifier = Modifier.fillMaxWidth())
-            if (!ui.batteryUnrestricted) {
-                PrimaryButton(stringResource(R.string.settings_battery), onClick = actions::requestBatteryUnrestricted, modifier = Modifier.fillMaxWidth())
-            }
-            Hint(stringResource(R.string.settings_live_hint))
-        }
-
-        StatusBarCard(s, ui.sync.recent.lastOrNull(), vm::updateSettings)
-
-        // the notice about background sync leads here
-        val backgroundWindow = remember { BringIntoViewRequester() }
-        LaunchedEffect(vm.focusBackground) {
-            if (vm.focusBackground) {
-                backgroundWindow.bringIntoView()
-                vm.focusBackground = false
-            }
-        }
-        XpWindow(stringResource(R.string.settings_background_title), Modifier.bringIntoViewRequester(backgroundWindow)) {
-            // first the answer to "do I need this for the minute mode?"
-            Text(stringResource(R.string.settings_background_intro), style = MaterialTheme.typography.bodyMedium)
-            if (s.liveEnabled && s.backgroundMinutes == 0 && s.backgroundBeforeLive > 0) {
-                Text(stringResource(R.string.settings_background_paused), style = MaterialTheme.typography.bodyMedium, color = LocalXp.current.accent)
-            }
-            ChoiceRow(
-                options = AppSettings.BACKGROUND_CHOICES,
-                selected = s.backgroundMinutes,
-                label = { if (it == 0) stringResource(R.string.settings_off) else minutesText(it) },
-                onSelect = { minutes -> vm.updateSettings { it.copy(backgroundMinutes = minutes) } },
-            )
-            Hint(stringResource(R.string.settings_background_hint))
-            if (!ui.batteryUnrestricted) {
-                Hint(stringResource(R.string.battery_text))
-                PrimaryButton(stringResource(R.string.settings_battery), onClick = actions::requestBatteryUnrestricted, modifier = Modifier.fillMaxWidth())
-            }
-        }
-
-        XpWindow(stringResource(R.string.settings_display_title)) {
-            ChoiceRow(
-                options = GlucoseUnit.entries.toList(),
-                selected = s.unit,
-                label = { stringResource(it.label) },
-                onSelect = { unit -> vm.updateSettings { it.copy(unit = unit) } },
-            )
-            TargetRange(s) { low, high -> vm.updateSettings { it.copy(lowMgDl = low, highMgDl = high) } }
-        }
-
-        XpWindow(stringResource(R.string.theme_card)) {
-            ChoiceRow(
-                options = ThemeMode.entries.toList(),
-                selected = s.theme,
-                label = {
-                    stringResource(
-                        when (it) {
-                            ThemeMode.SYSTEM -> R.string.theme_system
-                            ThemeMode.LIGHT -> R.string.theme_light
-                            ThemeMode.DARK -> R.string.theme_dark
-                        }
-                    )
-                },
-                onSelect = { mode -> vm.updateSettings { it.copy(theme = mode) } },
+                result.text.resolve(LocalResources.current),
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (result.ok) Tenshi.InRange else MaterialTheme.colorScheme.error,
+                modifier = Modifier.testTag("check-result"),
             )
         }
-
-        XpWindow(stringResource(R.string.settings_text_title)) {
-            Text(stringResource(R.string.settings_text_size), style = MaterialTheme.typography.bodyLarge)
-            ChoiceRow(
-                options = AppSettings.TEXT_SCALES,
-                selected = AppSettings.TEXT_SCALES.minBy { kotlin.math.abs(it - s.textScale) },
-                label = {
-                    stringResource(
-                        when (AppSettings.TEXT_SCALES.indexOf(it)) {
-                            0 -> R.string.text_size_small
-                            1 -> R.string.text_size_normal
-                            2 -> R.string.text_size_large
-                            else -> R.string.text_size_huge
-                        }
-                    )
-                },
-                onSelect = { scale -> vm.updateSettings { it.copy(textScale = scale) } },
-            )
-            SwitchRow(
-                stringResource(R.string.settings_low_vision),
-                stringResource(R.string.settings_low_vision_hint),
-                checked = s.lowVision,
-                onChange = { on -> vm.updateSettings { it.copy(lowVision = on) } },
-            )
-        }
-
-        LanguageCard(actions)
-        AboutCard(vm, actions)
-        FeedbackCard(actions)
-        BottomSpace()
     }
+
+    XpWindow(stringResource(R.string.settings_hc_title)) {
+        Text(
+            stringResource(
+                when (ui.canWrite) {
+                    true -> R.string.settings_hc_allowed
+                    false -> R.string.settings_hc_denied
+                    null -> R.string.settings_hc_checking
+                }
+            ),
+            style = MaterialTheme.typography.bodyLarge,
+            color = if (ui.canWrite == false) MaterialTheme.colorScheme.error else LocalXp.current.text,
+        )
+        // once writing is allowed there is nothing to ask for: Health Connect itself changes permissions
+        if (ui.canWrite == false) {
+            PrimaryButton(stringResource(R.string.settings_permissions), onClick = actions::requestHealthPermission, modifier = Modifier.fillMaxWidth())
+        }
+        ButtonRow {
+            SecondaryButton(stringResource(R.string.settings_open_hc), onClick = actions::openHealthConnect)
+            if (ui.samsungHealth) SecondaryButton(stringResource(R.string.settings_open_samsung), onClick = actions::openSamsungHealth)
+        }
+        if (ui.canWrite == true) Hint(stringResource(R.string.settings_hc_manage))
+        Hint(stringResource(R.string.settings_hc_hint))
+    }
+
+    XpWindow(stringResource(R.string.settings_live_title)) {
+        SwitchRow(
+            stringResource(R.string.settings_live_switch),
+            stringResource(R.string.settings_live_switch_hint),
+            checked = s.liveEnabled,
+            onChange = actions::setLive,
+        )
+        ChoiceRow(
+            options = AppSettings.LIVE_CHOICES,
+            selected = s.liveMinutes,
+            label = { if (it == 1) stringResource(R.string.settings_live_every_minute) else stringResource(R.string.settings_live_every, it) },
+            onSelect = { minutes -> vm.updateSettings { it.copy(liveMinutes = minutes) } },
+            enabled = s.liveEnabled,
+        )
+        SwitchRow(
+            stringResource(R.string.settings_live_value),
+            stringResource(R.string.settings_live_value_hint),
+            checked = s.liveShowValue,
+            onChange = { on -> vm.updateSettings { it.copy(liveShowValue = on) } },
+            enabled = s.liveEnabled,
+        )
+        SwitchRow(
+            stringResource(R.string.settings_pinned),
+            stringResource(R.string.settings_pinned_hint),
+            checked = s.livePinned,
+            onChange = { on -> vm.updateSettings { it.copy(livePinned = on) } },
+            enabled = s.liveEnabled,
+        )
+        SwitchRow(
+            stringResource(R.string.settings_keep_awake),
+            stringResource(R.string.settings_keep_awake_hint),
+            checked = s.liveKeepAwake,
+            onChange = { on -> vm.updateSettings { it.copy(liveKeepAwake = on) } },
+            enabled = s.liveEnabled,
+        )
+        SecondaryButton(stringResource(R.string.settings_hide_notification), onClick = actions::hideNotification, enabled = s.liveEnabled, modifier = Modifier.fillMaxWidth())
+        if (!ui.batteryUnrestricted) {
+            PrimaryButton(stringResource(R.string.settings_battery), onClick = actions::requestBatteryUnrestricted, modifier = Modifier.fillMaxWidth())
+        }
+        Hint(stringResource(R.string.settings_live_hint))
+    }
+
+    // the notice about background sync leads here
+    val backgroundWindow = remember { BringIntoViewRequester() }
+    LaunchedEffect(vm.focusBackground) {
+        if (vm.focusBackground) {
+            backgroundWindow.bringIntoView()
+            vm.focusBackground = false
+        }
+    }
+    XpWindow(stringResource(R.string.settings_background_title), Modifier.bringIntoViewRequester(backgroundWindow)) {
+        // first the answer to "do I need this for the minute mode?"
+        Text(stringResource(R.string.settings_background_intro), style = MaterialTheme.typography.bodyMedium)
+        if (s.liveEnabled && s.backgroundMinutes == 0 && s.backgroundBeforeLive > 0) {
+            Text(stringResource(R.string.settings_background_paused), style = MaterialTheme.typography.bodyMedium, color = LocalXp.current.accent)
+        }
+        ChoiceRow(
+            options = AppSettings.BACKGROUND_CHOICES,
+            selected = s.backgroundMinutes,
+            label = { if (it == 0) stringResource(R.string.settings_off) else minutesText(it) },
+            onSelect = { minutes -> vm.updateSettings { it.copy(backgroundMinutes = minutes) } },
+        )
+        Hint(stringResource(R.string.settings_background_hint))
+        if (!ui.batteryUnrestricted) {
+            Hint(stringResource(R.string.battery_text))
+            PrimaryButton(stringResource(R.string.settings_battery), onClick = actions::requestBatteryUnrestricted, modifier = Modifier.fillMaxWidth())
+        }
+    }
+}
+
+/** The unit and target range, and the glucose in the status bar. */
+@Composable
+private fun GlucoseTab(vm: MainViewModel) {
+    val ui = vm.ui
+    val s = ui.settings
+    XpWindow(stringResource(R.string.settings_display_title)) {
+        ChoiceRow(
+            options = GlucoseUnit.entries.toList(),
+            selected = s.unit,
+            label = { stringResource(it.label) },
+            onSelect = { unit -> vm.updateSettings { it.copy(unit = unit) } },
+        )
+        TargetRange(s) { low, high -> vm.updateSettings { it.copy(lowMgDl = low, highMgDl = high) } }
+    }
+
+    StatusBarCard(s, ui.sync.recent.lastOrNull(), vm::updateSettings)
+}
+
+/** Theme, font, text and language. */
+@Composable
+private fun LookTab(vm: MainViewModel, actions: AppActions) {
+    val s = vm.ui.settings
+    ThemeCard(s.theme) { mode -> vm.updateSettings { it.copy(theme = mode) } }
+    FontCard(s.font) { font -> vm.updateSettings { it.copy(font = font) } }
+    XpWindow(stringResource(R.string.settings_text_title)) {
+        Text(stringResource(R.string.settings_text_size), style = MaterialTheme.typography.bodyLarge)
+        ChoiceRow(
+            options = AppSettings.TEXT_SCALES,
+            selected = AppSettings.TEXT_SCALES.minBy { kotlin.math.abs(it - s.textScale) },
+            label = {
+                stringResource(
+                    when (AppSettings.TEXT_SCALES.indexOf(it)) {
+                        0 -> R.string.text_size_small
+                        1 -> R.string.text_size_normal
+                        2 -> R.string.text_size_large
+                        else -> R.string.text_size_huge
+                    }
+                )
+            },
+            onSelect = { scale -> vm.updateSettings { it.copy(textScale = scale) } },
+        )
+        SwitchRow(
+            stringResource(R.string.settings_low_vision),
+            stringResource(R.string.settings_low_vision_hint),
+            checked = s.lowVision,
+            onChange = { on -> vm.updateSettings { it.copy(lowVision = on) } },
+        )
+    }
+
+    LanguageCard(actions)
+}
+
+/** The version and updates, the developer tools, feedback. */
+@Composable
+private fun AppTab(vm: MainViewModel, actions: AppActions) {
+    AboutCard(vm, actions)
+    DeveloperCard(vm, actions)
+    FeedbackCard(actions)
+}
+
+/** The look: the phone's light or dark, always light or dark, or the calm neutral one. */
+@Composable
+private fun ThemeCard(theme: ThemeMode, onSelect: (ThemeMode) -> Unit) {
+    XpWindow(stringResource(R.string.theme_card)) {
+        ChoiceRow(
+            options = ThemeMode.entries.toList(),
+            selected = theme,
+            label = {
+                stringResource(
+                    when (it) {
+                        ThemeMode.SYSTEM -> R.string.theme_system
+                        ThemeMode.LIGHT -> R.string.theme_light
+                        ThemeMode.DARK -> R.string.theme_dark
+                        ThemeMode.NEUTRAL -> R.string.theme_neutral
+                    }
+                )
+            },
+            onSelect = onSelect,
+        )
+        Hint(stringResource(R.string.theme_neutral_hint))
+    }
+}
+
+/** The font: the phone's own, or one of those that come with the app and look alike in every language. */
+@Composable
+private fun FontCard(font: AppFont, onSelect: (AppFont) -> Unit) {
+    XpWindow(stringResource(R.string.font_title), Modifier.testTag("font")) {
+        ChoiceRow(
+            options = AppFont.entries.toList(),
+            selected = font,
+            label = {
+                stringResource(
+                    when (it) {
+                        AppFont.SYSTEM -> R.string.font_system
+                        AppFont.PIXEL -> R.string.font_pixel
+                        AppFont.SANS -> R.string.font_sans
+                        AppFont.SERIF -> R.string.font_serif
+                    }
+                )
+            },
+            onSelect = onSelect,
+        )
+        Hint(stringResource(R.string.font_hint))
+    }
+}
+
+/** The developer tools: their switch and, once on, the button that opens them. */
+@Composable
+private fun DeveloperCard(vm: MainViewModel, actions: AppActions) {
+    var tools by remember { mutableStateOf(false) }
+    XpWindow(stringResource(R.string.settings_developer), Modifier.testTag("developer-card")) {
+        SwitchRow(
+            stringResource(R.string.settings_developer_switch),
+            stringResource(R.string.settings_developer_hint),
+            checked = vm.ui.settings.developer,
+            onChange = { on -> vm.updateSettings { it.copy(developer = on) } },
+        )
+        if (vm.ui.settings.developer) {
+            SecondaryButton(stringResource(R.string.settings_developer_open), onClick = { tools = true }, modifier = Modifier.fillMaxWidth())
+        }
+    }
+    if (tools) DeveloperDialog(vm, actions) { tools = false }
 }
 
 /** Every language in its own name; the first option follows the phone. The screen redraws in the new language in place. */
@@ -264,7 +368,6 @@ private fun AboutCard(vm: MainViewModel, actions: AppActions) {
     val context = LocalContext.current
     val version = remember { context.packageManager.getPackageInfo(context.packageName, 0).versionName.orEmpty() }
     val update = vm.update
-    var tools by remember { mutableStateOf(false) }
     XpWindow(stringResource(R.string.settings_about_title)) {
         Text(stringResource(R.string.settings_version, version), style = MaterialTheme.typography.bodyLarge)
         val release = update.available
@@ -308,17 +411,7 @@ private fun AboutCard(vm: MainViewModel, actions: AppActions) {
         DottedDivider()
         Hint(stringResource(R.string.settings_about_hint))
         SecondaryButton(stringResource(R.string.privacy_title), onClick = { vm.privacyOpen = true }, modifier = Modifier.testTag("privacy-open"))
-        SwitchRow(
-            stringResource(R.string.settings_developer),
-            stringResource(R.string.settings_developer_hint),
-            checked = vm.ui.settings.developer,
-            onChange = { on -> vm.updateSettings { it.copy(developer = on) } },
-        )
-        if (vm.ui.settings.developer) {
-            SecondaryButton(stringResource(R.string.settings_developer_open), onClick = { tools = true }, modifier = Modifier.fillMaxWidth())
-        }
     }
-    if (tools) DeveloperDialog(vm, actions) { tools = false }
 }
 
 /**
@@ -338,7 +431,7 @@ private fun TargetRange(s: AppSettings, onDone: (Double, Double) -> Unit) {
     val valid = isValidTarget(low, high)
     val changed = lowText != formatGlucose(s.lowMgDl, s.unit, locale) || highText != formatGlucose(s.highMgDl, s.unit, locale)
     val fieldColors = OutlinedTextFieldDefaults.colors(
-        focusedBorderColor = Tenshi.ButtonBorder,
+        focusedBorderColor = LocalXp.current.buttonBorder,
         unfocusedBorderColor = xp.dots,
         focusedLabelColor = xp.accent,
         cursorColor = xp.accent,

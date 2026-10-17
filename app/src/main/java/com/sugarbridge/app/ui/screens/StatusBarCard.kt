@@ -42,7 +42,6 @@ import com.sugarbridge.app.ui.components.XpWindow
 import com.sugarbridge.app.ui.currentLocale
 import com.sugarbridge.app.ui.theme.LocalNight
 import com.sugarbridge.app.ui.theme.LocalXp
-import com.sugarbridge.app.ui.theme.Tenshi
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -136,7 +135,7 @@ private fun PlaceTile(label: String, icon: ImageBitmap, selected: Boolean, enabl
         modifier
             .alpha(if (enabled) 1f else 0.5f)
             .clip(shape)
-            .border(if (selected) 2.dp else 1.dp, if (selected) Tenshi.ButtonBorder else xp.dots.copy(alpha = 0.6f), shape)
+            .border(if (selected) 2.dp else 1.dp, if (selected) LocalXp.current.buttonBorder else xp.dots.copy(alpha = 0.6f), shape)
             .background(if (selected) xp.accent.copy(alpha = 0.12f) else Color.Transparent)
             .clickable(enabled = enabled, role = Role.RadioButton, onClick = onClick)
             .padding(8.dp),

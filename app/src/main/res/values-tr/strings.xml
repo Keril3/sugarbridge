@@ -281,7 +281,7 @@
     <string name="text_size_large">Daha büyük</string>
     <string name="text_size_huge">En büyük</string>
     <string name="settings_low_vision">Az görenler için mod</string>
-    <string name="settings_low_vision_hint">Piksel yazı tipi yerine sade bir yazı tipi, daha büyük ve daha kontrastlı, düz bir arka planda</string>
+    <string name="settings_low_vision_hint">Daha büyük ve daha kontrastlı, düz bir arka planda; piksel yazı tipi yerine telefonun yazı tipi</string>
     <string name="settings_developer">Geliştirici araçları</string>
     <string name="settings_developer_hint">Zamanın nerede kaybolduğunu gösteren olay günlüğü ve kontroller</string>
     <string name="settings_developer_open">Araçları aç</string>
@@ -379,4 +379,34 @@
     <string name="privacy_health">SugarBridge, Health Connect’e yalnızca LibreLinkUp hesabınızdaki kan şekerini yazar. Oradan yalnızca kendi kayıtlarını okur; geçmiş ve tahmini HbA1c için. Diğer uygulamaların sağlık verilerine dokunmaz.</string>
     <string name="privacy_password">LibreLinkUp şifresi telefonda, Android Keystore anahtarıyla şifrelenmiş olarak saklanır ve yalnızca LibreLinkUp’a gider. Uygulama LibreLinkUp dışında yalnızca GitHub ile konuşur: yeni sürümü öğrenmek ve indirmek için.</string>
     <string name="privacy_nothing_else">SugarBridge’in sunucusu, analitiği ve reklamı yoktur: hiçbir şey toplanmaz, başka yere gönderilmez ya da satılmaz. Yazdıkları Health Connect’te veya Geçmiş’te silinebilir.</string>
+
+    <!-- Added in 1.13.0 -->
+    <string name="settings_tab_sync">Eşitleme</string>
+    <string name="settings_tab_glucose">Şeker</string>
+    <string name="settings_tab_look">Görünüm</string>
+    <string name="settings_tab_app">Uygulama</string>
+    <string name="theme_neutral">Nötr</string>
+    <string name="theme_neutral_hint">Nötr: yıldızsız ve canlı renkler olmadan yumuşak griler, gözü yormaz. Telefon gibi açık ya da koyu.</string>
+    <string name="font_title">Yazı tipi</string>
+    <string name="font_system">Telefondaki gibi</string>
+    <string name="font_pixel">Piksel</string>
+    <string name="font_hint">“Telefondaki gibi”, telefonun ekran ayarlarında seçilen yazı tipidir. Diğerleri uygulamayla gelir ve her dilde aynı görünür.</string>
+    <string name="settings_developer_switch">Geliştirici araçlarını aç</string>
+    <string name="dev_log_keep">Günlüğü sakla</string>
+    <string name="dev_log_show">Göster</string>
+    <string name="dev_kind_all">Tümü</string>
+    <string name="dev_kind_sync">Eşitleme</string>
+    <string name="dev_kind_service">Dakika modu</string>
+    <string name="dev_kind_worker">Arka plan</string>
+    <string name="dev_kind_phone">Telefon</string>
+    <string name="dev_kind_error">Hata</string>
+    <string name="history_auto_title">Yeni değerler</string>
+    <string name="history_auto_switch">Yeni değerleri geçmişe ekle</string>
+    <string name="history_auto_hint">Her eşitleme kendi değerlerini ekler, LibreView gibi 15 dakikada bir, bu yüzden yeni bir CSV gerekmez. Açıldığında, geçmişin sonundan bu yana geçen süre SugarBridge’in Health Connect’teki kayıtlarıyla doldurulur.</string>
+    <string name="history_auto_empty">Henüz geçmiş yok: SugarBridge’in Health Connect’teki son 90 günlük kayıtlarıyla ya da bir sonraki eşitlemeyle başlar.</string>
+    <string name="history_delete_all_auto">“Yeni değerleri geçmişe ekle” de kapanır, yoksa bir sonraki eşitleme yeni bir geçmiş başlatırdı.</string>
+    <plurals name="days_count">
+        <item quantity="one">%d gün</item>
+        <item quantity="other">%d gün</item>
+    </plurals>
 </resources>

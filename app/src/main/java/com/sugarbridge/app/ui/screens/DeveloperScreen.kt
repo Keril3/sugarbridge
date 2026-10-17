@@ -6,32 +6,31 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
@@ -46,10 +45,13 @@ import com.sugarbridge.app.debug.collectStatus
 import com.sugarbridge.app.debug.hasUsageAccess
 import com.sugarbridge.app.debug.samsungHealthEvents
 import com.sugarbridge.app.health.SAMSUNG_HEALTH_PACKAGE
+import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.sync.LiveSyncService
 import com.sugarbridge.app.sync.scheduleSync
 import com.sugarbridge.app.ui.AppActions
 import com.sugarbridge.app.ui.components.ButtonRow
+import com.sugarbridge.app.ui.components.ChoiceRow
+import com.sugarbridge.app.ui.components.DottedDivider
 import com.sugarbridge.app.ui.components.Hint
 import com.sugarbridge.app.ui.components.OutlinedTitle
 import com.sugarbridge.app.ui.components.PrimaryButton
@@ -60,8 +62,6 @@ import com.sugarbridge.app.ui.components.XpMarquee
 import com.sugarbridge.app.ui.components.XpWindow
 import com.sugarbridge.app.ui.theme.LocalXp
 import com.sugarbridge.app.ui.theme.Tenshi
-import java.time.Duration
-import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -69,7 +69,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
-private const val SHOWN_ENTRIES = 300
+private const val SHOWN_ENTRIES = 200
 
 /**
  * The developer tools: what decides how fast a reading travels, the event log with every sync and what Android
@@ -91,9 +91,9 @@ fun DeveloperDialog(vm: MainViewModel, actions: AppActions, onDismiss: () -> Uni
             val checked by produceState<List<StatusLine>?>(null, round) { value = collectStatus(context) }
             val read by produceState<List<LogEntry>?>(null, round) {
                 value = withContext(Dispatchers.IO) {
-                    // two days of Samsung Health's activity, but nothing from before the log was last cleared
-                    val since = maxOf(Instant.now().minus(Duration.ofDays(2)), DebugLog.clearedAt(context))
-                    (DebugLog.read(context) + samsungHealthEvents(context, since)).sortedBy { it.at }
+                    // Samsung Health's activity for the days the log keeps, nothing from before it was last cleared
+                    DebugLog.prune(context)
+                    (DebugLog.read(context) + samsungHealthEvents(context, DebugLog.keptSince(context))).sortedBy { it.at }
                 }
             }
             val usage = remember(round) { hasUsageAccess(context) }
@@ -162,26 +162,28 @@ fun DeveloperDialog(vm: MainViewModel, actions: AppActions, onDismiss: () -> Uni
                     }
                 }
                 item {
-                    XpWindow(stringResource(R.string.dev_log)) {
-                        Hint(stringResource(R.string.dev_log_hint))
-                        ButtonRow {
-                            SecondaryButton(stringResource(R.string.dev_copy), onClick = {
-                                val clip = ClipData.newPlainText("SugarBridge", report(status, log))
-                                context.getSystemService(ClipboardManager::class.java).setPrimaryClip(clip)   // Android confirms it itself
-                            })
-                            SecondaryButton(stringResource(R.string.dev_share), onClick = {
-                                val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, report(status, log))
-                                context.startActivity(Intent.createChooser(send, null))
-                            })
-                            SecondaryButton(stringResource(R.string.dev_clear), onClick = {
-                                DebugLog.clear(context)
-                                round++
-                            }, danger = true)
-                        }
-                        if (read == null) XpMarquee(Modifier.fillMaxWidth()) else if (log.isEmpty()) Hint(stringResource(R.string.dev_log_empty))
-                    }
+                    LogWindow(
+                        log = log,
+                        loading = read == null,
+                        days = vm.ui.settings.logDays,
+                        onDays = { days ->
+                            vm.updateSettings { it.copy(logDays = days) }
+                            round++   // reading the log again drops what is now too old
+                        },
+                        onCopy = {
+                            val clip = ClipData.newPlainText("SugarBridge", report(status, log))
+                            context.getSystemService(ClipboardManager::class.java).setPrimaryClip(clip)   // Android confirms it itself
+                        },
+                        onShare = {
+                            val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, report(status, log))
+                            context.startActivity(Intent.createChooser(send, null))
+                        },
+                        onClear = {
+                            DebugLog.clear(context)
+                            round++
+                        },
+                    )
                 }
-                items(log.takeLast(SHOWN_ENTRIES).asReversed()) { LogRow(it) }
             }
         }
     }
@@ -236,22 +238,86 @@ private fun openSafely(context: Context, intent: Intent) {
     }
 }
 
-/** A line of the log: the time, what kind of event, what happened. */
+/** The kinds of events, in the order of the filter; any other kind is shown as it is written. */
+private val KINDS = listOf("sync", "service", "worker", "phone", "error", "s.health")
+
+@Composable
+private fun kindName(kind: String?): String = when (kind) {
+    null -> stringResource(R.string.dev_kind_all)
+    "sync" -> stringResource(R.string.dev_kind_sync)
+    "service" -> stringResource(R.string.dev_kind_service)
+    "worker" -> stringResource(R.string.dev_kind_worker)
+    "phone" -> stringResource(R.string.dev_kind_phone)
+    "error" -> stringResource(R.string.dev_kind_error)
+    "s.health" -> "Samsung Health"
+    else -> kind
+}
+
+/**
+ * The event log, one window: what it is, copy, share and clear, how many days it keeps, a filter by kind, then
+ * the newest entries themselves, each part of an entry on a line of its own.
+ */
+@Composable
+private fun LogWindow(
+    log: List<LogEntry>,
+    loading: Boolean,
+    days: Int,
+    onDays: (Int) -> Unit,
+    onCopy: () -> Unit,
+    onShare: () -> Unit,
+    onClear: () -> Unit,
+) {
+    var kind by rememberSaveable { mutableStateOf<String?>(null) }
+    val kinds = remember(log) { KINDS.filter { k -> log.any { it.kind == k } } + log.map { it.kind }.distinct().filter { it !in KINDS } }
+    val shown = remember(log, kind) { log.filter { kind == null || it.kind == kind }.takeLast(SHOWN_ENTRIES).asReversed() }
+    XpWindow(stringResource(R.string.dev_log), Modifier.testTag("log")) {
+        Hint(stringResource(R.string.dev_log_hint))
+        ButtonRow {
+            SecondaryButton(stringResource(R.string.dev_copy), onClick = onCopy)
+            SecondaryButton(stringResource(R.string.dev_share), onClick = onShare)
+            SecondaryButton(stringResource(R.string.dev_clear), onClick = onClear, danger = true)
+        }
+        Text(stringResource(R.string.dev_log_keep), style = MaterialTheme.typography.bodyMedium)
+        ChoiceRow(
+            options = AppSettings.LOG_DAYS,
+            selected = days,
+            label = { pluralStringResource(R.plurals.days_count, it, it) },
+            onSelect = onDays,
+        )
+        if (kinds.size > 1) {
+            Text(stringResource(R.string.dev_log_show), style = MaterialTheme.typography.bodyMedium)
+            ChoiceRow(
+                options = listOf<String?>(null) + kinds,
+                selected = kind.takeIf { it in kinds },
+                label = { kindName(it) },
+                onSelect = { kind = it },
+            )
+        }
+        DottedDivider()
+        when {
+            loading -> XpMarquee(Modifier.fillMaxWidth())
+            shown.isEmpty() -> Hint(stringResource(R.string.dev_log_empty))
+            else -> shown.forEachIndexed { i, entry ->
+                if (i > 0) DottedDivider()
+                LogRow(entry)
+            }
+        }
+    }
+}
+
+/** A line of the log: the time and what kind of event, then what happened. */
 @Composable
 private fun LogRow(entry: LogEntry) {
     val xp = LocalXp.current
     val time = entry.at.atZone(ZoneId.systemDefault())
     val today = time.toLocalDate() == LocalDate.now()
     val stamp = time.format(if (today) TIME else DAY_TIME)
-    Row(
-        Modifier.fillMaxWidth().background(xp.windowBody.copy(alpha = 0.92f)).padding(horizontal = 10.dp, vertical = 6.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Text(stamp, style = MaterialTheme.typography.labelSmall, color = xp.textMuted, modifier = Modifier.width(if (today) 64.dp else 96.dp))
-        Column(Modifier.weight(1f)) {
-            Text(entry.kind, style = MaterialTheme.typography.labelSmall, color = kindColor(entry.kind, xp.accent))
-            Text(entry.text, style = MaterialTheme.typography.bodySmall)
+    Column(Modifier.fillMaxWidth().testTag("log-entry"), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(stamp, style = MaterialTheme.typography.labelSmall, color = xp.textMuted)
+            Text(kindName(entry.kind), style = MaterialTheme.typography.labelSmall, color = kindColor(entry.kind, xp.accent))
         }
+        Text(DebugLog.readable(entry.text), style = MaterialTheme.typography.bodySmall)
     }
 }
 

@@ -154,7 +154,7 @@ private fun DateBox(label: String, date: LocalDate?, active: Boolean, modifier: 
     Column(
         modifier
             .clip(shape)
-            .border(if (active) 2.dp else 1.dp, if (active) Tenshi.ButtonBorder else xp.dots, shape)
+            .border(if (active) 2.dp else 1.dp, if (active) LocalXp.current.buttonBorder else xp.dots, shape)
             .background(if (active) xp.accent.copy(alpha = 0.10f) else Color.Transparent)
             .clickable(role = Role.Button, onClick = onClick)
             .padding(horizontal = 10.dp, vertical = 8.dp),
@@ -244,7 +244,7 @@ private fun DayCell(day: LocalDate, enabled: Boolean, start: LocalDate?, end: Lo
             .clip(CircleShape)
             .background(
                 when {
-                    edge -> Tenshi.ButtonBorder
+                    edge -> LocalXp.current.buttonBorder
                     inside -> xp.accent.copy(alpha = 0.18f)
                     else -> Color.Transparent
                 }
@@ -302,7 +302,7 @@ private fun MonthGrid(year: Int, firstMonth: YearMonth, lastMonth: YearMonth, st
                         modifier = Modifier
                             .weight(1f)
                             .clip(shape)
-                            .border(1.dp, if (chosen) Tenshi.ButtonBorder else xp.dots.copy(alpha = 0.5f), shape)
+                            .border(1.dp, if (chosen) LocalXp.current.buttonBorder else xp.dots.copy(alpha = 0.5f), shape)
                             .background(if (chosen) xp.accent.copy(alpha = 0.18f) else Color.Transparent)
                             .clickable(enabled = enabled, role = Role.Button) { onMonth(m) }
                             .padding(vertical = 14.dp),

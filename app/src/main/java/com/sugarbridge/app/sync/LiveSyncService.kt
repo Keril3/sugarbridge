@@ -320,7 +320,7 @@ class LiveSyncService : Service() {
      */
     private fun Notification.Builder.background(theme: ThemeMode) {
         when (theme) {
-            ThemeMode.SYSTEM -> setColor(ACCENT)
+            ThemeMode.SYSTEM, ThemeMode.NEUTRAL -> setColor(ACCENT)   // the neutral theme is light or dark as the phone is
             ThemeMode.LIGHT -> setColorized(true).setColor(LIGHT_BACKGROUND)
             ThemeMode.DARK -> setColorized(true).setColor(DARK_BACKGROUND)
         }

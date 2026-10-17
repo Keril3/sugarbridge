@@ -281,7 +281,7 @@
     <string name="text_size_large">大きめ</string>
     <string name="text_size_huge">最大</string>
     <string name="settings_low_vision">ロービジョンモード</string>
-    <string name="settings_low_vision_hint">ピクセルフォントの代わりに通常のフォントで、大きく、コントラストを高く、無地の背景にします</string>
+    <string name="settings_low_vision_hint">大きく、コントラストを高く、無地の背景にします。ピクセルフォントの代わりに端末のフォントを使います</string>
     <string name="settings_developer">開発者向けツール</string>
     <string name="settings_developer_hint">どこで時間がかかっているかを調べるイベントログとチェック</string>
     <string name="settings_developer_open">ツールを開く</string>
@@ -379,4 +379,33 @@
     <string name="privacy_health">SugarBridge が Health Connect に書き込むのは、LibreLinkUp アカウントの血糖値だけです。読み取るのも自分が書き込んだ記録だけで、履歴と推定 HbA1c に使います。他のアプリの健康データには触れません。</string>
     <string name="privacy_password">LibreLinkUp のパスワードは Android Keystore の鍵で暗号化してスマホに保存し、LibreLinkUp にだけ送ります。LibreLinkUp のほかにアプリが通信するのは GitHub だけで、新しいバージョンの確認とダウンロードに使います。</string>
     <string name="privacy_nothing_else">SugarBridge には独自のサーバーも分析も広告もありません。何も収集せず、ほかへ送ることも売ることもありません。書き込んだデータは Health Connect か「履歴」で削除できます。</string>
+
+    <!-- Added in 1.13.0 -->
+    <string name="settings_tab_sync">同期</string>
+    <string name="settings_tab_glucose">血糖値</string>
+    <string name="settings_tab_look">表示</string>
+    <string name="settings_tab_app">アプリ</string>
+    <string name="theme_neutral">ニュートラル</string>
+    <string name="theme_neutral_hint">ニュートラル：星や鮮やかな色のない、やわらかなグレーで目にやさしい配色です。ライトかダークかは端末に合わせます。</string>
+    <string name="font_title">フォント</string>
+    <string name="font_system">端末と同じ</string>
+    <string name="font_pixel">ピクセル</string>
+    <string name="font_hint">「端末と同じ」は端末の画面設定で選んだフォントです。ほかのフォントはアプリに含まれ、どの言語でも同じ見た目になります。</string>
+    <string name="settings_developer_switch">開発者向けツールをオンにする</string>
+    <string name="dev_log_keep">ログの保存期間</string>
+    <string name="dev_log_show">表示</string>
+    <string name="dev_kind_all">すべて</string>
+    <string name="dev_kind_sync">同期</string>
+    <string name="dev_kind_service">分刻みモード</string>
+    <string name="dev_kind_worker">バックグラウンド</string>
+    <string name="dev_kind_phone">端末</string>
+    <string name="dev_kind_error">エラー</string>
+    <string name="history_auto_title">新しい測定値</string>
+    <string name="history_auto_switch">新しい測定値を履歴に追加</string>
+    <string name="history_auto_hint">同期のたびに測定値が LibreView と同じく 15 分に 1 つずつ追加されるので、新しい CSV は不要です。オンにすると、履歴の最後から今までの間を Health Connect にある SugarBridge の記録で埋めます。</string>
+    <string name="history_auto_empty">まだ履歴がありません。Health Connect にある過去 90 日分の SugarBridge の記録、または次の同期から始まります。</string>
+    <string name="history_delete_all_auto">「新しい測定値を履歴に追加」もオフになります。そうしないと次の同期で新しい履歴が始まります。</string>
+    <plurals name="days_count">
+        <item quantity="other">%d 日</item>
+    </plurals>
 </resources>

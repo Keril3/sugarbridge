@@ -36,7 +36,6 @@ import com.sugarbridge.app.ui.components.OutlinedTitle
 import com.sugarbridge.app.ui.components.PrimaryButton
 import com.sugarbridge.app.ui.components.XpWindow
 import com.sugarbridge.app.ui.theme.LocalXp
-import com.sugarbridge.app.ui.theme.Tenshi
 
 @Composable
 fun LoginScreen(busy: Boolean, onSignIn: (String, String) -> Unit) {
@@ -45,7 +44,7 @@ fun LoginScreen(busy: Boolean, onSignIn: (String, String) -> Unit) {
     val canSubmit = email.isNotBlank() && password.isNotEmpty() && !busy
     val xp = LocalXp.current
     val fieldColors = OutlinedTextFieldDefaults.colors(
-        focusedBorderColor = Tenshi.ButtonBorder,
+        focusedBorderColor = LocalXp.current.buttonBorder,
         unfocusedBorderColor = xp.dots,
         focusedLabelColor = xp.accent,
         cursorColor = xp.accent,

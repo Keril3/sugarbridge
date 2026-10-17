@@ -9,11 +9,12 @@ from the LibreLinkUp cloud and writes them to Health Connect, where Samsung Heal
   <img src="docs/screenshots/en/home.png" width="190" alt="Home screen">
   <img src="docs/screenshots/en/chart.png" width="190" alt="The chart full screen">
   <img src="docs/screenshots/en/history.png" width="190" alt="History from LibreView">
-  <img src="docs/screenshots/en/settings.png" width="190" alt="Settings">
+  <img src="docs/screenshots/en/settings.png" width="190" alt="Settings: theme, font and text">
   <img src="docs/screenshots/en/notification.png" width="190" alt="Glucose in the notification">
   <img src="docs/screenshots/en/home_night.png" width="190" alt="Night theme">
+  <img src="docs/screenshots/en/home_neutral.png" width="190" alt="Neutral theme">
   <img src="docs/screenshots/en/home_low_vision.png" width="190" alt="Low vision mode with large text">
-  <img src="docs/screenshots/en/developer.png" width="190" alt="Developer tools">
+  <img src="docs/screenshots/en/developer.png" width="190" alt="The event log in the developer tools">
 </p>
 
 > **This is not a medical device.** Low and high glucose alarms and treatment decisions belong to the
@@ -24,7 +25,7 @@ from the LibreLinkUp cloud and writes them to Health Connect, where Samsung Heal
 
 - **Glucose in Samsung Health**: in the background every 15 minutes (or less often), without a notification.
 - **Minute mode**: every new reading goes to Samsung Health, and the glucose with its trend arrow is the
-  status bar icon. In Settings → Status bar you put the arrow over the number or beside it, make the number and
+  status bar icon. In Settings → Glucose → Status bar you put the arrow over the number or beside it, make the number and
   the arrow smaller or larger (×0.8, ×0.9, ×1.1, ×1.25, each on its own) or leave either out. Background sync is
   switched off while minute mode runs and comes back when it stops. The notification follows the app's theme
   and can be made quiet or hidden completely.
@@ -32,19 +33,25 @@ from the LibreLinkUp cloud and writes them to Health Connect, where Samsung Heal
   week, a month, all of it or any period from a calendar), then choose the days you want in Samsung Health.
   Nothing is written twice, and anything unwanted can be deleted. The history stays in the app until you delete
   it; a newer export is compared with it, and you choose to add the new readings, replace the differing ones or
-  replace it all. "All-time history" under the home chart leads straight to it.
+  replace it all. Or let it grow by itself: with "Add new readings to the history" every sync adds its readings,
+  so a new export isn't needed. "All-time history" under the home chart leads straight to it.
 - **Estimated HbA1c (GMI)** for 14 and 90 days with the time in range, from all the history SugarBridge has
   written to Health Connect.
 - **Its own chart and statistics** for 12 hours, mmol/L or mg/dL, your own target range. Tap the chart to open it
   full screen and move a finger along it to read every value and its time.
 - **Light and dark theme** in the style of [keril.art](https://keril.art/): a blue sky with a field of dots,
   windows and progress bars in the style of Windows XP (real progress fills block by block, other work shows
-  blocks running through the bar) and a pixel font. The
-  phone's theme by default, or light or dark in Settings.
-- **Readable for everyone**: four text sizes and a low vision mode with the phone's own font, larger text,
-  more contrast and a plain background.
-- **Developer tools** (Settings → About SugarBridge): an event log of every sync and of what Android did
-  around it, and the state of everything that can hold glucose back, to find where a delay comes from.
+  blocks running through the bar). The phone's theme by default, or light or dark in Settings → Look. A
+  **neutral theme** in soft greys, without stars and bright colours, is easy on the eyes; it is light or dark as
+  the phone is.
+- **Fonts**: the phone's own font by default (the one chosen in its display settings), or the pixel font,
+  Noto Sans or Noto Serif, which come with the app and look alike in all twelve languages.
+- **Readable for everyone**: four text sizes and a low vision mode with larger text, more contrast and a plain
+  background; the pixel font gives way to the phone's.
+- **Settings in four tabs**: Sync, Glucose, Look and App, so nothing is far to scroll to.
+- **Developer tools** (Settings → App): an event log of every sync and of what Android did around it, with a
+  filter by kind, kept for 1 to 14 days, and the state of everything that can hold glucose back, to find where a
+  delay comes from.
 - **12 languages**: English, Русский, Українська, Deutsch, Français, Español, Português, Italiano, Türkçe,
   简体中文, 日本語, 한국어. Chosen on the first start, changeable in Settings or in Android's per-app language settings.
 - **The password is protected by the Android Keystore** and stays on the phone.
@@ -89,9 +96,9 @@ You need:
 2. Open the downloaded file. Android asks to allow installing from the browser or My Files: allow it.
 3. If Play Protect warns about an unknown app, choose "Install anyway".
 4. **Updating:** from version 1.4.0 SugarBridge looks for updates itself: a window on the home screen (or
-   Settings → About SugarBridge → "Check for updates") downloads the new version, and Android asks you to confirm
+   Settings → App → "Check for updates") downloads the new version, and Android asks you to confirm
    the install. From 1.12.0 a new version is also offered once in a window that pops up, and while the app is
-   closed in a notification; Settings → About SugarBridge turns off "Check for updates by itself" or "Offer to
+   closed in a notification; Settings → App turns off "Check for updates by itself" or "Offer to
    install". The first time Android asks to allow SugarBridge to install apps; if Play Protect blocks the app as
    one from an unknown developer, tap "More details" → "Install anyway". Older versions are updated by
    installing the new APK from the link above over them. Your sign-in and settings are kept either way.
@@ -115,9 +122,9 @@ You need:
 5. **Samsung Health.** Settings → Health Connect → let Samsung Health **read** blood glucose.
 6. **"Remove battery restrictions"** (the home screen asks for it). Without it Android holds the background sync
    back for hours while the phone lies idle, and Samsung may put the app to sleep.
-7. Optional: **Settings → Minute mode** for a new value every minute; "Pin the notification" brings it back if it
-   is swiped away by accident. **Settings → Status bar**: where the arrow stands and how large the number and
-   the arrow are.
+7. Optional: **Settings → Sync → Minute mode** for a new value every minute; "Pin the notification" brings it
+   back if it is swiped away by accident. **Settings → Glucose → Status bar**: where the arrow stands and how
+   large the number and the arrow are. **Settings → Look**: theme, font, text size and language.
    Minute mode switches background sync off and says so in a notice; it comes back when minute mode stops.
 
 ### Full history from LibreView
@@ -137,6 +144,12 @@ LibreLinkUp remembers only the last 12 hours. Everything else is kept in LibreVi
 way: SugarBridge counts what is new, the same, different or only in the loaded history, and you choose to add the
 new readings, add them and replace the differing ones, or replace the whole history with the new file. "Delete the
 loaded history" removes it from SugarBridge; what is already in Health Connect stays.
+
+Fresh readings can also go into the history without a new export: History → "Add new readings to the history".
+Every sync then adds its readings, one per 15 minutes as LibreView keeps them, and an open history shows the new
+days at once. Turned on, it fills the time since the end of the history from what SugarBridge has written to
+Health Connect; without a history it begins one with the last 90 days of that, or with the next sync. Deleting
+the history turns it off, so the next sync doesn't begin a new one.
 
 A CSV downloaded in a browser can be opened with SugarBridge or chosen with "Choose a downloaded CSV".
 Exports in any LibreView language work: the columns are recognized by their headers.
@@ -158,16 +171,18 @@ document, and other apps can neither hurry it nor see when it reads. Samsung say
 is opened and when that screen is pulled down; just keeping the app open is not enough, so pull its home screen
 down to get the new values. Writing straight into Samsung Health, past Health Connect, is possible only with
 Samsung's Health Data SDK and an access code Samsung gives out through a partnership request, which an app like
-this doesn't get. To see the timing on your phone, turn on Settings → About SugarBridge → Developer tools: the
-log shows when each value reached Health Connect, and Health Connect's own "Recent access" shows when Samsung
-Health read it.
+this doesn't get. To see the timing on your phone, turn on Settings → App → Developer tools: the log shows when
+each value reached Health Connect, and Health Connect's own "Recent access" shows when Samsung Health read it.
+SugarBridge can't put that moment into its log: Android gives the record of which app read what only to Health
+Connect's own settings, not to other apps. With usage access the log's "Samsung Health" lines show when Samsung
+Health was active, which is as close as an app can see.
 
 **"Give usage access" opens a greyed-out switch.** Android 15 and newer do that for apps installed from an APK
 rather than a store ("restricted settings"). Open Settings → Apps → SugarBridge → ⋮ (top right) → "Allow
 restricted settings", confirm, then turn usage access on. The developer tools have a button to that page.
 
 **Why does minute mode have a notification?** Android lets only a service with a notification run more often
-than every 15 minutes. It can be made quiet (Settings → "Glucose in the notification") or turned off completely
+than every 15 minutes. It can be made quiet (Settings → Sync → "Glucose in the notification") or turned off completely
 ("Hide the notification completely"); the mode keeps working.
 
 **Do I need background sync for minute mode?** No. Minute mode already fetches every minute what background
@@ -185,9 +200,15 @@ digits always keep the font's own proportions. Without the number only the arrow
 comes only without both. Two notifications (one icon each) and Android 16's Live Update capsule were tried:
 the first cluttered the shade, the second wasn't drawn on Samsung phones.
 
-**What colour is minute mode's notification?** It follows the app's theme (Settings → Theme): with "Phone
-theme" it looks like any other notification, with the light or the dark theme its background is light or dark
-whatever the phone uses.
+**What colour is minute mode's notification?** It follows the app's theme (Settings → Look → Theme): with
+"Phone theme" and the neutral theme it looks like any other notification, with the light or the dark theme its
+background is light or dark whatever the phone uses.
+
+**Why do the fonts that come with the app look the same in every language?** Each one has Chinese, Japanese and
+Korean letters of the same design, so a text in any of the twelve languages isn't patched together from the
+phone's fonts. They are cut to the characters of the app's texts, which keeps all of them at about 4 MB; a name
+or a symbol they lack comes from the phone's font. "Like the phone" uses the font chosen in the phone's display
+settings, Samsung's font styles included.
 
 **What do the bars of the estimated HbA1c show?** The time in your target range over the 14 or 90 days, each
 15 minutes weighing the same. How much of the period has readings is shown only when it is too little (under
@@ -218,8 +239,8 @@ that, and it has no effect on your data or permissions.
 **Where does the password go?** Only to LibreLinkUp. On the phone it is encrypted with an Android Keystore key
 that can't be taken off the phone. SugarBridge has no server, analytics or ads. Besides LibreLinkUp and Health
 Connect it talks only to GitHub, to ask for the latest version and download it; with "Check for updates by
-itself" off, only when you tap "Check for updates". The same in short is in the app: Settings → About
-SugarBridge → Privacy, and Health Connect's "privacy policy" link for SugarBridge opens it.
+itself" off, only when you tap "Check for updates". The same in short is in the app: Settings → App →
+Privacy, and Health Connect's "privacy policy" link for SugarBridge opens it.
 
 **My language is missing or a translation is off.** Open an issue or a pull request: all texts are in
 `app/src/main/res/values-*/strings.xml`, and a unit test checks that every language has every string.
@@ -231,8 +252,8 @@ is no iPhone version, and this app can't become one: Health Connect and the minu
 and on an iPhone glucose would go to Apple Health, which would be a separate app.
 
 Found a bug? [Open an issue](../../issues/new?template=bug_report.md) with the steps, what you expected and what
-happened. The quickest way to show the cause is the event log: Settings → About SugarBridge → Developer tools →
-"Share".
+happened. The quickest way to show the cause is the event log: Settings → App → Developer tools → "Open the
+tools" → "Share".
 
 ## For developers
 
@@ -262,8 +283,9 @@ app/src/main/java/com/sugarbridge/app/
 ├── sync/        sync, the background job, the minute service, autostart, errors as codes
 ├── settings/    settings, the theme and the app language
 ├── update/      updates from GitHub Releases
-└── ui/          theme, components (windows, chart, the mascot), screens
+└── ui/          theme and fonts, components (windows, chart, the mascot), screens
 app/src/main/res/values-*/  translations
+app/src/main/res/font/      the fonts, cut to the app's texts by tools/make_fonts.py
 app/src/test/               unit tests, laid out the same way
 app/src/androidTest/        device tests
 ```
@@ -285,18 +307,18 @@ GitHub Actions builds and signs the APK in Releases when a `v*` tag arrives in t
    ```
 3. **Every release:** add the version's section to [CHANGELOG.md](CHANGELOG.md), then
    ```sh
-   git tag v1.12.1
-   git push origin v1.12.1
+   git tag v1.13.0
+   git push origin v1.13.0
    ```
    A few minutes later `SugarBridge.apk` appears in Releases with the notes from the CHANGELOG.
 
 A signed APK can be built locally too: put `sugarbridge.keystore`, `sugarbridge.keystorePassword`,
 `sugarbridge.keyAlias` and `sugarbridge.keyPassword` into `~/.gradle/gradle.properties` (outside the repository)
-and run `./gradlew assembleRelease -Psugarbridge.version=1.12.1`.
+and run `./gradlew assembleRelease -Psugarbridge.version=1.13.0`.
 
 ## Feedback
 
-You can reach the developer through the contacts in Settings → Feedback: email, Discord, Telegram. The
+You can reach the developer through the contacts in Settings → App → Feedback: email, Discord, Telegram. The
 developer's website: [keril.art](https://keril.art/). Bugs and ideas are welcome in the
 [issues](https://github.com/Keril3/sugarbridge/issues) too.
 
@@ -306,10 +328,13 @@ developer's website: [keril.art](https://keril.art/). Bugs and ideas are welcome
   [libreview-unofficial](https://github.com/FokkeZB/libreview-unofficial),
   [a LibreLinkUp HTTP dump](https://gist.github.com/khskekec/6c13ba01b10d3018d816706a32ae8ab2).
 - The look of [keril.art](https://keril.art/).
-- The [Monocraft](https://github.com/IdreesInc/Monocraft) font by Idrees Hassan, SIL Open Font License, see [licenses/](licenses/).
+- The [Monocraft](https://github.com/IdreesInc/Monocraft) font by Idrees Hassan; [Noto Sans, Noto Serif](https://github.com/notofonts)
+  and their Chinese, Japanese and Korean versions by Google and Adobe; [Fusion Pixel Font](https://github.com/TakWolf/fusion-pixel-font)
+  by TakWolf for the pixel font in Chinese, Japanese and Korean. All under the SIL Open Font License, cut to the
+  characters the app needs; see [licenses/](licenses/).
 
 ## License
 
-[MIT](LICENSE). The Monocraft font is distributed under its own OFL license. FreeStyle, Libre, LibreLink,
+[MIT](LICENSE). The fonts are distributed under their own OFL licenses. FreeStyle, Libre, LibreLink,
 LibreLinkUp and LibreView are trademarks of Abbott; Samsung Health is a trademark of Samsung; Health Connect
 of Google.

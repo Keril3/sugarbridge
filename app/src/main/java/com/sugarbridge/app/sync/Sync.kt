@@ -11,6 +11,8 @@ import com.sugarbridge.app.health.WRITE_GLUCOSE
 import com.sugarbridge.app.health.healthConnectState
 import com.sugarbridge.app.health.toRecord
 import com.sugarbridge.app.libre.Libre
+import com.sugarbridge.app.libreview.HistoryStore
+import com.sugarbridge.app.settings.SettingsStore
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
@@ -53,6 +55,9 @@ suspend fun syncOnce(context: Context): SyncResult = syncMutex.withLock {
     }
     // the order matters: first the records, then the state; if it fails in between, the record ids make a retry safe
     store.saveState(state.after(fresh, now))
+    // the kept history grows by itself if asked to; before the success, which tells the screens to look again
+    val settings = SettingsStore(context).load()
+    if (settings.historyAutoAdd) runCatching { HistoryStore.append(context, readings, settings.unit, "LibreLinkUp") }
     store.saveSuccess(readings, fresh.size)
     val done = SystemClock.elapsedRealtime()
     SyncResult(fresh.size, readings.lastOrNull(), readings, writeStart - fetchStart, done - writeStart)

@@ -28,6 +28,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.sugarbridge.app.MainActivity
 import com.sugarbridge.app.MainViewModel
 import com.sugarbridge.app.R
+import com.sugarbridge.app.debug.DebugLog
 import com.sugarbridge.app.glucose.GlucoseUnit
 import com.sugarbridge.app.glucose.MGDL_PER_MMOL
 import com.sugarbridge.app.glucose.Reading
@@ -46,6 +47,7 @@ import com.sugarbridge.app.libre.Session
 import com.sugarbridge.app.libre.sha256
 import com.sugarbridge.app.libreview.HistoryStore
 import com.sugarbridge.app.resourcesIn
+import com.sugarbridge.app.settings.AppFont
 import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.settings.SettingsStore
 import com.sugarbridge.app.settings.ThemeMode
@@ -134,6 +136,12 @@ class ScreenshotTest {
         val recent = (48 downTo 1).map { now.minusSeconds(it * 900L) }.map { Reading(it, Math.round(mgDlAt(it) * 10) / 10.0, 0) } +
             Reading(now.minusSeconds(40), mgDlAt(now), 4)
         SyncStore(context).saveSuccess(recent, 3)   // "the last sync was just now": no automatic sync
+        // a few events of every kind for the log, instead of whatever earlier tests left there
+        DebugLog.clear(context)
+        DebugLog.add(context, "service", "started: every 1 min")
+        DebugLog.add(context, "sync", "minute: newest 18:04:00, 61 s old; 48 points, wrote 1 (18:04); LibreLinkUp 640 ms, Health Connect 90 ms")
+        DebugLog.add(context, "phone", "screen off")
+        DebugLog.add(context, "sync", "minute: newest 18:05:00, 64 s old; 48 points, wrote 1 (18:05); LibreLinkUp 610 ms, Health Connect 85 ms")
         if (healthConnectState(context) == HealthConnectState.AVAILABLE) {
             instrumentation.uiAutomation.grantRuntimePermission(context.packageName, WRITE_GLUCOSE)
             // two weeks are already "in Health Connect": those days get a mark in the history,
@@ -248,16 +256,40 @@ class ScreenshotTest {
         compose.onNodeWithTag("merge-add").performClick()
         compose.waitUntil(20_000) { vm.pendingMerge == null && vm.historyOpen }
 
+        // settings in four tabs, each starting at its top
         compose.onNodeWithText(text(R.string.tab_settings)).performClick()
         shot(language, "settings")
         compose.onNodeWithText(text(R.string.settings_background_intro)).performScrollTo()
         shot(language, "settings_sync")
-        compose.onNodeWithText(text(R.string.settings_about_title)).performScrollTo()
-        shot(language, "settings_bottom")
+        compose.onNodeWithText(text(R.string.settings_tab_glucose)).performClick()
+        shot(language, "settings_glucose")
+        compose.onNodeWithText(text(R.string.settings_tab_look)).performClick()
+        compose.onNodeWithTag("font").assertExists()
+        shot(language, "settings_look")
+        // the fonts that come with the app; the phone's own is the one above
+        for (font in listOf(AppFont.PIXEL, AppFont.SANS, AppFont.SERIF)) {
+            scenario.onActivity { vm.updateSettings { it.copy(font = font) } }
+            shot(language, "settings_font_${font.name.lowercase()}")
+        }
+        // the neutral theme follows the phone's light and dark
+        scenario.onActivity { vm.updateSettings { it.copy(font = AppFont.SYSTEM, theme = ThemeMode.NEUTRAL) } }
+        shot(language, "settings_neutral")
+        compose.onNodeWithText(text(R.string.tab_now)).performClick()
+        shot(language, "home_neutral")
+        instrumentation.uiAutomation.executeShellCommand("cmd uimode night yes").close()
+        Thread.sleep(1500)
+        shot(language, "home_neutral_night")
+        instrumentation.uiAutomation.executeShellCommand("cmd uimode night no").close()
+        Thread.sleep(1500)
+        scenario.onActivity { vm.updateSettings { it.copy(theme = ThemeMode.LIGHT) } }
+        compose.onNodeWithText(text(R.string.tab_settings)).performClick()
+        compose.onNodeWithText(text(R.string.settings_tab_app)).performClick()
+        shot(language, "settings_app")
         compose.onNodeWithTag("feedback").performScrollTo()
         shot(language, "settings_feedback")
 
-        // minute mode turned background sync off: the notice stays until its link or its ✕ is tapped
+        // minute mode turned background sync off: the notice stays until its link or its ✕ is tapped;
+        // the link leads from the App tab to the Sync tab's background sync
         scenario.onActivity { vm.updateSettings { it.copy(backgroundNotice = true) } }
         compose.onNodeWithTag("background-notice").assertExists()
         shot(language, "background_notice")
@@ -270,14 +302,21 @@ class ScreenshotTest {
         compose.onNodeWithTag("background-notice").assertDoesNotExist()
         compose.waitUntil(5_000) { runCatching { compose.onNodeWithText(text(R.string.settings_background_intro)).assertIsDisplayed() }.isSuccess }
 
-        // the developer tools
+        // the developer tools, on the App tab
+        compose.onNodeWithText(text(R.string.settings_tab_app)).performClick()
         scenario.onActivity { vm.updateSettings { it.copy(developer = true) } }
         // a message popping up at the bottom may cover the button for a moment: press the button itself
         compose.onNodeWithText(text(R.string.settings_developer_open)).performScrollTo().performSemanticsAction(SemanticsActions.OnClick)
         compose.waitUntil(15_000) { compose.onAllNodesWithText(text(R.string.dev_version)).fetchSemanticsNodes().isNotEmpty() }
         shot(language, "developer")
+        compose.onNodeWithTag("developer").performScrollToNode(hasTestTag("log"))
+        compose.waitUntil(15_000) { compose.onAllNodesWithTag("log-entry").fetchSemanticsNodes().isNotEmpty() }
+        shot(language, "developer_log")
         Espresso.pressBack()
         scenario.onActivity { vm.updateSettings { it.copy(developer = false) } }
+
+        // the target range on the Glucose tab
+        compose.onNodeWithText(text(R.string.settings_tab_glucose)).performClick()
 
         // the target range is typed in: a new lower bound with the decimal separator of the language, then Save
         val locale = Locale.forLanguageTag(language)
@@ -290,6 +329,7 @@ class ScreenshotTest {
         scenario.onActivity { vm.updateSettings { it.copy(theme = ThemeMode.DARK) } }   // the sun/moon switch
         shot(language, "home_night")
         compose.onNodeWithText(text(R.string.tab_settings)).performClick()
+        compose.onNodeWithText(text(R.string.settings_tab_look)).performClick()
         shot(language, "settings_night")
         scenario.onActivity { vm.updateSettings { it.copy(theme = ThemeMode.LIGHT) } }
         compose.onNodeWithText(text(R.string.tab_now)).performClick()

@@ -41,7 +41,7 @@ import com.sugarbridge.app.ui.components.Mood
 import com.sugarbridge.app.ui.components.OutlinedTitle
 import com.sugarbridge.app.ui.components.PrimaryButton
 import com.sugarbridge.app.ui.components.XpWindow
-import com.sugarbridge.app.ui.theme.Tenshi
+import com.sugarbridge.app.ui.theme.LocalXp
 
 /**
  * The first screen on the first start: pick the app language. A tap only marks the choice, and the texts here
@@ -99,7 +99,7 @@ private fun LanguageRow(name: String, detail: String?, selected: Boolean, onClic
             .padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        RadioButton(selected = selected, onClick = null, colors = RadioButtonDefaults.colors(selectedColor = Tenshi.ButtonBorder))
+        RadioButton(selected = selected, onClick = null, colors = RadioButtonDefaults.colors(selectedColor = LocalXp.current.buttonBorder))
         Column(Modifier.padding(start = 12.dp, top = 8.dp, bottom = 8.dp)) {
             Text(name, style = MaterialTheme.typography.bodyLarge)
             if (detail != null) Hint(detail)

@@ -6,24 +6,36 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.sugarbridge.app.glucose.GlucoseUnit
+import com.sugarbridge.app.glucose.Reading
+import com.sugarbridge.app.health.HealthConnectState
+import com.sugarbridge.app.health.WRITE_GLUCOSE
+import com.sugarbridge.app.health.deleteOwnGlucose
+import com.sugarbridge.app.health.healthConnectState
+import com.sugarbridge.app.health.insertReadings
 import com.sugarbridge.app.libreview.HistoryStore
 import com.sugarbridge.app.libreview.MergeMode
 import com.sugarbridge.app.settings.SettingsStore
+import com.sugarbridge.app.sync.SyncStore
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
+import java.time.Instant
 import java.time.ZoneId
+import kotlinx.coroutines.runBlocking
 
 /**
  * The loaded history stays until it is deleted: it is back after a restart (also from version 1.6's raw file),
- * a broken file is dropped quietly, and a new export is merged with it the way the user chooses.
+ * a broken file is dropped quietly, a new export is merged with it the way the user chooses, and with "Add new
+ * readings" it grows with every sync.
  */
 @RunWith(AndroidJUnit4::class)
 class HistoryRestoreTest {
@@ -43,12 +55,15 @@ class HistoryRestoreTest {
     fun setUp() {
         withoutUpdateOffers(context)
         SettingsStore(context).languageChosen = true
+        SettingsStore(context).update { it.copy(historyAutoAdd = false) }
         HistoryStore.clear(context)
     }
 
     @After
     fun cleanUp() {
         HistoryStore.clear(context)
+        SettingsStore(context).update { it.copy(historyAutoAdd = false) }
+        SyncStore(context).clearDisplay()
         withUpdateOffers(context)
     }
 
@@ -141,6 +156,88 @@ class HistoryRestoreTest {
         // what is shown is what is kept
         assertNotNull(HistoryStore.load(context, ZoneId.systemDefault()))
         assertEquals(3, HistoryStore.load(context, ZoneId.systemDefault())!!.readings.size)
+    }
+
+    @Test
+    fun aSyncAddsItsNewReadingsToTheOpenHistory() {
+        SettingsStore(context).update { it.copy(historyAutoAdd = true) }
+        withViewModel { scenario, vm ->
+            scenario.onActivity { vm.importFile(export(first)) }
+            assertTrue(waitFor { vm.history.loaded && !vm.readingFile })
+            val end = vm.history.readings.last().time   // the scan at 18:05
+            fun after(minutes: Long, scan: Boolean = false) = Reading(end.plusSeconds(minutes * 60), 120.0, 0, scan = scan)
+            // what a sync does: minute readings, LibreView's pace kept, the scan left out; then the success
+            val synced = listOf(after(5), after(15), after(20), after(30), after(45, scan = true))
+            assertEquals(2, HistoryStore.append(context, synced, GlucoseUnit.MMOL, "LibreLinkUp"))
+            SyncStore(context).saveSuccess(synced, 0)
+            assertTrue("the added readings weren't shown", waitFor { vm.history.readings.size == 5 })
+            assertEquals(listOf(end.plusSeconds(900), end.plusSeconds(1800)), vm.history.readings.takeLast(2).map { it.time })
+            assertEquals("the source stays", "LibreView", vm.history.source)
+        }
+        assertEquals(5, HistoryStore.load(context, ZoneId.systemDefault())!!.readings.size)
+    }
+
+    @Test
+    fun withoutAHistoryASyncBeginsOne() {
+        SettingsStore(context).update { it.copy(historyAutoAdd = true) }
+        withViewModel { _, vm ->
+            assertTrue(waitFor { !vm.readingFile })
+            val now = Instant.now()
+            val synced = listOf(Reading(now.minusSeconds(1800), 100.0, 0), Reading(now.minusSeconds(900), 105.0, 0))
+            assertEquals(2, HistoryStore.append(context, synced, GlucoseUnit.MMOL, "LibreLinkUp"))
+            SyncStore(context).saveSuccess(synced, 0)
+            assertTrue("the new history wasn't shown", waitFor { vm.history.loaded })
+            assertEquals("LibreLinkUp", vm.history.source)
+            assertEquals(2, vm.history.readings.size)
+            assertFalse("a new history waits on the start page", vm.historyOpen)
+        }
+    }
+
+    @Test
+    fun aHistoryFromVersion16IsNotReplacedByASync() {
+        HistoryStore.legacyFile(context).writeText(first)
+        assertEquals(0, HistoryStore.append(context, listOf(Reading(Instant.now(), 100.0, 0)), GlucoseUnit.MMOL, "LibreLinkUp"))
+        assertTrue(HistoryStore.legacyFile(context).exists())
+        assertFalse(File(context.filesDir, "history.txt").exists())
+    }
+
+    @Test
+    fun deletingTheHistoryTurnsAddingOff() {
+        SettingsStore(context).update { it.copy(historyAutoAdd = true) }
+        withViewModel { scenario, vm ->
+            scenario.onActivity { vm.importFile(export(first)) }
+            assertTrue(waitFor { vm.history.loaded && !vm.readingFile })
+            scenario.onActivity { vm.deleteHistory() }
+            assertFalse(vm.ui.settings.historyAutoAdd)
+        }
+        assertFalse("the next sync would begin a new history", SettingsStore(context).load().historyAutoAdd)
+    }
+
+    @Test
+    fun turnedOnItFillsTheGapFromHealthConnect() {
+        assumeTrue("Health Connect is not available", healthConnectState(context) == HealthConnectState.AVAILABLE)
+        InstrumentationRegistry.getInstrumentation().uiAutomation.grantRuntimePermission(context.packageName, WRITE_GLUCOSE)
+        withViewModel { scenario, vm ->
+            scenario.onActivity { vm.importFile(export(first)) }
+            assertTrue(waitFor { vm.history.loaded && !vm.readingFile })
+            val end = vm.history.readings.last().time
+            // what SugarBridge wrote after the export: every minute for an hour, as in minute mode
+            val written = (1L..60L).map { Reading(end.plusSeconds(it * 60), 100.0 + it, 0) }
+            runBlocking {
+                deleteOwnGlucose(context, end, end.plusSeconds(3700))
+                insertReadings(context, written)
+            }
+            try {
+                scenario.onActivity { vm.setHistoryAutoAdd(true) }
+                // one per 15 minutes like LibreView: 14, 28, 42 and 56 minutes after the end
+                assertTrue("the gap wasn't filled", waitFor { vm.history.readings.size == 3 + 4 })
+                assertEquals(listOf(14L, 28L, 42L, 56L), vm.history.readings.takeLast(4).map { (it.time.epochSecond - end.epochSecond) / 60 })
+                assertTrue(vm.ui.settings.historyAutoAdd)
+            } finally {
+                runBlocking { deleteOwnGlucose(context, end, end.plusSeconds(3700)) }
+            }
+        }
+        assertEquals(7, HistoryStore.load(context, ZoneId.systemDefault())!!.readings.size)
     }
 
     /** The automatic reading at that clock time of the export (exports carry the phone's local time). */

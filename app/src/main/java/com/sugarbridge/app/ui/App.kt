@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -35,7 +34,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextDecoration
@@ -52,6 +50,7 @@ import com.sugarbridge.app.ui.components.Mood
 import com.sugarbridge.app.ui.components.PrimaryButton
 import com.sugarbridge.app.ui.components.SecondaryButton
 import com.sugarbridge.app.ui.components.SkyBackground
+import com.sugarbridge.app.ui.components.TabItem
 import com.sugarbridge.app.ui.components.XpDialog
 import com.sugarbridge.app.ui.components.XpWindow
 import com.sugarbridge.app.ui.components.pinkWindow
@@ -161,29 +160,7 @@ private fun Dock(current: Tab, onSelect: (Tab) -> Unit) {
             Triple(Tab.HISTORY, R.drawable.ic_tab_history, R.string.tab_history),
             Triple(Tab.SETTINGS, R.drawable.ic_tab_settings, R.string.tab_settings),
         ).forEach { (tab, icon, label) ->
-            val on = tab == current
-            val itemShape = RoundedCornerShape(9.dp)
-            Column(
-                Modifier
-                    .weight(1f)
-                    .clip(itemShape)
-                    .then(
-                        if (on) {
-                            Modifier
-                                .border(1.dp, Tenshi.ButtonBorder, itemShape)
-                                .background(Brush.verticalGradient(0f to Tenshi.ButtonGloss[0], 0.48f to Tenshi.ButtonGloss[1], 0.5f to Tenshi.ButtonGloss[2], 1f to Tenshi.ButtonGloss[3]))
-                        } else {
-                            Modifier
-                        }
-                    )
-                    .clickable(role = Role.Tab) { onSelect(tab) }
-                    .padding(vertical = 6.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                val color = if (on) Tenshi.ButtonText else xp.text
-                Icon(painterResource(icon), contentDescription = null, tint = color, modifier = Modifier.size(24.dp))
-                Text(stringResource(label), style = MaterialTheme.typography.labelMedium, color = color)
-            }
+            TabItem(stringResource(label), icon, selected = tab == current, onClick = { onSelect(tab) })
         }
     }
 }

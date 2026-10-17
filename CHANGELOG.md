@@ -2,6 +2,37 @@
 
 Newest version first. A version's section becomes the release notes on GitHub.
 
+## 1.13.0 — 2026-10-12
+
+- Fonts: Settings → Look → Font. "Like the phone" (the default) is the font chosen in the phone's display
+  settings, Samsung's font styles included. "Pixel" is the font of earlier versions; "Noto Sans" and "Noto
+  Serif" come with the app. The fonts that come with the app have their own Chinese, Japanese and Korean
+  letters, so all twelve languages look alike in them; they are cut to the app's texts, which keeps them at
+  4 MB together. Low vision mode shows the phone's font instead of the pixel one.
+- Settings in four tabs: Sync (LibreLinkUp, Health Connect, minute mode, background sync), Glucose (unit,
+  target range, status bar), Look (theme, font, text, language) and App (about, updates, developer tools,
+  feedback). The tabs stay in place and each starts at its top; the background notice's link opens the Sync
+  tab. The settings tabs and the tab bar at the bottom shrink a long name instead of wrapping it.
+- A neutral theme: soft warm greys without stars and bright colours, muted buttons, easy on the eyes; light
+  or dark like the phone. Minute mode's notification follows it like the phone's theme.
+- History → "Add new readings to the history": each sync adds its readings to the kept history, one per 15
+  minutes like LibreView, so no new CSV is needed. Turned on, it fills the time since the end of the history
+  from SugarBridge's records in Health Connect, or begins a history with the last 90 days of them; without a
+  history the next sync begins one. An open history shows the new days at once. Deleting the history turns it
+  off, so the next sync doesn't begin a new one.
+- The developer tools have a window of their own on the App tab with their switch, no longer inside About
+  SugarBridge.
+- The event log is one window with its entries inside it. A filter shows one kind of event (syncs, minute
+  mode, background, phone, errors, Samsung Health); each part of an entry after ";" starts a line of its own.
+  The log keeps 1, 3 (the default), 7 or 14 days; older lines are deleted by themselves, and Samsung Health's
+  activity is shown for the same days.
+- When Samsung Health takes the glucose from Health Connect can't be shown in the log: Android gives the record
+  of who read what only to Health Connect's own settings ("Recent access"), not to apps. The README says so.
+- tools/make_fonts.py builds the fonts from the Noto and Fusion Pixel sources, and a unit test checks that every
+  letter of every language is in them. The OFL licenses of Noto and Fusion Pixel are in licenses/.
+- Tests: the log's days, filter and lines, the history growing with syncs (also from Health Connect), plurals in
+  every language, the screens of each settings tab, the fonts and the neutral theme.
+
 ## 1.12.1 — 2026-10-12
 
 - Health Connect's "privacy policy" link for SugarBridge, on its permission screen and in the permission

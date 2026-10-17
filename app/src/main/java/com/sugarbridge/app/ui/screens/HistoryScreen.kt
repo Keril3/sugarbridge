@@ -62,6 +62,7 @@ import com.sugarbridge.app.ui.components.PrimaryButton
 import com.sugarbridge.app.ui.components.ScreenColumn
 import com.sugarbridge.app.ui.components.SecondaryButton
 import com.sugarbridge.app.ui.components.SmallButton
+import com.sugarbridge.app.ui.components.SwitchRow
 import com.sugarbridge.app.ui.components.XpDialog
 import com.sugarbridge.app.ui.components.XpMarquee
 import com.sugarbridge.app.ui.components.XpMeter
@@ -121,12 +122,24 @@ private fun HistoryStart(vm: MainViewModel, actions: AppActions) {
                 }
             }
         }
+        // the readings of every sync go into the history, so a new export isn't needed for them
+        XpWindow(stringResource(R.string.history_auto_title), Modifier.testTag("history-auto")) {
+            SwitchRow(
+                stringResource(R.string.history_auto_switch),
+                stringResource(R.string.history_auto_hint),
+                checked = vm.ui.settings.historyAutoAdd,
+                onChange = vm::setHistoryAutoAdd,
+                enabled = !vm.readingFile,
+            )
+            if (!h.loaded) Hint(stringResource(R.string.history_auto_empty))
+        }
         BottomSpace()
     }
     if (confirmDeleteAll) {
         XpDialog(onDismissRequest = { confirmDeleteAll = false }) {
             XpWindow(stringResource(R.string.history_delete_all_title)) {
                 Text(stringResource(R.string.history_delete_all_text), style = MaterialTheme.typography.bodyMedium)
+                if (vm.ui.settings.historyAutoAdd) Text(stringResource(R.string.history_delete_all_auto), style = MaterialTheme.typography.bodyMedium)
                 ButtonRow {
                     SecondaryButton(stringResource(R.string.delete), onClick = { confirmDeleteAll = false; vm.deleteHistory() }, danger = true)
                     SecondaryButton(stringResource(R.string.cancel), onClick = { confirmDeleteAll = false })
@@ -309,7 +322,7 @@ private fun DayRow(day: DaySummary, format: DateTimeFormatter, selected: Boolean
         Modifier
             .fillMaxWidth()
             .clip(shape)
-            .border(if (selected) 2.dp else 1.dp, if (selected) Tenshi.ButtonBorder else xp.windowBorder, shape)
+            .border(if (selected) 2.dp else 1.dp, if (selected) LocalXp.current.buttonBorder else xp.windowBorder, shape)
             .background(xp.windowBody.copy(alpha = if (selected) 1f else 0.85f))
             .clickable(enabled = enabled, onClick = onToggle)
             .padding(horizontal = 6.dp, vertical = 8.dp),
@@ -319,7 +332,7 @@ private fun DayRow(day: DaySummary, format: DateTimeFormatter, selected: Boolean
             checked = selected,
             onCheckedChange = { onToggle() },
             enabled = enabled,
-            colors = CheckboxDefaults.colors(checkedColor = Tenshi.ButtonBorder, uncheckedColor = xp.dots),
+            colors = CheckboxDefaults.colors(checkedColor = LocalXp.current.buttonBorder, uncheckedColor = xp.dots),
         )
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Text(day.date.format(format), style = MaterialTheme.typography.titleSmall)

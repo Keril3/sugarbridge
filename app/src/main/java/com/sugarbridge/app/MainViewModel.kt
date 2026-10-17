@@ -51,6 +51,7 @@ import com.sugarbridge.app.sync.scheduleSync
 import com.sugarbridge.app.sync.syncAndRecord
 import com.sugarbridge.app.ui.UiText
 import com.sugarbridge.app.ui.clockFormat
+import com.sugarbridge.app.ui.screens.SettingsTab
 import com.sugarbridge.app.ui.uiText
 import com.sugarbridge.app.update.GitHubError
 import com.sugarbridge.app.update.Release
@@ -73,6 +74,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 enum class Tab { NOW, HISTORY, SETTINGS }
+
+/** How far back a history begun by "Add new readings" reaches into SugarBridge's records in Health Connect. */
+private const val AUTO_ADD_DAYS = 90L
 
 /** Everything the home and settings screens need. */
 data class UiState(
@@ -148,6 +152,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private var importRun = 0   // the latest change of the history; an older one still running is dropped
     var historyOpen by mutableStateOf(false)   // the loaded history is shown, not the History start page
     var focusBackground by mutableStateOf(false)   // Settings scroll to the background sync window once
+    var settingsTab by mutableStateOf(SettingsTab.SYNC)
     var readingFile by mutableStateOf(false)   // a file is being read
         private set
     var pendingMerge by mutableStateOf<PendingMerge?>(null)
@@ -166,7 +171,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val messages: SharedFlow<UiText> = _messages
 
     // the service and the background job write to the preferences: the screen updates by itself
-    private val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> refreshLocal() }
+    private val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
+        refreshLocal()
+        showAddedReadings()
+    }
+    private var historyChangedAt = 0L   // the kept history's file when it was last shown
     private val syncPrefs = app.getSharedPreferences(SyncStore.NAME, Context.MODE_PRIVATE)
     private val settingsPrefs = app.getSharedPreferences(SettingsStore.NAME, Context.MODE_PRIVATE)
 
@@ -533,6 +542,83 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         pendingMerge = null
     }
 
+    /**
+     * "Add new readings": each sync adds its readings to the kept history (see HistoryStore.append). Turned on, it
+     * also fills the gap from the end of the history with SugarBridge's own records in Health Connect, or, without
+     * a history, begins one with the last [AUTO_ADD_DAYS] days of them. Without the permission to read them the
+     * syncs alone add what comes next.
+     */
+    fun setHistoryAutoAdd(on: Boolean) {
+        updateSettings { it.copy(historyAutoAdd = on) }
+        if (!on) return
+        val run = ++importRun
+        val unit = ui.settings.unit
+        viewModelScope.launch {
+            readingFile = true
+            try {
+                val saved = withContext(Dispatchers.IO) {
+                    val now = Instant.now()
+                    val end = HistoryStore.load(context, zone)?.readings?.lastOrNull()?.time
+                    val own = mutableListOf<Reading>()
+                    try {
+                        forEachOwnGlucose(context, end?.plusSeconds(1) ?: now.minus(Duration.ofDays(AUTO_ADD_DAYS)), now) { time, mgDl ->
+                            own += Reading(time, mgDl, 0)
+                        }
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (_: Exception) {
+                        // Health Connect unavailable or not allowed to read: nothing to fill in
+                    }
+                    HistoryStore.append(context, own, unit, "Health Connect")
+                    HistoryStore.load(context, zone)
+                }
+                if (saved != null) showHistory(run, saved, skipped = 0, save = false, open = false)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                if (run == importRun) sayError(R.string.msg_parse_failed, e)
+            } finally {
+                if (run == importRun) readingFile = false
+            }
+        }
+    }
+
+    /**
+     * A sync added readings to the kept history, or began it: they are shown, and the chosen period and days
+     * stay; a period that reached the last day reaches the new last day.
+     */
+    private fun showAddedReadings() {
+        if (!ui.settings.historyAutoAdd || history.busy || readingFile || pendingMerge != null) return
+        val changedAt = HistoryStore.changedAt(context)
+        if (changedAt == historyChangedAt) return
+        historyChangedAt = changedAt
+        val run = importRun
+        val before = history
+        viewModelScope.launch {
+            val saved = withContext(Dispatchers.IO) { runCatching { HistoryStore.load(context, zone) }.getOrNull() } ?: return@launch
+            if (run != importRun) return@launch
+            if (!before.loaded) {
+                showHistory(run, saved, skipped = 0, save = false, open = false)
+                return@launch
+            }
+            val end = before.readings.last().time
+            val added = saved.readings.filter { it.time.isAfter(end) }
+            if (added.isEmpty()) return@launch
+            // the syncs wrote them, so Health Connect is asked only about these
+            val existing = before.existing + existingKeys(added)
+            val days = withContext(Dispatchers.Default) { summarize(saved.readings, existing, ui.settings) }
+            val now = history
+            if (run != importRun || now.readings !== before.readings || now.busy) return@launch
+            history = now.copy(
+                readings = saved.readings,
+                existing = existing,
+                days = days,
+                to = if (now.to == now.days.lastOrNull()?.date) days.last().date else now.to,
+                updatedAt = saved.updatedAt,
+            )
+        }
+    }
+
     /** Shows a history in the History tab, marks what Health Connect already has and keeps it for the next start. */
     private suspend fun showHistory(run: Int, saved: SavedHistory, skipped: Int, save: Boolean, open: Boolean) {
         val existing = existingKeys(saved.readings)
@@ -552,11 +638,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         )
         if (open) historyOpen = true
         if (save) withContext(Dispatchers.IO) { runCatching { HistoryStore.save(context, saved) } }
+        historyChangedAt = HistoryStore.changedAt(context)
     }
 
     /** The link in the notice: Settings, scrolled to background sync; the notice is done. */
     fun openBackgroundSettings() {
         tab = Tab.SETTINGS
+        settingsTab = SettingsTab.SYNC
         focusBackground = true
         updateSettings { it.copy(backgroundNotice = false) }
     }
@@ -623,6 +711,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         history = ImportUi()
         historyOpen = false
         pendingMerge = null
+        // nor may the next sync begin a new one
+        if (ui.settings.historyAutoAdd) updateSettings { it.copy(historyAutoAdd = false) }
         // right away, not in the background: a new import saved a moment later must not be deleted with it
         HistoryStore.clear(context)
     }

@@ -2,6 +2,7 @@ package com.sugarbridge.app.debug
 
 import android.content.Context
 import androidx.core.content.edit
+import com.sugarbridge.app.settings.SettingsStore
 import java.io.File
 import java.time.Instant
 import java.time.ZoneId
@@ -12,15 +13,19 @@ class LogEntry(val at: Instant, val kind: String, val text: String)
 
 /**
  * What happened when: every sync with its trigger and result, the minute mode starting and stopping, Doze and
- * the screen. The developer tools show it to find out where a delay comes from. It stays on the phone; a few
- * hundred kilobytes at most, the oldest lines go first.
+ * the screen. The developer tools show it to find out where a delay comes from. It stays on the phone, for as
+ * many days as the developer tools keep it (see AppSettings.logDays), and never more than a few hundred
+ * kilobytes.
  */
 object DebugLog {
     private const val FILE = "events.log"
     private const val PREFS = "debug"
     private const val MAX_BYTES = 400_000L
     private const val KEEP_LINES = 2_000
+    private const val DAY_MS = 24 * 3_600_000L
+    private const val PRUNE_EVERY_MS = 3_600_000L
     private val lock = Any()
+    @Volatile private var prunedAt = 0L
 
     fun add(context: Context, kind: String, text: String) {
         val line = "${System.currentTimeMillis()}\t$kind\t${text.replace('\n', ' ').replace('\t', ' ')}\n"
@@ -31,7 +36,37 @@ object DebugLog {
                 if (file.length() > MAX_BYTES) file.writeText(file.readLines().takeLast(KEEP_LINES).joinToString("\n", postfix = "\n"))
             }
         }
+        // lines older than the days kept go, checked at most once an hour
+        val now = System.currentTimeMillis()
+        if (now - prunedAt > PRUNE_EVERY_MS) {
+            prunedAt = now
+            prune(context)
+        }
     }
+
+    /** Drops the lines older than [days], by default the days the developer tools keep. */
+    fun prune(context: Context, days: Int = SettingsStore(context).load().logDays) {
+        synchronized(lock) {
+            runCatching {
+                val file = file(context)
+                if (!file.exists()) return
+                val lines = file.readLines()
+                val kept = keepSince(lines, System.currentTimeMillis() - days * DAY_MS)
+                if (kept.size != lines.size) file.writeText(if (kept.isEmpty()) "" else kept.joinToString("\n", postfix = "\n"))
+            }
+        }
+    }
+
+    /** The lines written at [cutoff] (epoch milliseconds) or later; a line that can't be read goes too. */
+    internal fun keepSince(lines: List<String>, cutoff: Long): List<String> =
+        lines.filter { line -> line.substringBefore('\t').toLongOrNull()?.let { it >= cutoff } ?: false }
+
+    /** Where the kept period starts, for the lines read from elsewhere (Samsung Health's). */
+    fun keptSince(context: Context): Instant =
+        maxOf(Instant.now().minusMillis(SettingsStore(context).load().logDays * DAY_MS), clearedAt(context))
+
+    /** An entry's text for reading: each part after "; " on a line of its own. */
+    fun readable(text: String): String = text.split("; ").joinToString("\n")
 
     /** Oldest first. */
     fun read(context: Context): List<LogEntry> = synchronized(lock) {
