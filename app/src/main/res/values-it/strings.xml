@@ -184,13 +184,13 @@
 
     <!-- Errors -->
     <string name="error_wrong_credentials">email o password errate</string>
-    <string name="error_login">accesso non riuscito: %1$s</string>
+    <string name="error_login">LibreLinkUp non ha fatto accedere SugarBridge; riprova più tardi</string>
     <string name="error_login_step">apri l’app LibreLinkUp, conferma lì il passaggio “%1$s” e accedi di nuovo</string>
     <string name="error_rate_limited">troppe richieste, LibreLinkUp chiede di attendere %1$d s</string>
     <string name="error_no_connections">LibreLinkUp non ha connessioni: invita te stesso da LibreLink</string>
     <string name="error_api_changed">LibreLinkUp chiede la versione %1$s dell’app, che è già inviata: sembra che l’API sia cambiata</string>
-    <string name="error_server">LibreLinkUp ha risposto con il codice %1$d</string>
-    <string name="error_network">nessuna connessione a LibreLinkUp</string>
+    <string name="error_server">il server di LibreLinkUp ha un problema (codice %1$d)</string>
+    <string name="error_network">LibreLinkUp non è raggiungibile</string>
     <string name="error_no_health_connect">Health Connect non è disponibile su questo telefono</string>
     <string name="error_no_permission">nessun permesso per scrivere la glicemia in Health Connect</string>
     <string name="error_signed_out">accedi prima a LibreLinkUp</string>
@@ -410,4 +410,24 @@
         <item quantity="many">%d giorni</item>
         <item quantity="other">%d giorni</item>
     </plurals>
+
+    <!-- Added in 1.14.0 -->
+    <string name="error_offline">il telefono non ha internet</string>
+    <string name="error_other">qualcosa è andato storto; il registro degli eventi negli strumenti per sviluppatori ha i dettagli</string>
+    <string name="notif_no_internet">Niente internet</string>
+    <string name="notif_retry">SugarBridge riprova da solo</string>
+    <string name="notif_last">Ultimo valore %1$s alle %2$s</string>
+    <string name="local_title">Senza internet</string>
+    <string name="local_intro">LibreLinkUp è un cloud: senza internet da lì non arriva niente. La glicemia può arrivare anche da app di questo telefono, e allora raggiunge Health Connect e Samsung Health senza internet.</string>
+    <string name="local_notification">Dalla notifica di LibreLink</string>
+    <string name="local_notification_hint">Sperimentale: funziona se LibreLink mostra la glicemia nella sua notifica. Serve l’accesso alle notifiche; SugarBridge legge solo le notifiche delle app di Abbott e non ne conserva nessuna.</string>
+    <string name="local_notification_access">Dai l’accesso alle notifiche</string>
+    <string name="local_notification_restricted">L’interruttore è grigio, con una nota sulle impostazioni con limitazioni? Apri “Informazioni app” → ⋮ (in alto a destra) → “Consenti impostazioni con limitazioni”, conferma e tocca di nuovo “Dai l’accesso alle notifiche”.</string>
+    <string name="local_broadcasts">Da Juggluco o xDrip+</string>
+    <string name="local_broadcasts_hint">Queste app si collegano da sole al sensore e possono inviare ogni valore a SugarBridge sul telefono stesso. Juggluco: Settings → Exchange data → Glucodata broadcast → com.sugarbridge.app. xDrip+: Settings → Inter-app settings → Broadcast locally, Compatible Broadcast, Identify receiver: com.sugarbridge.app. Un sensore di solito si collega a una sola app: se lo prende Juggluco o xDrip+, LibreLink può perderlo insieme ai suoi allarmi.</string>
+    <string name="local_last">Ultimo da %1$s: %2$s alle %3$s</string>
+    <string name="local_miss">La notifica di LibreLink non contiene la glicemia: “%1$s”</string>
+    <string name="local_nothing">Ancora niente ricevuto</string>
+    <string name="dev_kind_local">Dal telefono</string>
+    <string name="privacy_local">Se attivi “Dalla notifica di LibreLink”, SugarBridge legge solo le notifiche delle app di Abbott, per la glicemia che contengono; salta tutte le altre e non ne conserva nessuna. I valori da Juggluco o xDrip+ arrivano solo se lo attivi.</string>
 </resources>

@@ -28,6 +28,12 @@ class ProblemTest {
     }
 
     @Test
+    fun onlyTheCloudOutOfReachCountsAsAConnectionProblem() {
+        val connection = setOf(Problem.Code.OFFLINE, Problem.Code.NETWORK, Problem.Code.SERVER)
+        Problem.Code.entries.forEach { assertEquals(it.name, it in connection, Problem(it).isConnection) }
+    }
+
+    @Test
     fun savedProblemComesBackTheSame() {
         listOf(
             Problem(Problem.Code.RATE_LIMITED, "60"),

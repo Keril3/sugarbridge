@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.sugarbridge.app.debug.DebugLog
 import com.sugarbridge.app.glucose.GlucoseBins
 import com.sugarbridge.app.glucose.GlucoseUnit
 import com.sugarbridge.app.glucose.GmiResult
@@ -39,6 +40,8 @@ import com.sugarbridge.app.libreview.merge
 import com.sugarbridge.app.libreview.planMerge
 import com.sugarbridge.app.libreview.readingsOnDays
 import com.sugarbridge.app.libreview.summarizeDays
+import com.sugarbridge.app.local.LibreNotificationListener
+import com.sugarbridge.app.local.LocalReadings
 import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.settings.SettingsStore
 import com.sugarbridge.app.sync.LiveSyncService
@@ -87,6 +90,7 @@ data class UiState(
     val canWrite: Boolean? = null,            // null = not checked yet
     val samsungHealth: Boolean = true,
     val batteryUnrestricted: Boolean = true,
+    val notificationAccess: Boolean = false,  // for the glucose from LibreLink's notification
     val settings: AppSettings = AppSettings(),
     val sync: SyncSnapshot = SyncSnapshot(),
     val syncing: Boolean = false,
@@ -198,9 +202,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun say(id: Int, vararg args: Any) = say(uiText(id, *args))
 
-    /** "Error: …" with the failure described in the current language. */
+    /** "Error: …" with the failure described in the current language; its technical detail goes to the event log. */
     private fun sayError(id: Int, e: Throwable) {
-        val problem = Problem.of(e)
+        val problem = Problem.of(e, context)
+        DebugLog.add(context, "error", "${problem.code} ${problem.detail.orEmpty()}".trim())
         say { res -> res.getString(id, problem.text(res)) }
     }
 
@@ -234,6 +239,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             healthConnect = hc,
             samsungHealth = isInstalled(context, SAMSUNG_HEALTH_PACKAGE),
             batteryUnrestricted = power.isIgnoringBatteryOptimizations(context.packageName),
+            notificationAccess = LibreNotificationListener.hasAccess(context),
         )
         viewModelScope.launch {
             val canWrite = hc == HealthConnectState.AVAILABLE && runCatching { hasGlucosePermission(context) }.getOrDefault(false)
@@ -432,7 +438,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                val problem = Problem.of(e)
+                val problem = Problem.of(e, context)
+                DebugLog.add(context, "error", "check: ${problem.code} ${problem.detail.orEmpty()}".trim())
                 ui = ui.copy(checkResult = CheckResult(false, UiText { res -> res.getString(R.string.msg_error, problem.text(res)) }))
             } finally {
                 ui = ui.copy(checking = false)
@@ -703,6 +710,18 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun selectMissing() {
         history = history.copy(selected = history.visibleDays.filterNot { it.complete }.map { it.date }.toSet())
+    }
+
+    /** "From LibreLink's notification"; turned on without the access, Android's switch for it opens. */
+    fun setLocalNotification(on: Boolean, openAccess: () -> Unit) {
+        updateSettings { it.copy(localNotification = on) }
+        if (on && !LibreNotificationListener.hasAccess(context)) openAccess()
+    }
+
+    /** "From Juggluco or xDrip+": the receiver for their broadcasts is on only with it. */
+    fun setLocalBroadcasts(on: Boolean) {
+        updateSettings { it.copy(localBroadcasts = on) }
+        LocalReadings.setBroadcasts(context, on)
     }
 
     /** Deletes the loaded history from SugarBridge; what is in Health Connect stays. */

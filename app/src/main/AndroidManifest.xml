@@ -4,6 +4,8 @@
 
     <uses-permission android:name="android.permission.health.WRITE_BLOOD_GLUCOSE" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- to tell "the phone has no internet" from "LibreLinkUp doesn't answer" -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -90,6 +92,33 @@
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Shows the current glucose level from LibreLinkUp and writes it to Health Connect" />
+        </service>
+
+        <!--
+            Glucose from Juggluco ("glucodata.Minute") and xDrip+ (local broadcast) on the phone, without the internet.
+            Off until "From Juggluco or xDrip+" is turned on in Settings; these apps send without a permission, so
+            any app could, and a reading that can't be right is dropped.
+        -->
+        <receiver
+            android:name=".local.LocalGlucoseReceiver"
+            android:enabled="false"
+            android:exported="true"
+            tools:ignore="ExportedReceiver">
+            <intent-filter>
+                <action android:name="glucodata.Minute" />
+                <action android:name="com.eveningoutpost.dexdrip.BgEstimate" />
+            </intent-filter>
+        </receiver>
+
+        <!-- the glucose from LibreLink's notification, once notification access is given in Settings -->
+        <service
+            android:name=".local.LibreNotificationListener"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
         </service>
 
         <receiver

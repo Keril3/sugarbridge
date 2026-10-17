@@ -2,6 +2,34 @@
 
 Newest version first. A version's section becomes the release notes on GitHub.
 
+## 1.14.0 — 2026-10-17
+
+- Failures read as sentences. Without the internet the notification and the home screen said "no connection to
+  LibreLinkUp" followed by Android's own words (`Unable to resolve host "api.libreview.io"…`); a failed sign-in
+  could show LibreLinkUp's raw answer, and any other failure the exception's text. Now they say "the phone has
+  no internet", "LibreLinkUp can't be reached", "LibreLinkUp's server has a problem (code 503)" or "something
+  went wrong", in the app's language; the technical detail goes to the event log only.
+- Minute mode's notification without the internet or LibreLinkUp: "No internet" or "No connection to
+  LibreLinkUp", with the last value and its time and "SugarBridge tries again by itself".
+- Settings → Sync → "Without the internet": the glucose can come from apps on the phone and reach Health Connect
+  and Samsung Health with no internet at all.
+  - "From LibreLink's notification" (experimental): with notification access SugarBridge reads the glucose from
+    the notifications of Abbott's apps, if they show it, and skips all other notifications without keeping any.
+    What LibreLink's notification holds is shown in Settings and the event log, so it is clear whether it works
+    on the phone.
+  - "From Juggluco or xDrip+": these apps connect to the sensor themselves and send each reading on the phone
+    (Juggluco's "Glucodata broadcast", xDrip+'s local broadcast). The receiver is off until this is turned on,
+    and a reading that can't be right is dropped.
+  - Each reading is written to Health Connect once a minute whoever brings it, shows on the home screen and in
+    the notification, goes into the history if it grows by itself, and to the event log ("On the phone"). While
+    such readings come, LibreLinkUp being out of reach is no error on screen.
+- Intercepting LibreLink's traffic or reading its data on the phone is not possible: its connection to Abbott
+  is encrypted and its data is closed to other apps; the README explains the ways that are.
+- The Privacy window says what notification access is used for. The developer tools' status shows the sources
+  without the internet and what came last.
+- Tests: Juggluco's and xDrip+'s broadcasts, LibreLink's notification with and without a value, the switches,
+  notification access, failures as sentences, minute mode without the cloud and with local glucose.
+
 ## 1.13.0 — 2026-10-12
 
 - Fonts: Settings → Look → Font. "Like the phone" (the default) is the font chosen in the phone's display

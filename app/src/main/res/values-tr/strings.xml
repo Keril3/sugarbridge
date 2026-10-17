@@ -184,13 +184,13 @@
 
     <!-- Errors -->
     <string name="error_wrong_credentials">e-posta veya şifre yanlış</string>
-    <string name="error_login">giriş başarısız: %1$s</string>
+    <string name="error_login">LibreLinkUp, SugarBridge’in girişine izin vermedi; daha sonra yeniden deneyin</string>
     <string name="error_login_step">LibreLinkUp uygulamasını açın, oradaki “%1$s” adımını onaylayın ve yeniden giriş yapın</string>
     <string name="error_rate_limited">çok fazla istek, LibreLinkUp %1$d sn beklemenizi istiyor</string>
     <string name="error_no_connections">LibreLinkUp’ta bağlantı yok: kendinizi LibreLink’ten davet edin</string>
     <string name="error_api_changed">LibreLinkUp, zaten gönderilen %1$s uygulama sürümünü istiyor: API değişmiş görünüyor</string>
-    <string name="error_server">LibreLinkUp %1$d koduyla yanıt verdi</string>
-    <string name="error_network">LibreLinkUp ile bağlantı yok</string>
+    <string name="error_server">LibreLinkUp sunucusunda bir sorun var (kod %1$d)</string>
+    <string name="error_network">LibreLinkUp’a ulaşılamıyor</string>
     <string name="error_no_health_connect">Health Connect bu telefonda kullanılamıyor</string>
     <string name="error_no_permission">Health Connect’e şeker yazma izni yok</string>
     <string name="error_signed_out">önce LibreLinkUp’a giriş yapın</string>
@@ -409,4 +409,24 @@
         <item quantity="one">%d gün</item>
         <item quantity="other">%d gün</item>
     </plurals>
+
+    <!-- Added in 1.14.0 -->
+    <string name="error_offline">telefonun interneti yok</string>
+    <string name="error_other">bir şeyler ters gitti; ayrıntılar geliştirici araçlarındaki olay günlüğünde</string>
+    <string name="notif_no_internet">İnternet yok</string>
+    <string name="notif_retry">SugarBridge kendisi yeniden dener</string>
+    <string name="notif_last">Son değer %1$s, saat %2$s</string>
+    <string name="local_title">İnternetsiz</string>
+    <string name="local_intro">LibreLinkUp bir bulut: internet olmadan oradan hiçbir şey gelmez. Şeker bu telefondaki uygulamalardan da gelebilir; o zaman Health Connect’e ve Samsung Health’e internetsiz ulaşır.</string>
+    <string name="local_notification">LibreLink bildiriminden</string>
+    <string name="local_notification_hint">Deneysel: LibreLink şekeri bildiriminde gösteriyorsa çalışır. Bildirim erişimi gerekir; SugarBridge yalnızca Abbott uygulamalarının bildirimlerini okur ve hiçbirini saklamaz.</string>
+    <string name="local_notification_access">Bildirim erişimi ver</string>
+    <string name="local_notification_restricted">Anahtar gri ve kısıtlanmış ayarlardan mı söz ediliyor? “Uygulama bilgileri” → ⋮ (sağ üst) → “Kısıtlanmış ayarlara izin ver” seçeneğini açın, onaylayın ve yeniden “Bildirim erişimi ver” düğmesine dokunun.</string>
+    <string name="local_broadcasts">Juggluco veya xDrip+’tan</string>
+    <string name="local_broadcasts_hint">Bu uygulamalar sensöre kendileri bağlanır ve her değeri telefonun içinde SugarBridge’e gönderebilir. Juggluco: Settings → Exchange data → Glucodata broadcast → com.sugarbridge.app. xDrip+: Settings → Inter-app settings → Broadcast locally, Compatible Broadcast, Identify receiver: com.sugarbridge.app. Bir sensör genellikle tek bir uygulamaya bağlanır: Juggluco veya xDrip+ onu devralırsa LibreLink onu alarmlarıyla birlikte kaybedebilir.</string>
+    <string name="local_last">Son değer (%1$s): %2$s, saat %3$s</string>
+    <string name="local_miss">LibreLink bildiriminde şeker yok: “%1$s”</string>
+    <string name="local_nothing">Henüz bir şey gelmedi</string>
+    <string name="dev_kind_local">Telefondan</string>
+    <string name="privacy_local">“LibreLink bildiriminden” seçeneğini açarsanız SugarBridge yalnızca Abbott uygulamalarının bildirimlerini, içlerindeki şeker için okur; diğerlerini atlar ve hiçbirini saklamaz. Juggluco veya xDrip+ değerleri yalnızca bunu açarsanız gelir.</string>
 </resources>

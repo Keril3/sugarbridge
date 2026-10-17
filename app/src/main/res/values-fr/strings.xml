@@ -184,13 +184,13 @@
 
     <!-- Errors -->
     <string name="error_wrong_credentials">e-mail ou mot de passe incorrect</string>
-    <string name="error_login">échec de la connexion : %1$s</string>
+    <string name="error_login">LibreLinkUp n’a pas laissé SugarBridge se connecter ; réessayez plus tard</string>
     <string name="error_login_step">ouvrez l’appli LibreLinkUp, confirmez l’étape « %1$s » puis reconnectez-vous</string>
     <string name="error_rate_limited">trop de requêtes, LibreLinkUp demande d’attendre %1$d s</string>
     <string name="error_no_connections">LibreLinkUp n’a aucune connexion : invitez-vous depuis LibreLink</string>
     <string name="error_api_changed">LibreLinkUp demande la version %1$s de l’appli, déjà envoyée : l’API semble avoir changé</string>
-    <string name="error_server">LibreLinkUp a répondu avec le code %1$d</string>
-    <string name="error_network">pas de connexion à LibreLinkUp</string>
+    <string name="error_server">le serveur de LibreLinkUp a un problème (code %1$d)</string>
+    <string name="error_network">LibreLinkUp est injoignable</string>
     <string name="error_no_health_connect">Health Connect n’est pas disponible sur ce téléphone</string>
     <string name="error_no_permission">pas d’autorisation d’écrire la glycémie dans Health Connect</string>
     <string name="error_signed_out">connectez-vous d’abord à LibreLinkUp</string>
@@ -410,4 +410,24 @@
         <item quantity="many">%d jours</item>
         <item quantity="other">%d jours</item>
     </plurals>
+
+    <!-- Added in 1.14.0 -->
+    <string name="error_offline">le téléphone n’a pas internet</string>
+    <string name="error_other">quelque chose s’est mal passé ; le journal des événements des outils de développement donne les détails</string>
+    <string name="notif_no_internet">Pas d’internet</string>
+    <string name="notif_retry">SugarBridge réessaie tout seul</string>
+    <string name="notif_last">Dernière valeur %1$s à %2$s</string>
+    <string name="local_title">Sans internet</string>
+    <string name="local_intro">LibreLinkUp est un cloud : sans internet, rien n’en arrive. La glycémie peut aussi venir d’applis de ce téléphone, et elle arrive alors dans Health Connect et Samsung Health sans internet.</string>
+    <string name="local_notification">Depuis la notification de LibreLink</string>
+    <string name="local_notification_hint">Expérimental : fonctionne si LibreLink affiche la glycémie dans sa notification. Nécessite l’accès aux notifications ; SugarBridge ne lit que les notifications des applis d’Abbott et n’en garde aucune.</string>
+    <string name="local_notification_access">Donner l’accès aux notifications</string>
+    <string name="local_notification_restricted">Le bouton est grisé, avec une mention de paramètres restreints ? Ouvrez « Infos sur l’appli » → ⋮ (en haut à droite) → « Autoriser les paramètres restreints », confirmez, puis touchez de nouveau « Donner l’accès aux notifications ».</string>
+    <string name="local_broadcasts">Depuis Juggluco ou xDrip+</string>
+    <string name="local_broadcasts_hint">Ces applis se connectent elles-mêmes au capteur et peuvent envoyer chaque valeur à SugarBridge sur le téléphone. Juggluco: Settings → Exchange data → Glucodata broadcast → com.sugarbridge.app. xDrip+: Settings → Inter-app settings → Broadcast locally, Compatible Broadcast, Identify receiver: com.sugarbridge.app. Un capteur ne se connecte en général qu’à une appli : si Juggluco ou xDrip+ le prend, LibreLink peut le perdre, avec ses alarmes.</string>
+    <string name="local_last">Dernière de %1$s : %2$s à %3$s</string>
+    <string name="local_miss">La notification de LibreLink ne contient pas de glycémie : « %1$s »</string>
+    <string name="local_nothing">Rien reçu pour l’instant</string>
+    <string name="dev_kind_local">Du téléphone</string>
+    <string name="privacy_local">Si vous activez « Depuis la notification de LibreLink », SugarBridge ne lit que les notifications des applis d’Abbott, pour la glycémie qu’elles contiennent ; il ignore toutes les autres et n’en garde aucune. Les valeurs de Juggluco ou xDrip+ n’arrivent que si vous l’activez.</string>
 </resources>

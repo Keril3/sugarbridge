@@ -79,6 +79,8 @@ interface AppActions {
     fun openSamsungHealth()
     fun openGitHub()
     fun openUsageAccess()
+    fun openNotificationAccess()
+    fun openAppInfo()
     fun openLink(url: String)
     fun installUpdate()
 }
@@ -216,6 +218,7 @@ private fun PrivacyDialog(onClose: () -> Unit) {
     XpDialog(onDismissRequest = onClose) {
         XpWindow(stringResource(R.string.privacy_title), Modifier.testTag("privacy")) {
             Text(stringResource(R.string.privacy_health), style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.privacy_local), style = MaterialTheme.typography.bodyMedium)
             Text(stringResource(R.string.privacy_password), style = MaterialTheme.typography.bodyMedium)
             Text(stringResource(R.string.privacy_nothing_else), style = MaterialTheme.typography.bodyMedium)
             PrimaryButton(stringResource(R.string.close), onClick = onClose, modifier = Modifier.fillMaxWidth())

@@ -6,6 +6,7 @@ import com.sugarbridge.app.libre.LIBRE_TIME
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URI
+import java.net.UnknownHostException
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -15,6 +16,9 @@ class FakeCloud(start: Instant = Instant.now()) : HttpTransport {
     private val history = (48 downTo 1).map { start.minusSeconds(it * 900L) to 100.0 + (it % 7) * 5 }.toMutableList()
     private var current = start.minusSeconds(30) to 115.0
 
+    /** The cloud out of reach: every request fails the way it does without a working connection. */
+    @Volatile var unreachable = false
+
     /** A new reading arrived: the current one moves into the history. */
     fun tick(seconds: Long, mgDl: Double) {
         history += current
@@ -22,6 +26,7 @@ class FakeCloud(start: Instant = Instant.now()) : HttpTransport {
     }
 
     override fun send(method: String, url: String, headers: Map<String, String>, body: String?): HttpResponse {
+        if (unreachable) throw UnknownHostException("Unable to resolve host \"api.libreview.io\": No address associated with hostname")
         val data: Any = when (URI(url).path) {
             "/llu/auth/login" -> JSONObject()
                 .put("user", JSONObject().put("id", "e2e-user"))

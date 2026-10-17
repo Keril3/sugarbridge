@@ -9,10 +9,12 @@ import android.os.Process
 import androidx.health.connect.client.HealthConnectClient
 import androidx.work.WorkManager
 import com.sugarbridge.app.R
+import com.sugarbridge.app.glucose.text
 import com.sugarbridge.app.health.HealthConnectState
 import com.sugarbridge.app.health.SAMSUNG_HEALTH_PACKAGE
 import com.sugarbridge.app.health.WRITE_GLUCOSE
 import com.sugarbridge.app.health.healthConnectState
+import com.sugarbridge.app.local.LibreNotificationListener
 import com.sugarbridge.app.settings.SettingsStore
 import com.sugarbridge.app.sync.LiveSyncService
 import com.sugarbridge.app.sync.SyncStore
@@ -90,6 +92,19 @@ suspend fun collectStatus(context: Context): List<StatusLine> = withContext(Disp
     snapshot.updateMinutes?.let { lines += StatusLine("LibreLinkUp", s(R.string.sync_update_rate, String.format(Locale.getDefault(), "%.1f", it))) }
     snapshot.deliveryMinutes?.let { lines += StatusLine(s(R.string.dev_delivery), s(R.string.sync_delivery, String.format(Locale.getDefault(), "%.1f", it))) }
     lines += StatusLine(s(R.string.dev_usage), s(if (hasUsageAccess(context)) R.string.dev_allowed else R.string.dev_denied))
+
+    // glucose without the internet, if asked for: which apps, the access it needs and what came last
+    if (settings.localNotification || settings.localBroadcasts) {
+        val access = LibreNotificationListener.hasAccess(context)
+        val sources = buildList {
+            if (settings.localNotification) add(s(R.string.local_notification) + ": " + s(if (access) R.string.dev_allowed else R.string.dev_denied))
+            if (settings.localBroadcasts) add(s(R.string.local_broadcasts))
+        }
+        val last = snapshot.localReading?.let { r ->
+            s(R.string.local_last, snapshot.localSource.orEmpty(), r.copy(trend = 0).text(s(settings.unit.label), settings.unit), r.time.atZone(zone).format(clock))
+        } ?: s(R.string.local_nothing)
+        lines += StatusLine(s(R.string.local_title), (sources + last).joinToString("\n"), warn = settings.localNotification && !access)
+    }
     lines
 }
 

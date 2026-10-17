@@ -43,12 +43,14 @@ import com.sugarbridge.app.glucose.TARGET_MIN_MGDL
 import com.sugarbridge.app.glucose.formatGlucose
 import com.sugarbridge.app.glucose.isValidTarget
 import com.sugarbridge.app.glucose.parseGlucose
+import com.sugarbridge.app.glucose.text
 import com.sugarbridge.app.settings.AppFont
 import com.sugarbridge.app.settings.AppSettings
 import com.sugarbridge.app.settings.LANGUAGES
 import com.sugarbridge.app.settings.ThemeMode
 import com.sugarbridge.app.settings.appLanguage
 import com.sugarbridge.app.ui.AppActions
+import com.sugarbridge.app.ui.clockFormat
 import com.sugarbridge.app.ui.components.BottomSpace
 import com.sugarbridge.app.ui.components.ButtonRow
 import com.sugarbridge.app.ui.components.ChoiceRow
@@ -65,8 +67,11 @@ import com.sugarbridge.app.ui.components.XpMeter
 import com.sugarbridge.app.ui.components.XpWindow
 import com.sugarbridge.app.ui.currentLocale
 import com.sugarbridge.app.ui.minutesText
+import com.sugarbridge.app.ui.rememberDateFormat
 import com.sugarbridge.app.ui.theme.LocalXp
 import com.sugarbridge.app.ui.theme.Tenshi
+import java.time.LocalDate
+import java.time.ZoneId
 import kotlin.math.roundToInt
 
 /** The tabs of Settings: what keeps the glucose coming, how it is shown, how the app looks, the app itself. */
@@ -106,7 +111,7 @@ fun SettingsScreen(vm: MainViewModel, actions: AppActions) {
     }
 }
 
-/** LibreLinkUp, Health Connect, the minute mode and background sync. */
+/** LibreLinkUp, Health Connect, the minute mode, background sync and glucose without the internet. */
 @Composable
 private fun SyncTab(vm: MainViewModel, actions: AppActions) {
     val ui = vm.ui
@@ -218,6 +223,60 @@ private fun SyncTab(vm: MainViewModel, actions: AppActions) {
         if (!ui.batteryUnrestricted) {
             Hint(stringResource(R.string.battery_text))
             PrimaryButton(stringResource(R.string.settings_battery), onClick = actions::requestBatteryUnrestricted, modifier = Modifier.fillMaxWidth())
+        }
+    }
+
+    LocalCard(vm, actions)
+}
+
+/**
+ * Glucose without the internet, from apps on the phone: LibreLink's notification, if it shows the glucose, and
+ * Juggluco or xDrip+, which connect to the sensor themselves. Each says what last came from it.
+ */
+@Composable
+private fun LocalCard(vm: MainViewModel, actions: AppActions) {
+    val ui = vm.ui
+    val s = ui.settings
+    val sync = ui.sync
+    XpWindow(stringResource(R.string.local_title), Modifier.testTag("local")) {
+        Text(stringResource(R.string.local_intro), style = MaterialTheme.typography.bodyMedium)
+        SwitchRow(
+            stringResource(R.string.local_notification),
+            stringResource(R.string.local_notification_hint),
+            checked = s.localNotification,
+            onChange = { on -> vm.setLocalNotification(on, actions::openNotificationAccess) },
+        )
+        if (s.localNotification && !ui.notificationAccess) {
+            PrimaryButton(stringResource(R.string.local_notification_access), onClick = actions::openNotificationAccess, modifier = Modifier.fillMaxWidth())
+            Hint(stringResource(R.string.local_notification_restricted))
+            SecondaryButton(stringResource(R.string.dev_app_info), onClick = actions::openAppInfo, modifier = Modifier.fillMaxWidth())
+        }
+        SwitchRow(
+            stringResource(R.string.local_broadcasts),
+            stringResource(R.string.local_broadcasts_hint),
+            checked = s.localBroadcasts,
+            onChange = vm::setLocalBroadcasts,
+        )
+        if (s.localNotification || s.localBroadcasts) {
+            val clock = clockFormat(LocalContext.current)
+            val day = rememberDateFormat("dMMM")
+            val last = sync.localReading
+            Text(
+                when {
+                    last != null && sync.localSource != null -> {
+                        val time = last.time.atZone(ZoneId.systemDefault())
+                        val at = if (time.toLocalDate() == LocalDate.now()) time.format(clock) else time.format(day) + " " + time.format(clock)
+                        stringResource(R.string.local_last, sync.localSource, last.copy(trend = 0).text(stringResource(s.unit.label), s.unit, currentLocale()), at)
+                    }
+                    else -> stringResource(R.string.local_nothing)
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = LocalXp.current.accent,
+                modifier = Modifier.testTag("local-last"),
+            )
+            if (s.localNotification && sync.localMissText != null && (sync.localAt == null || sync.localMissAt?.isAfter(sync.localAt) == true)) {
+                Hint(stringResource(R.string.local_miss, sync.localMissText))
+            }
         }
     }
 }

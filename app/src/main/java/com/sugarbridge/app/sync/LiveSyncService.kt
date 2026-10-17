@@ -212,7 +212,8 @@ class LiveSyncService : Service() {
                 pause = maxOf(pause, e.retryAfter * 1000L)   // wait as long as asked
                 problem = Problem.of(e)
             } catch (e: Exception) {
-                problem = Problem.of(e)
+                // with the glucose coming from an app on the phone, the cloud out of reach changes nothing on screen
+                problem = Problem.of(e, this).takeUnless { it.isConnection && SyncStore(this).localRecent() }
             }
             problem?.let { Log.w(SyncWorker.TAG, "minute mode: ${it.code} ${it.detail.orEmpty()}") }
             settings = SettingsStore(this).load()   // settings may have changed during the request
@@ -251,7 +252,7 @@ class LiveSyncService : Service() {
     private fun render(s: AppSettings): Pair<String, Notification> {
         val channel = if (s.liveShowValue) CHANNEL_LIVE else CHANNEL_QUIET
         problem?.let { p ->   // failures are reported in the quiet mode too
-            val (title, text) = describe(p)
+            val (title, text) = describe(p, s)
             return "problem|$channel|$title|$text|${s.theme}" to builder(s, channel, title, text).build()
         }
         val r = latest
@@ -283,13 +284,25 @@ class LiveSyncService : Service() {
         return "quiet|$channel|$every|${s.theme}" to builder(s, channel, getString(R.string.notif_watching), every).build()
     }
 
-    /** Title and text of the notification about a failure, in the current language. */
-    private fun describe(p: Problem): Pair<String, String?> = when (p.code) {
+    /**
+     * Title and text of the notification about a failure, in the current language. Without the internet or
+     * LibreLinkUp it also tells the last value and its time, and that SugarBridge tries again by itself.
+     */
+    private fun describe(p: Problem, s: AppSettings): Pair<String, String?> = when (p.code) {
         Problem.Code.NO_HEALTH_CONNECT, Problem.Code.NO_PERMISSION, Problem.Code.SIGNED_OUT ->
             getString(R.string.notif_problem, p.text(resources)) to null
         Problem.Code.RATE_LIMITED -> getString(R.string.notif_wait) to p.text(resources)
-        Problem.Code.NETWORK, Problem.Code.SERVER -> getString(R.string.notif_offline) to p.text(resources)
+        Problem.Code.OFFLINE -> getString(R.string.notif_no_internet) to lastAndRetry(s)
+        Problem.Code.NETWORK, Problem.Code.SERVER -> getString(R.string.notif_offline) to lastAndRetry(s)
         else -> getString(R.string.notif_failed) to p.text(resources)
+    }
+
+    /** "Last value 6.4 mmol/L at 18:05 · SugarBridge tries again by itself", or the second half alone. */
+    private fun lastAndRetry(s: AppSettings): String {
+        val retry = getString(R.string.notif_retry)
+        val r = latest ?: return retry
+        val time = r.time.atZone(ZoneId.systemDefault()).format(clockFormat(this))
+        return getString(R.string.notif_last, r.copy(trend = 0).text(getString(s.unit.label), s.unit), time) + " · " + retry
     }
 
     private fun builder(s: AppSettings, channel: String, title: String, text: String?, icon: Icon? = null): Notification.Builder {

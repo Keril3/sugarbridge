@@ -261,6 +261,11 @@ class ScreenshotTest {
         shot(language, "settings")
         compose.onNodeWithText(text(R.string.settings_background_intro)).performScrollTo()
         shot(language, "settings_sync")
+        // glucose without the internet, both sources on: the access still to give and what came last
+        scenario.onActivity { vm.updateSettings { it.copy(localNotification = true, localBroadcasts = true) } }
+        compose.onNodeWithTag("local").performScrollTo()
+        shot(language, "settings_local")
+        scenario.onActivity { vm.updateSettings { it.copy(localNotification = false, localBroadcasts = false) } }
         compose.onNodeWithText(text(R.string.settings_tab_glucose)).performClick()
         shot(language, "settings_glucose")
         compose.onNodeWithText(text(R.string.settings_tab_look)).performClick()

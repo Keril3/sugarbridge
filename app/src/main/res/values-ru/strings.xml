@@ -184,13 +184,13 @@
 
     <!-- Errors -->
     <string name="error_wrong_credentials">неверная эл. почта или пароль</string>
-    <string name="error_login">вход не удался: %1$s</string>
+    <string name="error_login">LibreLinkUp не дал SugarBridge войти; попробуйте позже</string>
     <string name="error_login_step">откройте приложение LibreLinkUp, подтвердите там шаг «%1$s» и войдите снова</string>
     <string name="error_rate_limited">слишком частые запросы, LibreLinkUp просит подождать %1$d с</string>
     <string name="error_no_connections">в LibreLinkUp нет подключений: пригласите себя из LibreLink</string>
     <string name="error_api_changed">LibreLinkUp требует версию приложения %1$s, а она уже указана — API, похоже, изменился</string>
-    <string name="error_server">LibreLinkUp ответил кодом %1$d</string>
-    <string name="error_network">нет связи с LibreLinkUp</string>
+    <string name="error_server">у сервера LibreLinkUp неполадки (код %1$d)</string>
+    <string name="error_network">LibreLinkUp не отвечает</string>
     <string name="error_no_health_connect">Health Connect недоступен на этом телефоне</string>
     <string name="error_no_permission">нет разрешения на запись сахара в Health Connect</string>
     <string name="error_signed_out">сначала войдите в LibreLinkUp</string>
@@ -411,4 +411,24 @@
         <item quantity="many">%d дней</item>
         <item quantity="other">%d дня</item>
     </plurals>
+
+    <!-- Added in 1.14.0 -->
+    <string name="error_offline">у телефона нет интернета</string>
+    <string name="error_other">что-то пошло не так; подробности — в журнале событий в инструментах для разработчиков</string>
+    <string name="notif_no_internet">Нет интернета</string>
+    <string name="notif_retry">SugarBridge повторит сам</string>
+    <string name="notif_last">Последнее значение %1$s в %2$s</string>
+    <string name="local_title">Без интернета</string>
+    <string name="local_intro">LibreLinkUp — это облако: без интернета из него ничего не приходит. Сахар может приходить и от приложений на этом телефоне — тогда он попадёт в Health Connect и Samsung Health без интернета.</string>
+    <string name="local_notification">Из уведомления LibreLink</string>
+    <string name="local_notification_hint">Экспериментально: работает, если LibreLink показывает сахар в своём уведомлении. Нужен доступ к уведомлениям; SugarBridge читает только уведомления приложений Abbott и ни одно не сохраняет.</string>
+    <string name="local_notification_access">Дать доступ к уведомлениям</string>
+    <string name="local_notification_restricted">Переключатель серый и написано про ограниченные настройки? Откройте «Сведения о приложении» → ⋮ (вверху справа) → «Разрешить ограниченные настройки», подтвердите и снова нажмите «Дать доступ к уведомлениям».</string>
+    <string name="local_broadcasts">От Juggluco или xDrip+</string>
+    <string name="local_broadcasts_hint">Эти приложения сами подключаются к датчику и могут отправлять каждое значение в SugarBridge прямо на телефоне. Juggluco: Settings → Exchange data → Glucodata broadcast → com.sugarbridge.app. xDrip+: Settings → Inter-app settings → Broadcast locally, Compatible Broadcast, Identify receiver: com.sugarbridge.app. Датчик обычно подключается к одному приложению: если его заберёт Juggluco или xDrip+, LibreLink может потерять его вместе со своими сигналами.</string>
+    <string name="local_last">Последнее от %1$s: %2$s в %3$s</string>
+    <string name="local_miss">В уведомлении LibreLink нет сахара: «%1$s»</string>
+    <string name="local_nothing">Пока ничего не пришло</string>
+    <string name="dev_kind_local">С телефона</string>
+    <string name="privacy_local">Если включить «Из уведомления LibreLink», SugarBridge читает только уведомления приложений Abbott — ради сахара в них; остальные пропускает и ни одно не сохраняет. Значения от Juggluco или xDrip+ приходят, только если включить это.</string>
 </resources>

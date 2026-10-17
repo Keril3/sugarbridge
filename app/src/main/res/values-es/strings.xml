@@ -184,13 +184,13 @@
 
     <!-- Errors -->
     <string name="error_wrong_credentials">correo o contraseña incorrectos</string>
-    <string name="error_login">no se pudo iniciar sesión: %1$s</string>
+    <string name="error_login">LibreLinkUp no dejó entrar a SugarBridge; inténtalo más tarde</string>
     <string name="error_login_step">abre la app LibreLinkUp, confirma allí el paso «%1$s» y vuelve a iniciar sesión</string>
     <string name="error_rate_limited">demasiadas solicitudes, LibreLinkUp pide esperar %1$d s</string>
     <string name="error_no_connections">LibreLinkUp no tiene conexiones: invítate desde LibreLink</string>
     <string name="error_api_changed">LibreLinkUp pide la versión %1$s de la app, que ya se envía: parece que la API cambió</string>
-    <string name="error_server">LibreLinkUp respondió con el código %1$d</string>
-    <string name="error_network">sin conexión con LibreLinkUp</string>
+    <string name="error_server">el servidor de LibreLinkUp tiene un problema (código %1$d)</string>
+    <string name="error_network">no se puede llegar a LibreLinkUp</string>
     <string name="error_no_health_connect">Health Connect no está disponible en este teléfono</string>
     <string name="error_no_permission">sin permiso para escribir glucosa en Health Connect</string>
     <string name="error_signed_out">inicia sesión en LibreLinkUp primero</string>
@@ -410,4 +410,24 @@
         <item quantity="many">%d días</item>
         <item quantity="other">%d días</item>
     </plurals>
+
+    <!-- Added in 1.14.0 -->
+    <string name="error_offline">el teléfono no tiene internet</string>
+    <string name="error_other">algo salió mal; el registro de eventos de las herramientas para desarrolladores tiene los detalles</string>
+    <string name="notif_no_internet">Sin internet</string>
+    <string name="notif_retry">SugarBridge lo vuelve a intentar solo</string>
+    <string name="notif_last">Último valor %1$s a las %2$s</string>
+    <string name="local_title">Sin internet</string>
+    <string name="local_intro">LibreLinkUp es una nube: sin internet no llega nada de ella. La glucosa también puede venir de apps de este teléfono, y entonces llega a Health Connect y Samsung Health sin internet.</string>
+    <string name="local_notification">De la notificación de LibreLink</string>
+    <string name="local_notification_hint">Experimental: funciona si LibreLink muestra la glucosa en su notificación. Necesita acceso a las notificaciones; SugarBridge solo lee las notificaciones de las apps de Abbott y no guarda ninguna.</string>
+    <string name="local_notification_access">Dar acceso a las notificaciones</string>
+    <string name="local_notification_restricted">¿El interruptor está en gris, con una nota sobre ajustes restringidos? Abre «Información de la aplicación» → ⋮ (arriba a la derecha) → «Permitir ajustes restringidos», confirma y vuelve a tocar «Dar acceso a las notificaciones».</string>
+    <string name="local_broadcasts">De Juggluco o xDrip+</string>
+    <string name="local_broadcasts_hint">Estas apps se conectan al sensor por sí mismas y pueden enviar cada valor a SugarBridge en el propio teléfono. Juggluco: Settings → Exchange data → Glucodata broadcast → com.sugarbridge.app. xDrip+: Settings → Inter-app settings → Broadcast locally, Compatible Broadcast, Identify receiver: com.sugarbridge.app. Un sensor suele conectarse a una sola app: si Juggluco o xDrip+ lo toma, LibreLink puede perderlo junto con sus alarmas.</string>
+    <string name="local_last">Último de %1$s: %2$s a las %3$s</string>
+    <string name="local_miss">La notificación de LibreLink no tiene glucosa: «%1$s»</string>
+    <string name="local_nothing">Aún no ha llegado nada</string>
+    <string name="dev_kind_local">Del teléfono</string>
+    <string name="privacy_local">Si activas «De la notificación de LibreLink», SugarBridge solo lee las notificaciones de las apps de Abbott, por la glucosa que contienen; omite todas las demás y no guarda ninguna. Los valores de Juggluco o xDrip+ solo llegan si activas eso.</string>
 </resources>

@@ -184,12 +184,12 @@
 
     <!-- Errors -->
     <string name="error_wrong_credentials">이메일 또는 비밀번호가 틀렸어요</string>
-    <string name="error_login">로그인 실패: %1$s</string>
+    <string name="error_login">LibreLinkUp이 SugarBridge의 로그인을 받아 주지 않았어요. 나중에 다시 시도하세요</string>
     <string name="error_login_step">LibreLinkUp 앱을 열어 ‘%1$s’ 단계를 확인한 뒤 다시 로그인하세요</string>
     <string name="error_rate_limited">요청이 너무 많아요. LibreLinkUp이 %1$d초 기다려 달라고 해요</string>
     <string name="error_no_connections">LibreLinkUp에 연결이 없어요. LibreLink에서 자신을 초대하세요</string>
     <string name="error_api_changed">LibreLinkUp이 앱 버전 %1$s을(를) 요구하지만 이미 보내고 있어요. API가 바뀐 것 같아요</string>
-    <string name="error_server">LibreLinkUp이 코드 %1$d로 응답했어요</string>
+    <string name="error_server">LibreLinkUp 서버에 문제가 있어요 (코드 %1$d)</string>
     <string name="error_network">LibreLinkUp에 연결할 수 없어요</string>
     <string name="error_no_health_connect">이 휴대전화에서 Health Connect를 사용할 수 없어요</string>
     <string name="error_no_permission">Health Connect에 혈당을 쓸 권한이 없어요</string>
@@ -408,4 +408,24 @@
     <plurals name="days_count">
         <item quantity="other">%d일</item>
     </plurals>
+
+    <!-- Added in 1.14.0 -->
+    <string name="error_offline">휴대전화가 인터넷에 연결되어 있지 않아요</string>
+    <string name="error_other">문제가 생겼어요. 자세한 내용은 개발자 도구의 이벤트 기록에 있어요</string>
+    <string name="notif_no_internet">인터넷 없음</string>
+    <string name="notif_retry">SugarBridge가 알아서 다시 시도해요</string>
+    <string name="notif_last">마지막 값 %1$s (%2$s)</string>
+    <string name="local_title">인터넷 없이</string>
+    <string name="local_intro">LibreLinkUp은 클라우드라서 인터넷이 없으면 아무것도 오지 않아요. 혈당은 이 휴대전화의 앱에서도 받을 수 있고, 그러면 인터넷 없이 Health Connect와 Samsung Health로 가요.</string>
+    <string name="local_notification">LibreLink 알림에서</string>
+    <string name="local_notification_hint">실험 기능: LibreLink가 알림에 혈당을 보여 줄 때만 작동해요. 알림 접근 권한이 필요하고, SugarBridge는 Abbott 앱의 알림만 읽고 어떤 알림도 저장하지 않아요.</string>
+    <string name="local_notification_access">알림 접근 허용</string>
+    <string name="local_notification_restricted">스위치가 회색이고 제한된 설정이라고 나오나요? ‘애플리케이션 정보’ → ⋮ (오른쪽 위) → ‘제한된 설정 허용’을 열어 확인한 뒤 ‘알림 접근 허용’을 다시 누르세요.</string>
+    <string name="local_broadcasts">Juggluco 또는 xDrip+에서</string>
+    <string name="local_broadcasts_hint">이 앱들은 센서에 직접 연결해 휴대전화 안에서 각 측정값을 SugarBridge로 보낼 수 있어요. Juggluco: Settings → Exchange data → Glucodata broadcast → com.sugarbridge.app. xDrip+: Settings → Inter-app settings → Broadcast locally, Compatible Broadcast, Identify receiver: com.sugarbridge.app. 센서는 보통 한 번에 한 앱에만 연결돼요. Juggluco나 xDrip+가 가져가면 LibreLink는 알람과 함께 센서를 잃을 수 있어요.</string>
+    <string name="local_last">마지막으로 %1$s에서: %2$s (%3$s)</string>
+    <string name="local_miss">LibreLink 알림에 혈당이 없어요: ‘%1$s’</string>
+    <string name="local_nothing">아직 받은 것이 없어요</string>
+    <string name="dev_kind_local">휴대전화에서</string>
+    <string name="privacy_local">‘LibreLink 알림에서’를 켜면 SugarBridge는 혈당을 얻으려고 Abbott 앱의 알림만 읽고, 다른 알림은 모두 건너뛰며 어떤 알림도 저장하지 않아요. Juggluco나 xDrip+의 값은 그것을 켰을 때만 와요.</string>
 </resources>

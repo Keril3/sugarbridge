@@ -17,6 +17,7 @@ import com.sugarbridge.app.MainActivity
 import com.sugarbridge.app.R
 import com.sugarbridge.app.debug.DebugLog
 import com.sugarbridge.app.glucose.GlucoseUnit
+import com.sugarbridge.app.glucose.Reading
 import com.sugarbridge.app.glucose.formatGlucose
 import com.sugarbridge.app.health.HealthConnectState
 import com.sugarbridge.app.health.WRITE_GLUCOSE
@@ -24,6 +25,7 @@ import com.sugarbridge.app.health.deleteOwnGlucose
 import com.sugarbridge.app.health.healthConnectState
 import com.sugarbridge.app.health.ownMinuteKeys
 import com.sugarbridge.app.libre.Libre
+import com.sugarbridge.app.local.LocalReadings
 import com.sugarbridge.app.openApp
 import com.sugarbridge.app.resourcesIn
 import com.sugarbridge.app.settings.AppSettings
@@ -382,6 +384,50 @@ class SyncEndToEndTest {
     }
 
     /** Waits for the service notification and returns "channel | title | text". */
+    /** Without the cloud the failure reads as a sentence; the exception's own words go only to the event log. */
+    @Test
+    fun aFailureReadsAsASentence() = runBlocking {
+        cloud.unreachable = true
+        runCatching { syncAndRecord(context, "test") }
+        val error = SyncStore(context).snapshot().error!!
+        assertTrue(error.code.name, error.isConnection)
+        val text = error.text(context.resources)
+        assertFalse(text, text.contains("resolve") || text.contains("Exception") || text.contains("("))
+        assertTrue(DebugLog.read(context).last().text.contains("Unable to resolve host"))
+    }
+
+    /** Minute mode with the cloud out of reach: the notification says so in words, with the last value and its time. */
+    @Test
+    fun minuteModeTellsTheCloudIsOutOfReach() {
+        runBlocking { syncOnce(context) }   // the last value is on the phone
+        cloud.unreachable = true
+        SettingsStore(context).save(AppSettings(backgroundMinutes = 0, liveEnabled = true, liveShowValue = true, liveKeepAwake = false))
+        openApp()
+        val res = context.resources
+        val shown = waitForNotification { it.contains(res.getString(R.string.notif_retry)) }
+        assertTrue(shown, shown.contains(res.getString(R.string.notif_offline)) || shown.contains(res.getString(R.string.notif_no_internet)))
+        assertTrue(shown, shown.contains(formatGlucose(115.0, GlucoseUnit.MMOL, res.configuration.locales[0])))
+        assertFalse(shown, shown.contains("resolve"))
+    }
+
+    /** With the glucose coming from an app on the phone, the cloud out of reach replaces nothing on screen. */
+    @Test
+    fun aLocalReadingKeepsTheGlucoseWhileTheCloudIsOutOfReach() {
+        cloud.unreachable = true
+        SettingsStore(context).save(AppSettings(backgroundMinutes = 0, liveEnabled = true, liveShowValue = true, liveKeepAwake = false))
+        openApp()
+        val res = context.resources
+        waitForNotification { it.contains(res.getString(R.string.notif_retry)) }
+        runBlocking { LocalReadings.receive(context, Reading(Instant.now().minusSeconds(20), 140.0, 4), "Juggluco") }
+        val unit = res.getString(R.string.unit_mmol)
+        val shown = waitForNotification { it.contains(unit) && it.contains(formatGlucose(140.0, GlucoseUnit.MMOL, res.configuration.locales[0])) }
+        assertFalse(shown, shown.contains(res.getString(R.string.notif_retry)))
+        // the next failed sync leaves no error on the screens while the local glucose is fresh
+        runBlocking { runCatching { syncAndRecord(context, "test") } }
+        assertEquals(null, SyncStore(context).snapshot().error)
+        assertEquals("Juggluco", SyncStore(context).snapshot().localSource)
+    }
+
     private fun waitForNotification(timeoutMs: Long = 30_000, matches: (String) -> Boolean): String {
         val manager = context.getSystemService(NotificationManager::class.java)
         val deadline = SystemClock.uptimeMillis() + timeoutMs

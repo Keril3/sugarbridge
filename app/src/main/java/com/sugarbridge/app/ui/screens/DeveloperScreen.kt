@@ -23,8 +23,8 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -239,12 +239,13 @@ private fun openSafely(context: Context, intent: Intent) {
 }
 
 /** The kinds of events, in the order of the filter; any other kind is shown as it is written. */
-private val KINDS = listOf("sync", "service", "worker", "phone", "error", "s.health")
+private val KINDS = listOf("sync", "local", "service", "worker", "phone", "error", "s.health")
 
 @Composable
 private fun kindName(kind: String?): String = when (kind) {
     null -> stringResource(R.string.dev_kind_all)
     "sync" -> stringResource(R.string.dev_kind_sync)
+    "local" -> stringResource(R.string.dev_kind_local)
     "service" -> stringResource(R.string.dev_kind_service)
     "worker" -> stringResource(R.string.dev_kind_worker)
     "phone" -> stringResource(R.string.dev_kind_phone)

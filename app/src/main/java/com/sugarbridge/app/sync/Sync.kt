@@ -22,6 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 
 /** The outcome of one sync: how many were written, the latest reading, all readings for 12 hours and the timings. */
 class SyncResult(
@@ -34,6 +35,20 @@ class SyncResult(
 
 /** The background job, the minute service and the button on screen must not sync at the same time. */
 private val syncMutex = Mutex()
+
+/**
+ * Runs [block] while no sync runs: a reading from an app on the phone is written the same careful way. A sync
+ * stuck on a slow network is waited for [waitMs] at most (a broadcast may take a minute in all); the block then
+ * runs anyway, which is safe: Health Connect keeps one record per minute (see recordIdFor).
+ */
+suspend fun <T> withSyncLock(waitMs: Long = 20_000, block: suspend () -> T): T {
+    val locked = withTimeoutOrNull(waitMs) { syncMutex.lock() } != null
+    try {
+        return block()
+    } finally {
+        if (locked) syncMutex.unlock()
+    }
+}
 
 /** Fetches readings from LibreLinkUp and writes the ones Health Connect doesn't have yet. */
 suspend fun syncOnce(context: Context): SyncResult = syncMutex.withLock {
@@ -72,8 +87,10 @@ suspend fun syncAndRecord(context: Context, trigger: String = "other"): SyncResu
 } catch (e: CancellationException) {
     throw e
 } catch (e: Exception) {
-    val problem = Problem.of(e)
-    SyncStore(context).saveError(problem)
+    val problem = Problem.of(e, context)
+    val store = SyncStore(context)
+    // while an app on the phone brings the glucose, the cloud being out of reach is no error to show
+    if (!(problem.isConnection && store.localRecent())) store.saveError(problem)
     DebugLog.add(context, "error", "$trigger: ${problem.code} ${problem.detail.orEmpty()}".trim())
     throw e
 }
@@ -95,6 +112,11 @@ data class SyncSnapshot(
     val errorAt: Instant? = null,
     val updateMinutes: Double? = null,   // how often LibreLinkUp actually delivers a new value
     val deliveryMinutes: Double? = null, // how long after the sensor reading a new value reaches SugarBridge
+    val localAt: Instant? = null,        // when an app on the phone last brought a reading (see LocalReadings) …
+    val localReading: Reading? = null,   // … the reading …
+    val localSource: String? = null,     // … and which app: "LibreLink", "Juggluco", "xDrip+"
+    val localMissAt: Instant? = null,    // the last Abbott notification without a value in it …
+    val localMissText: String? = null,   // … and its first line, to show what LibreLink puts there
 )
 
 class SyncStore(context: Context) {
@@ -134,6 +156,42 @@ class SyncStore(context: Context) {
         }
     }
 
+    /**
+     * A reading from an app on the phone: it joins the readings on the screens (one a minute, the last 13 hours)
+     * and counts as a success, so a cloud error from before no longer shows.
+     */
+    fun saveLocal(reading: Reading, source: String, now: Instant = Instant.now()) {
+        val horizon = now.minus(SyncState.KEEP)
+        val recent = (decodeReadings(prefs.getString("recent", null)) + reading)
+            .filter { it.time.isAfter(horizon) }
+            .sortedBy { it.time }
+            .let(::onePerMinute)
+        prefs.edit {
+            putString("recent", encodeReadings(recent))
+            putLong(KEY_OK_AT, now.toEpochMilli())
+            putLong("local_at", now.toEpochMilli())
+            putString("local_reading", encodeReadings(listOf(reading)))
+            putString("local_source", source)
+            remove("error")
+            remove("error_at")
+        }
+    }
+
+    /** Whether an app on the phone brought a reading lately: then the screens keep its glucose. */
+    fun localRecent(now: Instant = Instant.now()): Boolean =
+        prefs.getLong("local_at", 0).let { it > 0 && now.toEpochMilli() - it <= LOCAL_RECENT_MS }
+
+    /**
+     * An Abbott notification without a glucose value: its first line is kept to show in Settings. Returns
+     * whether it is news (another text, or an hour later), so the event log doesn't get one every minute.
+     */
+    fun saveLocalMiss(text: String, now: Instant = Instant.now()): Boolean {
+        val same = prefs.getString("local_miss_text", null) == text
+        if (same && now.toEpochMilli() - prefs.getLong("local_miss_at", 0) < 3_600_000L) return false
+        prefs.edit { putString("local_miss_text", text).putLong("local_miss_at", now.toEpochMilli()) }
+        return true
+    }
+
     fun saveError(problem: Problem) {
         prefs.edit { putString("error", problem.encode()).putLong("error_at", System.currentTimeMillis()) }
     }
@@ -141,7 +199,8 @@ class SyncStore(context: Context) {
     /** On sign-out: the readings and errors on screen are no longer needed, the written minutes are kept. */
     fun clearDisplay() {
         prefs.edit {
-            listOf("recent", "ok_at", "ok_written", "seen", "lags", "error", "error_at").forEach { remove(it) }
+            listOf("recent", "ok_at", "ok_written", "seen", "lags", "error", "error_at", "local_at", "local_reading", "local_source", "local_miss_text", "local_miss_at")
+                .forEach { remove(it) }
         }
     }
 
@@ -153,6 +212,11 @@ class SyncStore(context: Context) {
         errorAt = prefs.getLong("error_at", 0).takeIf { it > 0 }?.let(Instant::ofEpochMilli),
         updateMinutes = typicalUpdateMinutes(seen().map(Instant::ofEpochSecond)),
         deliveryMinutes = medianMinutes(lags()),
+        localAt = prefs.getLong("local_at", 0).takeIf { it > 0 }?.let(Instant::ofEpochMilli),
+        localReading = decodeReadings(prefs.getString("local_reading", null)).lastOrNull(),
+        localSource = prefs.getString("local_source", null),
+        localMissAt = prefs.getLong("local_miss_at", 0).takeIf { it > 0 }?.let(Instant::ofEpochMilli),
+        localMissText = prefs.getString("local_miss_text", null),
     )
 
     private fun seen(): List<Long> = prefs.getString("seen", null).orEmpty().split(',').mapNotNull { it.toLongOrNull() }
@@ -164,5 +228,6 @@ class SyncStore(context: Context) {
         /** Changes on every successful sync, whoever made it. */
         const val KEY_OK_AT = "ok_at"
         private const val MAX_LAG_SECONDS = 30 * 60L   // older values come from catching up, not from a delay
+        private const val LOCAL_RECENT_MS = 6 * 60_000L   // Juggluco sends every minute, LibreLink's notification changes as often
     }
 }

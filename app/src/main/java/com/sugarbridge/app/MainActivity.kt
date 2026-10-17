@@ -29,6 +29,7 @@ import com.sugarbridge.app.health.healthConnectSettingsIntent
 import com.sugarbridge.app.health.healthConnectState
 import com.sugarbridge.app.health.healthConnectStoreIntent
 import com.sugarbridge.app.libreview.LibreViewActivity
+import com.sugarbridge.app.local.LibreNotificationListener
 import com.sugarbridge.app.settings.minuteModeOff
 import com.sugarbridge.app.settings.minuteModeOn
 import com.sugarbridge.app.settings.setAppLanguage
@@ -219,6 +220,16 @@ class MainActivity : ComponentActivity(), AppActions {
         val ours = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS, "package:$packageName".toUri())
         open(if (ours.resolveActivity(packageManager) != null) ours else Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
     }
+
+    /** Android's switch for SugarBridge's notification access, or the list of all apps if there is no such page. */
+    override fun openNotificationAccess() {
+        val ours = Intent(Settings.ACTION_NOTIFICATION_LISTENER_DETAIL_SETTINGS)
+            .putExtra(Settings.EXTRA_NOTIFICATION_LISTENER_COMPONENT_NAME, LibreNotificationListener.component(this).flattenToString())
+        open(if (ours.resolveActivity(packageManager) != null) ours else Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+    }
+
+    /** SugarBridge's page in Android's settings: there "⋮ → Allow restricted settings" unlocks the access switches. */
+    override fun openAppInfo() = open(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, "package:$packageName".toUri()))
 
     override fun openSamsungHealth() {
         packageManager.getLaunchIntentForPackage(SAMSUNG_HEALTH_PACKAGE)?.let(::open)

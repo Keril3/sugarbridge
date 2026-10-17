@@ -184,12 +184,12 @@
 
     <!-- Errors -->
     <string name="error_wrong_credentials">メールアドレスまたはパスワードが違います</string>
-    <string name="error_login">ログインに失敗しました：%1$s</string>
+    <string name="error_login">LibreLinkUp が SugarBridge のログインを受け付けませんでした。後でもう一度お試しください</string>
     <string name="error_login_step">LibreLinkUp アプリを開いて「%1$s」のステップを承認し、もう一度ログインしてください</string>
     <string name="error_rate_limited">リクエストが多すぎます。LibreLinkUp から %1$d 秒待つよう求められています</string>
     <string name="error_no_connections">LibreLinkUp に接続がありません。LibreLink から自分を招待してください</string>
     <string name="error_api_changed">LibreLinkUp がアプリのバージョン %1$s を要求していますが、すでに送信済みです。API が変わったようです</string>
-    <string name="error_server">LibreLinkUp からコード %1$d が返されました</string>
+    <string name="error_server">LibreLinkUp のサーバーに問題があります（コード %1$d）</string>
     <string name="error_network">LibreLinkUp に接続できません</string>
     <string name="error_no_health_connect">この端末では Health Connect を利用できません</string>
     <string name="error_no_permission">Health Connect に血糖値を書き込む権限がありません</string>
@@ -408,4 +408,24 @@
     <plurals name="days_count">
         <item quantity="other">%d 日</item>
     </plurals>
+
+    <!-- Added in 1.14.0 -->
+    <string name="error_offline">端末がインターネットにつながっていません</string>
+    <string name="error_other">問題が発生しました。詳細は開発者向けツールのイベントログにあります</string>
+    <string name="notif_no_internet">インターネットなし</string>
+    <string name="notif_retry">SugarBridge が自動で再試行します</string>
+    <string name="notif_last">最後の値 %1$s（%2$s）</string>
+    <string name="local_title">インターネットなしで</string>
+    <string name="local_intro">LibreLinkUp はクラウドなので、インターネットがないと何も届きません。血糖値はこの端末のアプリからも受け取れ、その場合はインターネットなしで Health Connect と Samsung Health に届きます。</string>
+    <string name="local_notification">LibreLink の通知から</string>
+    <string name="local_notification_hint">試験的な機能です。LibreLink が通知に血糖値を表示している場合に動作します。通知へのアクセスが必要です。SugarBridge は Abbott のアプリの通知だけを読み、どの通知も保存しません。</string>
+    <string name="local_notification_access">通知へのアクセスを許可</string>
+    <string name="local_notification_restricted">スイッチがグレーで、制限付き設定と表示されていますか？「アプリ情報」→ ⋮（右上）→「制限付き設定を許可」を開いて確認し、もう一度「通知へのアクセスを許可」をタップしてください。</string>
+    <string name="local_broadcasts">Juggluco または xDrip+ から</string>
+    <string name="local_broadcasts_hint">これらのアプリは自分でセンサーに接続し、端末内で各測定値を SugarBridge に送れます。Juggluco: Settings → Exchange data → Glucodata broadcast → com.sugarbridge.app。xDrip+: Settings → Inter-app settings → Broadcast locally, Compatible Broadcast, Identify receiver: com.sugarbridge.app。センサーは通常 1 つのアプリにしか接続しません。Juggluco や xDrip+ が引き継ぐと、LibreLink はアラームごとセンサーを失うことがあります。</string>
+    <string name="local_last">最後に %1$s から：%2$s（%3$s）</string>
+    <string name="local_miss">LibreLink の通知に血糖値がありません：「%1$s」</string>
+    <string name="local_nothing">まだ何も受け取っていません</string>
+    <string name="dev_kind_local">端末から</string>
+    <string name="privacy_local">「LibreLink の通知から」をオンにすると、SugarBridge は血糖値を得るために Abbott のアプリの通知だけを読み、ほかはすべて無視し、どれも保存しません。Juggluco や xDrip+ の値は、それをオンにした場合にだけ届きます。</string>
 </resources>

@@ -55,12 +55,17 @@ from the LibreLinkUp cloud and writes them to Health Connect, where Samsung Heal
 - **12 languages**: English, Русский, Українська, Deutsch, Français, Español, Português, Italiano, Türkçe,
   简体中文, 日本語, 한국어. Chosen on the first start, changeable in Settings or in Android's per-app language settings.
 - **The password is protected by the Android Keystore** and stays on the phone.
+- **Without the internet** (Settings → Sync): the glucose can also come from apps on the phone, from LibreLink's
+  notification if it shows the glucose (experimental) or from Juggluco or xDrip+, and reach Samsung Health with no
+  internet at all.
 - **Updates in the app**: SugarBridge finds a new version on GitHub, offers it once in a window (and, while the app is
   closed, in a notification), downloads it and hands it to Android to install. Both can be turned off in Settings.
 - **Tenshi-chan**, a chibi angel mascot who is happy, worried, flustered or sleepy depending on your glucose.
   Tap her and she tilts her head, closes her eyes and smiles.
 
 Data path: sensor → LibreLink on the phone → LibreLinkUp cloud → SugarBridge → Health Connect → Samsung Health.
+Without the internet: sensor → LibreLink's notification, Juggluco or xDrip+ → SugarBridge → Health Connect →
+Samsung Health.
 
 ## Compatibility
 
@@ -219,9 +224,29 @@ or two off, and a gap longer than 20 minutes counts as missing apart from its fi
 not a separate app. Writing to Samsung Health directly requires a Samsung partner key. If Health Connect is
 turned off or outdated, SugarBridge shows how to fix it.
 
-**What about reading glucose straight from LibreLink, without the cloud?** LibreLink doesn't share its data,
-and connecting to the sensor directly would take it away from LibreLink together with the alarms and the cloud
-upload. Minute mode through LibreLinkUp gives the same result safely.
+**Can it work without the internet?** In part, and only with help from another app on the phone: LibreLinkUp is
+a cloud, so without the internet nothing comes from it. Settings → Sync → "Without the internet" has two ways:
+
+- **From LibreLink's notification** (experimental). With notification access SugarBridge reads the glucose from
+  the notifications of Abbott's apps, if they show it; all other notifications are skipped and none are kept.
+  Whether LibreLink shows the glucose in a notification depends on its version and the sensor: Settings and the
+  event log show what its notification holds, so you can see whether it works on your phone.
+- **From Juggluco or xDrip+.** These apps connect to the sensor themselves and send every reading to other apps
+  on the phone. Juggluco: Settings → Exchange data → Glucodata broadcast → tick `com.sugarbridge.app`. xDrip+:
+  Settings → Inter-app settings → turn on "Broadcast locally" and "Compatible Broadcast", and put
+  `com.sugarbridge.app` into "Identify receiver". A sensor usually connects to one app at a time: when Juggluco
+  or xDrip+ takes it over, LibreLink may lose it together with its alarms, so set up the alarms there.
+
+Readings from the phone go to Health Connect at once, also with no internet, and appear on the home screen and in
+minute mode's notification; LibreLinkUp fills in the rest when the phone is online again, without writing
+anything twice. Intercepting LibreLink's traffic doesn't work: its connection to Abbott is encrypted, and without
+the internet it sends nothing anyway. Its data on the phone is closed to other apps, and connecting to the sensor
+from SugarBridge itself would take it away from LibreLink with its alarms.
+
+**What does the notification say when the internet is gone?** "No internet" (or "No connection to LibreLinkUp"
+when the phone is online but LibreLinkUp doesn't answer), the last value with its time, and that SugarBridge tries
+again by itself. Every failure is a sentence in the app's language; the technical detail is only in the event
+log (Settings → App → Developer tools).
 
 **Can HbA1c be written to Samsung Health?** No. Health Connect has no record type for HbA1c, only blood
 glucose, and that's what Samsung Health gets from it. Writing to Samsung Health directly requires a Samsung
@@ -239,8 +264,9 @@ that, and it has no effect on your data or permissions.
 **Where does the password go?** Only to LibreLinkUp. On the phone it is encrypted with an Android Keystore key
 that can't be taken off the phone. SugarBridge has no server, analytics or ads. Besides LibreLinkUp and Health
 Connect it talks only to GitHub, to ask for the latest version and download it; with "Check for updates by
-itself" off, only when you tap "Check for updates". The same in short is in the app: Settings → App →
-Privacy, and Health Connect's "privacy policy" link for SugarBridge opens it.
+itself" off, only when you tap "Check for updates". With "From LibreLink's notification" on it reads only the
+notifications of Abbott's apps, for the glucose in them, and keeps none. The same in short is in the app:
+Settings → App → Privacy, and Health Connect's "privacy policy" link for SugarBridge opens it.
 
 **My language is missing or a translation is off.** Open an issue or a pull request: all texts are in
 `app/src/main/res/values-*/strings.xml`, and a unit test checks that every language has every string.
@@ -279,6 +305,7 @@ app/src/main/java/com/sugarbridge/app/
 ├── libre/       the LibreLinkUp client, response parsing, the account under the Keystore
 ├── libreview/   history import: CSV parsing, the site window, per-day summary
 ├── health/      Health Connect: writing, reading our own records, deleting
+├── local/       glucose without the internet: LibreLink's notification, Juggluco and xDrip+
 ├── debug/       the event log and the status for the developer tools
 ├── sync/        sync, the background job, the minute service, autostart, errors as codes
 ├── settings/    settings, the theme and the app language
@@ -307,14 +334,14 @@ GitHub Actions builds and signs the APK in Releases when a `v*` tag arrives in t
    ```
 3. **Every release:** add the version's section to [CHANGELOG.md](CHANGELOG.md), then
    ```sh
-   git tag v1.13.0
-   git push origin v1.13.0
+   git tag v1.14.0
+   git push origin v1.14.0
    ```
    A few minutes later `SugarBridge.apk` appears in Releases with the notes from the CHANGELOG.
 
 A signed APK can be built locally too: put `sugarbridge.keystore`, `sugarbridge.keystorePassword`,
 `sugarbridge.keyAlias` and `sugarbridge.keyPassword` into `~/.gradle/gradle.properties` (outside the repository)
-and run `./gradlew assembleRelease -Psugarbridge.version=1.13.0`.
+and run `./gradlew assembleRelease -Psugarbridge.version=1.14.0`.
 
 ## Feedback
 
@@ -328,6 +355,7 @@ developer's website: [keril.art](https://keril.art/). Bugs and ideas are welcome
   [libreview-unofficial](https://github.com/FokkeZB/libreview-unofficial),
   [a LibreLinkUp HTTP dump](https://gist.github.com/khskekec/6c13ba01b10d3018d816706a32ae8ab2).
 - The look of [keril.art](https://keril.art/).
+- [GlucoDataHandler](https://github.com/pachi81/GlucoDataHandler), whose code documents the broadcasts of Juggluco and xDrip+.
 - The [Monocraft](https://github.com/IdreesInc/Monocraft) font by Idrees Hassan; [Noto Sans, Noto Serif](https://github.com/notofonts)
   and their Chinese, Japanese and Korean versions by Google and Adobe; [Fusion Pixel Font](https://github.com/TakWolf/fusion-pixel-font)
   by TakWolf for the pixel font in Chinese, Japanese and Korean. All under the SIL Open Font License, cut to the

@@ -40,6 +40,8 @@ data class AppSettings(
     val updatePrompt: Boolean = true,    // offer it once in a window and, with the app closed, in a notification
     val logDays: Int = 3,                // the developer tools' log keeps this many days
     val historyAutoAdd: Boolean = false, // each sync adds its new readings to the loaded history
+    val localNotification: Boolean = false, // glucose from LibreLink's notification, if it shows it (LibreNotifications)
+    val localBroadcasts: Boolean = false,   // glucose sent by Juggluco or xDrip+ on the phone (LocalGlucoseReceiver)
 ) {
     companion object {
         val BACKGROUND_CHOICES = listOf(15, 30, 60, 180, 0)   // 15 minutes is the WorkManager minimum
@@ -98,6 +100,8 @@ class SettingsStore(context: Context) {
             updatePrompt = prefs.getBoolean("update_prompt", d.updatePrompt),
             logDays = prefs.getInt("log_days", d.logDays),
             historyAutoAdd = prefs.getBoolean("history_auto_add", d.historyAutoAdd),
+            localNotification = prefs.getBoolean("local_notification", d.localNotification),
+            localBroadcasts = prefs.getBoolean("local_broadcasts", d.localBroadcasts),
         )
     }
 
@@ -128,6 +132,8 @@ class SettingsStore(context: Context) {
             putBoolean("update_prompt", s.updatePrompt)
             putInt("log_days", s.logDays)
             putBoolean("history_auto_add", s.historyAutoAdd)
+            putBoolean("local_notification", s.localNotification)
+            putBoolean("local_broadcasts", s.localBroadcasts)
         }
     }
 
