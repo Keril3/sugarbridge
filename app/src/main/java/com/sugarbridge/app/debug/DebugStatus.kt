@@ -30,7 +30,7 @@ import kotlinx.coroutines.withContext
 enum class DevFix { MINUTE, BATTERY, SAVER, HEALTH_PERMISSION, INSTALL_SAMSUNG }
 
 /** One line of the status in the developer tools; [warn] marks what can hold the glucose back, [fix] what helps. */
-class StatusLine(val label: String, val value: String, val warn: Boolean = false, val fix: DevFix? = null)
+data class StatusLine(val label: String, val value: String, val warn: Boolean = false, val fix: DevFix? = null)
 
 /** Everything that decides how fast a reading travels, in the words of the app language. */
 suspend fun collectStatus(context: Context): List<StatusLine> = withContext(Dispatchers.IO) {

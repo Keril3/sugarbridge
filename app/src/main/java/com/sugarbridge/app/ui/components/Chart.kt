@@ -4,6 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -35,6 +36,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -73,18 +75,29 @@ private class ChartGeometry(readings: List<Reading>, low: Double, high: Double, 
     val bottom = height - with(density) { 20.dp.toPx() }    // hour labels at the bottom
     val start: Instant = readings.first().time
     val end: Instant = maxOf(readings.last().time, start.plus(Duration.ofHours(1)))
-    private val span = Duration.between(start, end).seconds.toFloat()
-    private val values = readings.map { it.mgDl }
-    val yMin = minOf(low - 20, values.min() - 10).coerceAtLeast(20.0)
-    val yMax = maxOf(high + 30, values.max() + 15)
+    private val startSecond = start.epochSecond
+    private val span = (end.epochSecond - startSecond).toFloat()
+    val yMin = minOf(low - 20, readings.minOf { it.mgDl } - 10).coerceAtLeast(20.0)
+    val yMax = maxOf(high + 30, readings.maxOf { it.mgDl } + 15)
 
-    fun x(t: Instant) = left + (right - left) * Duration.between(start, t).seconds / span
+    // asked for every point at every step of a finger: without creating anything
+    fun x(t: Instant) = left + (right - left) * (t.epochSecond - startSecond) / span
     fun y(mg: Double) = (bottom - (bottom - top) * ((mg - yMin) / (yMax - yMin))).toFloat()
 }
 
 /** The reading closest in time to a finger at [x]. */
-private fun nearest(readings: List<Reading>, geometry: ChartGeometry, x: Float): Int =
-    readings.indices.minBy { abs(geometry.x(readings[it].time) - x) }
+private fun nearest(readings: List<Reading>, geometry: ChartGeometry, x: Float): Int {
+    var best = 0
+    var bestDistance = Float.MAX_VALUE
+    for (i in readings.indices) {
+        val distance = abs(geometry.x(readings[i].time) - x)
+        if (distance < bestDistance) {
+            best = i
+            bestDistance = distance
+        }
+    }
+    return best
+}
 
 /** Readings closer than this belong to one line; a longer pause (the sensor was off) breaks it. */
 private fun gapAfter(readings: List<Reading>): Long {
@@ -111,7 +124,8 @@ private fun segments(readings: List<Reading>, gap: Long): List<IntRange> {
  * A chart of readings with the target range band: hours along the bottom for a day, dates for longer periods.
  * A gap in the data breaks the line. With [interactive], a finger moving along it picks the point under it,
  * which gets a guide line and a label with its time and value. [markLatest] makes the last point glow, as the
- * current value does on the home screen.
+ * current value does on the home screen. The picked point is drawn in a layer of its own, so a moving finger
+ * doesn't draw the whole chart again on every step.
  */
 @Composable
 fun GlucoseChart(
@@ -127,22 +141,6 @@ fun GlucoseChart(
     showDots: Boolean = false,
     markLatest: Boolean = true,
 ) {
-    val xp = LocalXp.current
-    val night = LocalNight.current
-    val measurer = rememberTextMeasurer()
-    // the theme's font: pixels, or the plain one in the low vision look
-    val small = MaterialTheme.typography.labelSmall
-    val labelStyle = remember(xp, small) { small.copy(color = xp.textMuted, fontSize = small.fontSize * 0.9f) }
-    val tipStyle = MaterialTheme.typography.bodyMedium.copy(color = xp.text)
-    val locale = currentLocale()
-    val clock = rememberClockFormat()
-    val dayFormat = rememberDateFormat("dMMM")
-    val monthFormat = rememberDateFormat("MMMyy")
-    val line = if (night) Color(0xFF8FC4FF) else Color(0xFF2E7FE0)
-    val zone = ZoneId.systemDefault()
-    val parts = remember(readings) { segments(readings, gapAfter(readings)) }
-    val long = readings.size >= 2 && Duration.between(readings.first().time, readings.last().time) > Duration.ofHours(20)
-
     val touch = if (interactive && readings.size >= 2) {
         Modifier.pointerInput(readings, lowMgDl, highMgDl) {
             awaitEachGesture {
@@ -164,7 +162,35 @@ fun GlucoseChart(
     }
     val sized = if (height == Dp.Unspecified) modifier.fillMaxWidth() else modifier.fillMaxWidth().height(height)
 
-    Canvas(sized.then(touch)) {
+    Box(sized.then(touch)) {
+        ChartBase(readings, lowMgDl, highMgDl, unit, showDots, markLatest)
+        if (selected != null) ChartPick(readings, lowMgDl, highMgDl, unit, selected)
+    }
+}
+
+/** Whether the readings span more than a day: then a long line is thinner and a time comes with its date. */
+private fun spansDays(readings: List<Reading>) =
+    readings.size >= 2 && Duration.between(readings.first().time, readings.last().time) > Duration.ofHours(20)
+
+/** Everything on the chart but the picked point. */
+@Composable
+private fun ChartBase(readings: List<Reading>, lowMgDl: Double, highMgDl: Double, unit: GlucoseUnit, showDots: Boolean, markLatest: Boolean) {
+    val xp = LocalXp.current
+    val night = LocalNight.current
+    val measurer = rememberTextMeasurer()
+    // the theme's font: pixels, or the plain one in the low vision look
+    val small = MaterialTheme.typography.labelSmall
+    val labelStyle = remember(xp, small) { small.copy(color = xp.textMuted, fontSize = small.fontSize * 0.9f) }
+    val locale = currentLocale()
+    val clock = rememberClockFormat()
+    val dayFormat = rememberDateFormat("dMMM")
+    val monthFormat = rememberDateFormat("MMMyy")
+    val line = if (night) Color(0xFF8FC4FF) else Color(0xFF2E7FE0)
+    val zone = remember { ZoneId.systemDefault() }
+    val parts = remember(readings) { segments(readings, gapAfter(readings)) }
+    val long = spansDays(readings)
+
+    Canvas(Modifier.fillMaxSize().graphicsLayer()) {
         if (readings.size < 2) return@Canvas
         val g = ChartGeometry(readings, lowMgDl, highMgDl, size.width, size.height, this)
 
@@ -230,27 +256,40 @@ fun GlucoseChart(
             drawCircle(Color.White, 5.dp.toPx(), lastAt)
             drawCircle(lastColor, 3.5.dp.toPx(), lastAt)
         }
+    }
+}
 
-        // the point under the finger: a guide line, a ring and a label with its time and value
-        val pick = selected?.let { readings.getOrNull(it) }
-        if (pick != null) {
-            val at = Offset(g.x(pick.time), g.y(pick.mgDl))
-            val color = levelOf(pick.mgDl, lowMgDl, highMgDl).color()
-            drawLine(xp.accent, Offset(at.x, g.top), Offset(at.x, g.bottom), 1.5.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 3.dp.toPx())))
-            drawCircle(Color.White, 7.dp.toPx(), at)
-            drawCircle(color, 5.dp.toPx(), at)
-            val time = pick.time.atZone(zone)
-            val stamp = if (long) time.format(dayFormat) + " " + time.format(clock) else time.format(clock)
-            val label = measurer.measure(stamp + "  " + formatGlucose(pick.mgDl, unit, locale), tipStyle)
-            val pad = 6.dp.toPx()
-            val boxW = label.size.width + 2 * pad
-            val boxH = label.size.height + 2 * pad
-            val boxX = (at.x - boxW / 2).coerceIn(0f, size.width - boxW)
-            val boxY = if (at.y - boxH - 12.dp.toPx() > g.top) at.y - boxH - 12.dp.toPx() else at.y + 12.dp.toPx()
-            drawRoundRect(xp.windowBody, Offset(boxX, boxY), Size(boxW, boxH), CornerRadius(6.dp.toPx()))
-            drawRoundRect(color, Offset(boxX, boxY), Size(boxW, boxH), CornerRadius(6.dp.toPx()), style = Stroke(1.5.dp.toPx()))
-            drawText(label, topLeft = Offset(boxX + pad, boxY + pad))
-        }
+/** The point under the finger: a guide line, a ring and a label with its time and value. */
+@Composable
+private fun ChartPick(readings: List<Reading>, lowMgDl: Double, highMgDl: Double, unit: GlucoseUnit, selected: Int) {
+    val xp = LocalXp.current
+    val measurer = rememberTextMeasurer()
+    val tipStyle = MaterialTheme.typography.bodyMedium.copy(color = xp.text)
+    val locale = currentLocale()
+    val clock = rememberClockFormat()
+    val dayFormat = rememberDateFormat("dMMM")
+    val zone = remember { ZoneId.systemDefault() }
+    val long = spansDays(readings)
+    Canvas(Modifier.fillMaxSize()) {
+        val pick = readings.getOrNull(selected)
+        if (readings.size < 2 || pick == null) return@Canvas
+        val g = ChartGeometry(readings, lowMgDl, highMgDl, size.width, size.height, this)
+        val at = Offset(g.x(pick.time), g.y(pick.mgDl))
+        val color = levelOf(pick.mgDl, lowMgDl, highMgDl).color()
+        drawLine(xp.accent, Offset(at.x, g.top), Offset(at.x, g.bottom), 1.5.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 3.dp.toPx())))
+        drawCircle(Color.White, 7.dp.toPx(), at)
+        drawCircle(color, 5.dp.toPx(), at)
+        val time = pick.time.atZone(zone)
+        val stamp = if (long) time.format(dayFormat) + " " + time.format(clock) else time.format(clock)
+        val label = measurer.measure(stamp + "  " + formatGlucose(pick.mgDl, unit, locale), tipStyle)
+        val pad = 6.dp.toPx()
+        val boxW = label.size.width + 2 * pad
+        val boxH = label.size.height + 2 * pad
+        val boxX = (at.x - boxW / 2).coerceIn(0f, size.width - boxW)
+        val boxY = if (at.y - boxH - 12.dp.toPx() > g.top) at.y - boxH - 12.dp.toPx() else at.y + 12.dp.toPx()
+        drawRoundRect(xp.windowBody, Offset(boxX, boxY), Size(boxW, boxH), CornerRadius(6.dp.toPx()))
+        drawRoundRect(color, Offset(boxX, boxY), Size(boxW, boxH), CornerRadius(6.dp.toPx()), style = Stroke(1.5.dp.toPx()))
+        drawText(label, topLeft = Offset(boxX + pad, boxY + pad))
     }
 }
 

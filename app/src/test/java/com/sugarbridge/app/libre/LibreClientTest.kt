@@ -1,5 +1,7 @@
 package com.sugarbridge.app.libre
 
+import org.json.JSONObject
+import java.net.URI
 import org.json.JSONArray
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -243,5 +245,43 @@ class LibreClientTest {
         assertEquals(listOf("ru", "us"), startRegionsFor("RU"))
         assertEquals(listOf("us", "ru"), startRegionsFor("DE"))
         assertEquals(listOf("us", "ru"), startRegionsFor(""))
+    }
+
+    // --- what must never leave the app or get printed ---
+
+    @Test
+    fun aRegionThatWouldChangeTheServerIsRefused() {
+        assertTrue(isValidRegion("eu2"))
+        for (bad in listOf("evil.example.com#", "x/y", "a@b", "", "eu.", "a".repeat(40))) assertFalse(bad, isValidRegion(bad))
+        assertThrows(IllegalArgumentException::class.java) { regionUrl("evil.example.com#") }
+    }
+
+    @Test
+    fun theNextRequestDoesNotGoToAnImpossibleRegion() {
+        val hosts = mutableListOf<String>()
+        val fake = HttpTransport { _, url, _, _ ->
+            hosts += URI(url).host
+            HttpResponse(200, JSONObject().put("status", 0).put("data", JSONObject().put("redirect", true).put("region", "evil.example.com#")).toString())
+        }
+        assertThrows(LibreError::class.java) { client(fake, startRegions = listOf("us")).login() }
+        assertEquals("the password went to the first server only", listOf("api.libreview.io"), hosts)
+    }
+
+    @Test
+    fun anUnknownAnswerIsNotCopiedIntoTheError() {
+        val fake = HttpTransport { _, _, _, _ ->
+            HttpResponse(200, JSONObject().put("status", 2).put("data", JSONObject().put("user", "someone@example.com")).toString())
+        }
+        val e = assertThrows(LoginFailed::class.java) { client(fake, startRegions = listOf("us")).login() }
+        assertFalse(e.message, e.message.orEmpty().contains("someone@example.com"))
+    }
+
+    @Test
+    fun printingAnAccountOrASessionShowsNoSecret() {
+        val session = Session("eu", "SECRET-TOKEN", "account-id")
+        val account = Account("me@example.com", "SECRET-PASSWORD", session)
+        for (text in listOf(session.toString(), account.toString())) {
+            assertFalse(text, text.contains("SECRET"))
+        }
     }
 }

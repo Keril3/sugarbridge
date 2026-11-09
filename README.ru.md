@@ -245,7 +245,9 @@ Health Connect выключен или устарел, SugarBridge покаже�
   `com.sugarbridge.app`. xDrip+: Settings → Inter-app settings → включите «Broadcast locally» и «Compatible
   Broadcast», в «Identify receiver» впишите `com.sugarbridge.app`. Датчик обычно подключается к одному
   приложению: если его заберёт Juggluco или xDrip+, LibreLink может потерять его вместе со своими сигналами —
-  настройте сигналы там.
+  настройте сигналы там. Android не сообщает, какое приложение прислало такое значение, поэтому, пока настройка
+  включена, ложное значение могло бы прислать и другое приложение на телефоне: не включайте её, если не пользуетесь
+  Juggluco или xDrip+. Невозможные значения отбрасываются, и принимается не больше одного значения в 10 секунд.
 
 Значения с телефона сразу попадают в Health Connect, даже без интернета, и видны на главном экране и в
 уведомлении минутного режима; остальное LibreLinkUp дозаполнит, когда телефон снова будет в сети, ничего не
@@ -278,7 +280,7 @@ Health Connect он обращается только к GitHub — узнать
 обновления автоматически» — только по кнопке «Проверить обновления». С включённым «Из уведомления LibreLink» он
 читает только уведомления приложений Abbott — ради сахара в них — и ни одно не сохраняет. То же коротко есть в
 приложении: Настройки → «Приложение» → «Конфиденциальность»; туда же ведёт ссылка Health Connect на политику конфиденциальности
-SugarBridge.
+SugarBridge. Выход из аккаунта стирает пароль и вход в окне LibreView; история и журнал событий остаются, пока вы их не удалите.
 
 **Нет моего языка или перевод неточный.** Заведите issue или pull request: все тексты лежат в
 `app/src/main/res/values-*/strings.xml`, а unit-тест проверяет, что в каждом языке есть все строки.
@@ -347,14 +349,14 @@ APK в Releases собирает и подписывает GitHub Actions, ко�
    ```
 3. **Каждый выпуск:** допишите раздел версии в [CHANGELOG.md](CHANGELOG.md) (на английском), затем
    ```sh
-   git tag v1.14.0
-   git push origin v1.14.0
+   git tag v1.14.1
+   git push origin v1.14.1
    ```
    Через несколько минут в Releases появится `SugarBridge.apk` с описанием из CHANGELOG.
 
 Подписанный APK можно собрать и у себя: пропишите в `~/.gradle/gradle.properties` (вне репозитория)
 `sugarbridge.keystore`, `sugarbridge.keystorePassword`, `sugarbridge.keyAlias`, `sugarbridge.keyPassword`
-и запустите `./gradlew assembleRelease -Psugarbridge.version=1.14.0`.
+и запустите `./gradlew assembleRelease -Psugarbridge.version=1.14.1`.
 
 ## Обратная связь
 

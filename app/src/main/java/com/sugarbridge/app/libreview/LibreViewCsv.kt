@@ -4,7 +4,10 @@ import com.sugarbridge.app.glucose.GlucoseUnit
 import com.sugarbridge.app.glucose.MGDL_PER_MMOL
 import com.sugarbridge.app.glucose.Reading
 import com.sugarbridge.app.sync.onePerMinute
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
 import java.nio.charset.Charset
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -29,13 +32,37 @@ class CsvImport(
  */
 object LibreViewCsv {
 
+    /** Far more than years of LibreView's exports; a larger file is not one, and must not fill the memory. */
+    const val MAX_BYTES = 32 * 1024 * 1024
+
+    /** Libre came out after this, and the charts and the calendar can't span centuries of a broken date. */
+    private const val FIRST_YEAR = 2000
+
+    /** All of a stream, or null if it is larger than [limit]. A file from another app can be of any size. */
+    fun readAtMost(input: InputStream, limit: Int = MAX_BYTES): ByteArray? {
+        val out = ByteArrayOutputStream(minOf(limit, 256 * 1024))
+        val buffer = ByteArray(64 * 1024)
+        var total = 0L
+        while (true) {
+            val n = input.read(buffer)
+            if (n < 0) return out.toByteArray()
+            total += n
+            if (total > limit) return null
+            out.write(buffer, 0, n)
+        }
+    }
+
+    /** A file's name as another app gave it, fit to be shown and kept: one short line, without hidden characters. */
+    fun cleanName(name: String?): String? =
+        name?.filterNot { it.isISOControl() || Character.getType(it) == Character.FORMAT.toInt() }?.trim()?.take(80)?.ifEmpty { null }
+
     /** File bytes → text. LibreView sends UTF-8; a file re-saved by Excel on a Russian Windows is windows-1251. */
     fun decode(bytes: ByteArray): String {
         val utf8 = bytes.toString(Charsets.UTF_8)
         return if ('\uFFFD' in utf8) String(bytes, Charset.forName("windows-1251")) else utf8
     }
 
-    fun parse(text: String, zone: ZoneId = ZoneId.systemDefault()): CsvImport {
+    fun parse(text: String, zone: ZoneId = ZoneId.systemDefault(), today: LocalDate = LocalDate.now(zone)): CsvImport {
         val clean = text.removePrefix("\uFEFF")
         val rows = records(clean, detectSeparator(clean))
         val headerIndex = rows.take(15).withIndex().maxByOrNull { headerScore(it.value) }
@@ -65,7 +92,8 @@ object LibreViewCsv {
             val number = numbers[i]
             val time = formatter?.let { parseTime(normalizeTime(r.time), it) }
             val mgDl = number?.let { if (unit == GlucoseUnit.MMOL) it * MGDL_PER_MMOL else it }
-            if (time == null || mgDl == null || mgDl !in 10.0..600.0) {   // Libre measures 40–500 mg/dL
+            // Libre measures 40–500 mg/dL; a day or two ahead may be another time zone, further is a broken date
+            if (time == null || mgDl == null || mgDl !in 10.0..600.0 || time.year < FIRST_YEAR || time.toLocalDate().isAfter(today.plusDays(2))) {
                 skipped++
             } else {
                 readings += Reading(time.atZone(zone).toInstant(), Math.round(mgDl * 10) / 10.0, 0, r.scan)
@@ -107,12 +135,12 @@ object LibreViewCsv {
                 when (c) {
                     '"' -> quoted = true
                     separator -> {
-                        row.add(cell.toString())
+                        row.add(cellText(cell))
                         cell.clear()
                     }
                     '\r' -> {}
                     '\n' -> {
-                        row.add(cell.toString())
+                        row.add(cellText(cell))
                         cell.clear()
                         out.add(row)
                         row = ArrayList()
@@ -128,6 +156,9 @@ object LibreViewCsv {
         }
         return out.filter { r -> r.any { it.isNotBlank() } }
     }
+
+    // most cells of LibreView's rows are empty: one shared "" instead of a new one for each saves megabytes
+    private fun cellText(cell: StringBuilder) = if (cell.isEmpty()) "" else cell.toString()
 
     /** "6,4", "6.4", " 115 " → a number; "HI", "LO" and empty → null. */
     internal fun parseNumber(text: String): Double? =
@@ -195,7 +226,9 @@ object LibreViewCsv {
         .toFormatter(Locale.US)
         .withResolverStyle(ResolverStyle.STRICT)
 
-    private fun normalizeTime(text: String) = text.trim().replace('\u00A0', ' ').replace(Regex("\\s+"), " ")
+    private val SPACES = Regex("\\s+")
+
+    private fun normalizeTime(text: String) = text.trim().replace('\u00A0', ' ').replace(SPACES, " ")
 
     /** The format that fits the most rows (checked on a sample of up to 400 rows). */
     private fun pickFormatter(times: List<String>): DateTimeFormatter? {

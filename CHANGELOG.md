@@ -2,6 +2,59 @@
 
 Newest version first. A version's section becomes the release notes on GitHub.
 
+## 1.14.1 — 2026-11-09
+
+An audit of the whole app for security problems, bugs and slowness.
+
+Security:
+
+- Another app on the phone could make SugarBridge launch any screen in its name, by passing an Intent off as the
+  package installer's answer. Through the LibreView window that could reach the LibreView sign-in. The installer's
+  answer and the update notification's buttons now come through an entry only SugarBridge can open.
+- The LibreView window: files are taken only from LibreView's own pages, the sign-in cookies go only to LibreView,
+  only https is followed, pages can't read files on the phone, and a page of another site is named in the title.
+  A script in a frame of another site can no longer hand over a file. Signing out of SugarBridge also signs out of
+  this window.
+- A file opened from another app is read only through a `content:` address and up to 32 MB; a `file:` address could
+  point at SugarBridge's own files.
+- The region LibreLinkUp names is checked before it becomes part of the address the password goes to. Errors no
+  longer copy a server's whole answer into the event log, and printing an account shows no password or token.
+- A sign-in that was still running while you signed out could save the password again. It no longer can.
+- Updates: the file name no longer comes from the release, a download is limited in size and checked for being
+  complete, and it is removed from the cache after installing.
+- Juggluco's and xDrip+'s broadcasts are taken at most once every 10 seconds, so a flood from another app can't wear
+  out the storage or the battery. A notification that can't be read can't bring the app down.
+- Guava, brought in by Health Connect, updated from 31.1 to 33.8: the old one has published vulnerabilities. CI's
+  token is read-only, and the build's actions are pinned to exact commits.
+- The event log and the LibreView sign-in don't move to a new phone. A copied log is marked as sensitive.
+
+Bugs:
+
+- One cut-off line in the kept history, from the phone switching off while a sync added readings, deleted the whole
+  history. Now only that line is lost, and adding goes on after it. A read that fails for a moment no longer deletes it.
+- A CSV with an impossible date (year 1 or 9999) crashed the app or hung the calendar. Such rows are now skipped.
+- One bad point from LibreLinkUp made the whole sync fail, or Health Connect refuse the whole batch, for up to 12 hours.
+  Now only that point is left out.
+- A broken `data:` link in the LibreView window crashed the app; so did the window's page process dying, which took
+  minute mode down with it.
+- A notification with just a whole number, such as "60", could be read as a glucose of 60 mg/dL when the app is in
+  mmol/L. A number without a unit now has to look like the unit in use.
+- Swiping away the notification minute mode left behind no longer starts an idle service.
+- Failed updates and LibreView downloads now read as sentences: the technical part goes to the event log.
+- "Done" on the keyboard signs in.
+
+Speed and battery:
+
+- Tenshi-chan redraws at 30 frames a second instead of the screen's full rate (up to 120), and not at all when she is
+  scrolled off the screen or the phone's animations are off. On the sign-in screen with nothing happening this draws
+  half the frames and takes half the processor time (measured on the emulator: 69% → 34% of a core).
+- A sync no longer redraws the screen once for every saved value, and does its work away from the main thread.
+- Moving a finger along a chart no longer redraws the whole chart at each step.
+- Passes over a long history (writing, deleting, a new target range) moved off the main thread; a long CSV is read
+  faster and with less memory.
+- The notification's icon is drawn only when something changed. The estimated HbA1c is recalculated at most every 30
+  minutes. The LibreView page doesn't run in the background.
+
 ## 1.14.0 — 2026-10-17
 
 - Failures read as sentences. Without the internet the notification and the home screen said "no connection to

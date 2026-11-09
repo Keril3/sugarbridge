@@ -12,8 +12,10 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 import org.json.JSONObject
 
-/** LibreLinkUp email, password and the saved session. */
-data class Account(val email: String, val password: String, val session: Session? = null)
+/** LibreLinkUp email, password and the saved session. Printing one never prints the password or the token. */
+data class Account(val email: String, val password: String, val session: Session? = null) {
+    override fun toString() = "Account(signed in: ${session != null})"
+}
 
 /** Keeps the account in SharedPreferences, encrypted with a key from the Android Keystore. */
 class AccountStore(context: Context) {

@@ -1,5 +1,6 @@
 package com.sugarbridge.app.local
 
+import com.sugarbridge.app.glucose.GlucoseUnit
 import com.sugarbridge.app.glucose.MGDL_PER_MMOL
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -9,6 +10,8 @@ import java.time.Instant
 class LocalGlucoseTest {
 
     private val now = Instant.parse("2026-10-17T10:00:00Z")
+    private fun inMmol(vararg texts: String) = LocalGlucose.inTexts(texts.toList(), GlucoseUnit.MMOL)
+    private fun inMgDl(vararg texts: String) = LocalGlucose.inTexts(texts.toList(), GlucoseUnit.MGDL)
 
     @Test
     fun aBroadcastReadingIsCheckedBeforeItIsTaken() {
@@ -30,24 +33,26 @@ class LocalGlucoseTest {
 
     @Test
     fun aValueWithItsUnitIsFoundInAnyLanguage() {
-        assertEquals(6.4 * MGDL_PER_MMOL, LocalGlucose.inTexts(listOf("FreeStyle LibreLink", "6.4 mmol/L ↗"))!!.first, 1e-9)
-        assertEquals(4, LocalGlucose.inTexts(listOf("6.4 mmol/L ↗"))!!.second)
-        assertEquals(6.4 * MGDL_PER_MMOL, LocalGlucose.inTexts(listOf("Глюкоза: 6,4 ммоль/л"))!!.first, 1e-9)
-        assertEquals(115.0, LocalGlucose.inTexts(listOf("115 mg/dL"))!!.first, 0.0)
+        assertEquals(6.4 * MGDL_PER_MMOL, inMmol("FreeStyle LibreLink", "6.4 mmol/L ↗")!!.first, 1e-9)
+        assertEquals(4, inMmol("6.4 mmol/L ↗")!!.second)
+        assertEquals(6.4 * MGDL_PER_MMOL, inMmol("Глюкоза: 6,4 ммоль/л")!!.first, 1e-9)
+        assertEquals(115.0, inMmol("115 mg/dL")!!.first, 0.0)   // with its unit it counts whatever the app shows
     }
 
     @Test
-    fun aTextThatIsOnlyANumberCountsByItsForm() {
-        assertEquals(6.4 * MGDL_PER_MMOL, LocalGlucose.inTexts(listOf("Sensor", "6,4"))!!.first, 1e-9)
-        assertEquals(115.0, LocalGlucose.inTexts(listOf("115 →"))!!.first, 0.0)
-        assertEquals(3, LocalGlucose.inTexts(listOf("115 →"))!!.second)
+    fun aTextThatIsOnlyANumberCountsIfItLooksLikeTheUnitInUse() {
+        assertEquals(6.4 * MGDL_PER_MMOL, inMmol("Sensor", "6,4")!!.first, 1e-9)
+        assertEquals(115.0, inMgDl("115 →")!!.first, 0.0)
+        assertEquals(3, inMgDl("115 →")!!.second)
+        assertNull("minutes of a warm-up, not a glucose", inMmol("Sensor", "60"))
+        assertNull(inMgDl("Sensor", "6,4"))
     }
 
     @Test
     fun notificationsWithoutAReadingGiveNothing() {
-        assertNull(LocalGlucose.inTexts(listOf("FreeStyle LibreLink", "Sensor connected")))
-        assertNull("numbers in a sentence", LocalGlucose.inTexts(listOf("Sensor ends in 3 days, 14 hours")))
-        assertNull("two different values", LocalGlucose.inTexts(listOf("6.4 mmol/L", "8.1 mmol/L")))
-        assertNull("out of range", LocalGlucose.inTexts(listOf("900 mg/dL")))
+        assertNull(inMmol("FreeStyle LibreLink", "Sensor connected"))
+        assertNull("numbers in a sentence", inMmol("Sensor ends in 3 days, 14 hours"))
+        assertNull("two different values", inMmol("6.4 mmol/L", "8.1 mmol/L"))
+        assertNull("out of range", inMmol("900 mg/dL"))
     }
 }

@@ -121,6 +121,11 @@ class LiveSyncService : Service() {
                 return START_NOT_STICKY
             }
             ACTION_DISMISSED -> {   // the notification was swiped away (Android 14+ allows it); the service keeps working
+                // or it stopped before and this is the notification it left behind: then there is nothing to keep running
+                if (loop?.isActive != true) {
+                    stopSelf()
+                    return START_NOT_STICKY
+                }
                 if (SettingsStore(this).load().livePinned) {
                     // pinned: put it straight back, so it can't be lost by an accidental swipe
                     lastPosted = null
@@ -145,7 +150,7 @@ class LiveSyncService : Service() {
         createNotificationChannels(this)
         if (latest == null) latest = SyncStore(this).snapshot().recent.lastOrNull()   // show the last known value at once
         try {
-            startForeground(NOTIFICATION_ID, render(settings).second, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+            startForeground(NOTIFICATION_ID, render(settings).second(), ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
         } catch (e: Exception) {
             // Android may refuse a start from the background. No harm: the background sync stays
             Log.e(SyncWorker.TAG, "startForeground failed", e)
@@ -243,17 +248,17 @@ class LiveSyncService : Service() {
     private fun post(settings: AppSettings) {
         if (hidden) return
         val (key, notification) = render(settings)
-        if (key == lastPosted) return   // nothing changed: don't bother the system
+        if (key == lastPosted) return   // nothing changed: don't bother the system, nor draw the icon for nothing
         lastPosted = key
-        getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notification)
+        getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notification())
     }
 
-    /** The notification for the current state and a key that shows whether it changed. */
-    private fun render(s: AppSettings): Pair<String, Notification> {
+    /** A key that shows whether the notification for the current state changed, and how to build it. */
+    private fun render(s: AppSettings): Pair<String, () -> Notification> {
         val channel = if (s.liveShowValue) CHANNEL_LIVE else CHANNEL_QUIET
         problem?.let { p ->   // failures are reported in the quiet mode too
             val (title, text) = describe(p, s)
-            return "problem|$channel|$title|$text|${s.theme}" to builder(s, channel, title, text).build()
+            return "problem|$channel|$title|$text|${s.theme}" to { builder(s, channel, title, text).build() }
         }
         val r = latest
         if (s.liveShowValue && r != null) {
@@ -267,21 +272,23 @@ class LiveSyncService : Service() {
                 GlucoseLevel.HIGH -> R.string.level_high
             }
             val text = getString(R.string.notif_value_text, time, getString(level))
-            // the status bar icon: the number and the arrow as chosen, either alone; Tenshi-chan only without both
             val number = s.liveStatusValue
             val arrow = s.liveArrow && trendAngle(trend) != null
-            val icon = when {
-                number && arrow && s.statusArrowAbove -> StatusIcon.above(value, trend, s.statusNumberSize, s.statusArrowSize)
-                number && arrow -> StatusIcon.beside(value, trend, s.statusNumberSize, s.statusArrowSize)
-                number -> StatusIcon.number(value, s.statusNumberSize)
-                arrow -> StatusIcon.arrow(trend, s.statusArrowSize)
-                else -> null
-            }?.let { Icon.createWithBitmap(it) }
             val look = "$number|$arrow|${s.statusArrowAbove}|${s.statusNumberSize}|${s.statusArrowSize}|${s.theme}"
-            return "value|$title|$text|$look" to builder(s, channel, title, text, icon).build()
+            return "value|$title|$text|$look" to {
+                // the status bar icon: the number and the arrow as chosen, either alone; Tenshi-chan only without both
+                val icon = when {
+                    number && arrow && s.statusArrowAbove -> StatusIcon.above(value, trend, s.statusNumberSize, s.statusArrowSize)
+                    number && arrow -> StatusIcon.beside(value, trend, s.statusNumberSize, s.statusArrowSize)
+                    number -> StatusIcon.number(value, s.statusNumberSize)
+                    arrow -> StatusIcon.arrow(trend, s.statusArrowSize)
+                    else -> null
+                }?.let { Icon.createWithBitmap(it) }
+                builder(s, channel, title, text, icon).build()
+            }
         }
         val every = if (s.liveMinutes == 1) getString(R.string.notif_every_minute) else getString(R.string.notif_every, s.liveMinutes)
-        return "quiet|$channel|$every|${s.theme}" to builder(s, channel, getString(R.string.notif_watching), every).build()
+        return "quiet|$channel|$every|${s.theme}" to { builder(s, channel, getString(R.string.notif_watching), every).build() }
     }
 
     /**

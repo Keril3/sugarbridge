@@ -2,15 +2,20 @@
 <!--
    Cloud backup is off (allowBackup="false"), but Android 12+ moves data to a new phone anyway.
    The account is encrypted with a key that stays on the old phone, and the list of written minutes
-   belongs to the old phone's Health Connect, so moving them makes no sense.
+   belongs to the old phone's Health Connect, so moving them makes no sense. The event log and the WebView's
+   data (the LibreView sign-in) stay behind too.
 -->
 <data-extraction-rules>
     <cloud-backup>
         <exclude domain="sharedpref" path="account.xml" />
         <exclude domain="sharedpref" path="sync.xml" />
+        <exclude domain="file" path="events.log" />
+        <exclude domain="root" path="app_webview/" />
     </cloud-backup>
     <device-transfer>
         <exclude domain="sharedpref" path="account.xml" />
         <exclude domain="sharedpref" path="sync.xml" />
+        <exclude domain="file" path="events.log" />
+        <exclude domain="root" path="app_webview/" />
     </device-transfer>
 </data-extraction-rules>

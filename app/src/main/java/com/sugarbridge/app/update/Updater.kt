@@ -2,7 +2,6 @@ package com.sugarbridge.app.update
 
 import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageInfo
 import android.content.pm.PackageInstaller
 import android.content.pm.PackageManager
@@ -33,6 +32,9 @@ class UpdateRejected(val reason: Reason) : Exception("Update rejected: $reason")
 object Updater {
     private const val PREFS = "update"
     private val CHECK_EVERY: Duration = Duration.ofHours(6)
+
+    /** Far more than the app weighs: a larger file isn't SugarBridge and must not fill the phone. */
+    private const val MAX_APK_BYTES = 256L * 1024 * 1024
 
     /** Network stand-in for tests. */
     @Volatile
@@ -79,11 +81,11 @@ object Updater {
         return release.takeIf { isNewer(it, installedVersion(context)) }
     }
 
-    /** Downloads the APK into the cache, reporting progress from 0 to 1. Blocking. */
+    /** Downloads the APK into the cache, reporting progress from 0 to 1 at each new percent. Blocking. */
     fun download(context: Context, release: Release, onProgress: (Float) -> Unit): File {
         val dir = File(context.cacheDir, "update").apply { mkdirs() }
         dir.listFiles()?.forEach { it.delete() }   // only one update file at a time
-        val file = File(dir, "SugarBridge-${release.version}.apk")
+        val file = File(dir, "SugarBridge-update.apk")   // not from the release's name: it comes from the network
         val conn = URI(release.apkUrl).toURL().openConnection() as HttpURLConnection
         conn.connectTimeout = 20_000
         conn.readTimeout = 60_000
@@ -91,6 +93,8 @@ object Updater {
         try {
             if (conn.responseCode != 200) throw GitHubError(conn.responseCode)
             val total = conn.contentLengthLong
+            if (total > MAX_APK_BYTES) throw IOException("the download is too large: $total bytes")
+            var percent = -1
             conn.inputStream.use { input ->
                 file.outputStream().use { output ->
                     val buffer = ByteArray(64 * 1024)
@@ -100,15 +104,23 @@ object Updater {
                         if (n < 0) break
                         output.write(buffer, 0, n)
                         done += n
-                        if (total > 0) onProgress(done.toFloat() / total)
+                        if (done > MAX_APK_BYTES) throw IOException("the download is too large")
+                        if (total > 0 && (done * 100 / total).toInt() != percent) {
+                            percent = (done * 100 / total).toInt()
+                            onProgress(done.toFloat() / total)
+                        }
                     }
                 }
             }
+            if (file.length() == 0L) throw IOException("empty download")
+            if (total > 0 && file.length() != total) throw IOException("incomplete download: ${file.length()} of $total bytes")
+            return file
+        } catch (e: Exception) {
+            file.delete()
+            throw e
         } finally {
             conn.disconnect()
         }
-        if (file.length() == 0L) throw IOException("empty download")
-        return file
     }
 
     /** The file must be SugarBridge, newer than the installed version and signed with the same key. */
@@ -139,16 +151,20 @@ object Updater {
             setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_NOT_REQUIRED)   // still asked when Android insists
         }
         val id = installer.createSession(params)
-        installer.openSession(id).use { session ->
-            session.openWrite("SugarBridge.apk", 0, file.length()).use { out ->
-                file.inputStream().use { it.copyTo(out) }
-                session.fsync(out)
+        try {
+            installer.openSession(id).use { session ->
+                session.openWrite("SugarBridge.apk", 0, file.length()).use { out ->
+                    file.inputStream().use { it.copyTo(out) }
+                    session.fsync(out)
+                }
+                // mutable, or Android can't add its answer; explicit, so nobody else can receive it
+                val status = MainActivity.internalIntent(context, ACTION_INSTALL_STATUS)
+                val pending = PendingIntent.getActivity(context, id, status, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
+                session.commit(pending.intentSender)
             }
-            val status = Intent(context, MainActivity::class.java)
-                .setAction(ACTION_INSTALL_STATUS)
-                .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-            val pending = PendingIntent.getActivity(context, id, status, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
-            session.commit(pending.intentSender)
+        } catch (e: Exception) {
+            runCatching { installer.abandonSession(id) }   // a half-written session would keep its space
+            throw e
         }
     }
 

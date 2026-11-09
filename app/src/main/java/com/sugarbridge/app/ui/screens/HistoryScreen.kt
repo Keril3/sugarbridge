@@ -43,6 +43,7 @@ import com.sugarbridge.app.ImportUi
 import com.sugarbridge.app.MainViewModel
 import com.sugarbridge.app.PendingMerge
 import com.sugarbridge.app.R
+import com.sugarbridge.app.glucose.between
 import com.sugarbridge.app.glucose.estimateGmi
 import com.sugarbridge.app.glucose.formatGlucose
 import com.sugarbridge.app.libreview.DaySummary
@@ -294,7 +295,9 @@ private fun PeriodCard(h: ImportUi, s: AppSettings, onPick: () -> Unit, onQuick:
             Hint(stringResource(R.string.history_period_summary, visible.size, count, formatGlucose(avg, s.unit, locale), stringResource(s.unit.label), inRange))
             val gmi = remember(h.readings, h.from, h.to) {
                 val zone = ZoneId.systemDefault()
-                estimateGmi(h.readings, dayBounds(visible.first().date, zone).first, dayBounds(visible.last().date, zone).second)
+                val from = dayBounds(visible.first().date, zone).first
+                val to = dayBounds(visible.last().date, zone).second
+                estimateGmi(h.readings.between(from, to), from, to)
             }
             if (gmi != null) {
                 Hint(

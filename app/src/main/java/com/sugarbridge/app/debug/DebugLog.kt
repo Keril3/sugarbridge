@@ -8,8 +8,8 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-/** One line of the event log. */
-class LogEntry(val at: Instant, val kind: String, val text: String)
+/** One line of the event log. A data class: a log read again unchanged doesn't redraw the screen. */
+data class LogEntry(val at: Instant, val kind: String, val text: String)
 
 /**
  * What happened when: every sync with its trigger and result, the minute mode starting and stopping, Doze and

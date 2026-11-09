@@ -21,20 +21,23 @@ fun parseReading(item: JSONObject): Reading {
     )
 }
 
+/** What Health Connect takes (up to 50 mmol/L), without the 0 of a point with no value: it refuses a whole batch for one such. */
+private val WRITABLE_MGDL = 1.0..900.0
+
+/** A point of the answer, or null for one that can't be read or written: the others mustn't be lost with it. */
+private fun readingOrNull(item: JSONObject?): Reading? =
+    item?.let { runCatching { parseReading(it) }.getOrNull() }?.takeIf { it.mgDl in WRITABLE_MGDL }
+
 /** The /graph answer → ~12 hours of history plus the current value, without repeats, by time. */
 fun parseGraph(data: JSONObject): List<Reading> {
     val byTime = sortedMapOf<Instant, Reading>()   // a map kept sorted by time
     val history = data.optJSONArray("graphData")
     if (history != null) {
         for (i in 0 until history.length()) {
-            val r = parseReading(history.getJSONObject(i))
-            byTime[r.time] = r
+            readingOrNull(history.optJSONObject(i))?.let { byTime[it.time] = it }
         }
     }
-    val current = data.optJSONObject("connection")?.optJSONObject("glucoseMeasurement")
-    if (current != null) {
-        val r = parseReading(current)
-        byTime[r.time] = r   // the current value has a trend, so it wins over the history entry
-    }
+    // the current value has a trend, so it wins over the history entry
+    readingOrNull(data.optJSONObject("connection")?.optJSONObject("glucoseMeasurement"))?.let { byTime[it.time] = it }
     return byTime.values.toList()
 }

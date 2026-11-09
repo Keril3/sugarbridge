@@ -2,23 +2,22 @@ package com.sugarbridge.app.ui.components
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.keyframes
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.withInfiniteAnimationFrameMillis
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.MotionDurationScale
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -34,8 +33,10 @@ import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.PathParser
+import androidx.compose.ui.layout.onVisibilityChanged
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -90,41 +91,45 @@ private val Iris = Brush.verticalGradient(
 /** The neck: the head tilts around it. */
 private val NECK = Offset(54f, 77f)
 
+/** How often she moves: slow motions don't need every frame of a 120 Hz screen, and each frame draws dozens of shapes. */
+private const val MOTION_STEP_MS = 33L
+
+/** From [from] to [to] and back, a smooth way each, in [halfMs] milliseconds each way. */
+private fun swing(time: Long, halfMs: Int, from: Float, to: Float): Float {
+    val phase = (time % (2L * halfMs)).toFloat() / halfMs
+    return from + (to - from) * FastOutSlowInEasing.transform(if (phase <= 1f) phase else 2f - phase)
+}
+
+/** A quick blink every few seconds: 1 is open. */
+internal fun blinkAt(time: Long): Float = when (val at = time % 4200) {
+    in 3900 until 4000 -> 1f - 0.9f * (at - 3900) / 100f
+    in 4000 until 4100 -> 0.1f + 0.9f * (at - 4000) / 100f
+    else -> 1f
+}
+
 /**
  * Tenshi-chan. A tap makes her tilt her head to the side, close her eyes and smile, the way anime girls do,
- * then she straightens up again.
+ * then she straightens up again. She moves only while she is on the screen, and stands still when the phone's
+ * animations are turned off.
  */
 @Composable
 fun Mascot(mood: Mood, modifier: Modifier = Modifier, size: Dp = 120.dp) {
-    val motion = rememberInfiniteTransition(label = "mascot")
-    val bob by motion.animateFloat(
-        initialValue = -1.6f, targetValue = 1.6f,
-        animationSpec = infiniteRepeatable(tween(1800, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "bob",
-    )
-    val flap by motion.animateFloat(
-        initialValue = -6f, targetValue = 6f,
-        animationSpec = infiniteRepeatable(tween(if (mood == Mood.SLEEPY) 2600 else 900, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "flap",
-    )
-    val glow by motion.animateFloat(
-        initialValue = 0.35f, targetValue = 0.85f,
-        animationSpec = infiniteRepeatable(tween(1400), RepeatMode.Reverse),
-        label = "glow",
-    )
-    // a quick blink every few seconds
-    val blink by motion.animateFloat(
-        initialValue = 1f, targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            keyframes {
-                durationMillis = 4200
-                1f at 3900
-                0.1f at 4000
-                1f at 4100
-            },
-        ),
-        label = "blink",
-    )
+    var time by remember { mutableLongStateOf(0L) }
+    var visible by remember { mutableStateOf(true) }
+    LaunchedEffect(visible) {
+        if (!visible || coroutineContext[MotionDurationScale]?.scaleFactor == 0f) return@LaunchedEffect
+        var last = -1L
+        while (true) {
+            withInfiniteAnimationFrameMillis { now ->
+                if (last < 0) {
+                    last = now
+                } else if (now - last >= MOTION_STEP_MS) {
+                    time += now - last
+                    last = now
+                }
+            }
+        }
+    }
 
     val joy = remember { Animatable(0f) }
     val scope = rememberCoroutineScope()
@@ -138,10 +143,15 @@ fun Mascot(mood: Mood, modifier: Modifier = Modifier, size: Dp = 120.dp) {
         }
     }
 
-    Canvas(modifier.size(size).graphicsLayer().then(tap)) {   // own layer: the animation does not redraw the card
+    // own layer: the animation does not redraw the card
+    Canvas(modifier.size(size).onVisibilityChanged(minFractionVisible = 0.01f) { visible = it }.graphicsLayer().then(tap)) {
         val k = this.size.minDimension / 108f
+        val t = time
+        val bob = swing(t, 1800, -1.6f, 1.6f)
+        val flap = swing(t, if (mood == Mood.SLEEPY) 2600 else 900, -6f, 6f)
+        val glow = swing(t, 1400, 0.35f, 0.85f)
         scale(k, k, pivot = Offset.Zero) {
-            translate(top = bob) { drawAngel(mood, flap, glow, blink, joy.value) }
+            translate(top = bob) { drawAngel(mood, flap, glow, blinkAt(t), joy.value) }
         }
     }
 }

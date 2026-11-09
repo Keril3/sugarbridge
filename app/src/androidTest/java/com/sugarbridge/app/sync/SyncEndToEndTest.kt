@@ -1,5 +1,7 @@
 package com.sugarbridge.app.sync
 
+import org.junit.Assert.assertNull
+import com.sugarbridge.app.libre.AccountStore
 import android.Manifest
 import android.app.Notification
 import android.app.NotificationManager
@@ -455,5 +457,15 @@ class SyncEndToEndTest {
         val bitmap = instrumentation.uiAutomation.takeScreenshot()
         val dir = File(context.filesDir, "shots/$language").apply { mkdirs() }
         File(dir, "$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+    }
+
+    /** A sign-in still running when the person signs out must not bring the password back. */
+    @Test
+    fun aSignInEndingAfterTheSignOutSavesNothing() {
+        val client = Libre.client(context)!!
+        Libre.signOut(context)
+        client.login()
+        assertNull(AccountStore(context).load())
+        assertNull(Libre.client(context))
     }
 }

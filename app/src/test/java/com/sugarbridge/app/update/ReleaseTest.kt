@@ -47,4 +47,17 @@ class ReleaseTest {
         assertFalse(isNewer(release, "1.10.0"))
         assertFalse(isNewer(release, "2.0.0"))
     }
+
+    @Test
+    fun aVersionIsNumbersAndDots() {
+        assertEquals("1.4.0", parseLatestRelease(answer("v1.4.0", "SugarBridge.apk" to apkUrl))!!.version)
+        assertNull(parseLatestRelease(answer("v1.4.0/../../evil", "SugarBridge.apk" to apkUrl)))
+        assertNull(parseLatestRelease(answer("latest", "SugarBridge.apk" to apkUrl)))
+    }
+
+    @Test
+    fun aPageOutsideTheRepositoryIsNotOpened() {
+        val foreign = JSONObject(answer("v1.4.0", "SugarBridge.apk" to apkUrl)).put("html_url", "https://evil.example.com/").toString()
+        assertEquals(GITHUB_PAGE, parseLatestRelease(foreign)!!.pageUrl)
+    }
 }

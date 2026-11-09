@@ -32,7 +32,8 @@
         android:localeConfig="@xml/locales_config"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.SugarBridge">
+        android:theme="@style/Theme.SugarBridge"
+        android:usesCleartextTraffic="false">
         <!-- a language change is handled in place: no restart, so the screen doesn't flash black -->
         <activity
             android:name=".MainActivity"
@@ -50,10 +51,11 @@
             <intent-filter>
                 <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
             </intent-filter>
-            <!-- "Open with" and "Share" for a CSV from LibreView -->
+            <!-- "Open with" and "Share" for a CSV from LibreView; a file:// address could point inside the app -->
             <intent-filter tools:ignore="AppLinkUrlError">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" />
                 <data android:mimeType="text/csv" />
                 <data android:mimeType="text/comma-separated-values" />
                 <data android:mimeType="application/csv" />
@@ -66,6 +68,16 @@
                 <data android:mimeType="application/csv" />
             </intent-filter>
         </activity>
+
+        <!--
+            What SugarBridge's own notifications and Android's package installer ask of the screen. MainActivity is
+            open to every app, so these come through a door only SugarBridge can open: another app could otherwise
+            make it start anything in its name (see MainActivity.handleIntent).
+        -->
+        <activity-alias
+            android:name=".InternalEntry"
+            android:exported="false"
+            android:targetActivity=".MainActivity" />
 
         <!-- the same for the permission settings in Android 14+ -->
         <activity-alias

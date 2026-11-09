@@ -5,12 +5,20 @@ import android.graphics.Bitmap
 import android.os.SystemClock
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.CookieManager
 import android.webkit.WebView
+import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.onNodeWithText
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
@@ -24,8 +32,16 @@ import java.util.concurrent.TimeUnit
 @RunWith(AndroidJUnit4::class)
 class LibreViewDownloadTest {
 
+    @get:Rule
+    val compose = createEmptyComposeRule()
+
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private val context = instrumentation.targetContext
+
+    @After
+    fun forgetThePage() {
+        LibreViewActivity.pageForTests = null
+    }
 
     private val page = """
         <html><body style="font-family:sans-serif;padding:24px">
@@ -49,11 +65,8 @@ class LibreViewDownloadTest {
     @Test
     fun blobDownloadIsCaptured() {
         val result = File(context.cacheDir, "libreview.csv").apply { delete() }
-        context.startActivity(
-            Intent(context, LibreViewActivity::class.java)
-                .putExtra(LibreViewActivity.EXTRA_TEST_HTML, page)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        )
+        LibreViewActivity.pageForTests = page
+        context.startActivity(Intent(context, LibreViewActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         Thread.sleep(1500)
         shot("libreview_1")
         Thread.sleep(2000)
@@ -74,8 +87,8 @@ class LibreViewDownloadTest {
     @Test
     fun siteFillsTheScreen() {
         val html = """<html><body style="margin:0"><div id="full" style="height:100vh">LibreView</div></body></html>"""
-        val intent = Intent(context, LibreViewActivity::class.java).putExtra(LibreViewActivity.EXTRA_TEST_HTML, html)
-        ActivityScenario.launch<LibreViewActivity>(intent).use { scenario ->
+        LibreViewActivity.pageForTests = html
+        ActivityScenario.launch(LibreViewActivity::class.java).use { scenario ->
             Thread.sleep(1500)
             lateinit var web: WebView
             scenario.onActivity { activity ->
@@ -104,8 +117,8 @@ class LibreViewDownloadTest {
         try {
             Thread.sleep(1000)
             val html = """<html><body style="font-size:16px">LibreView</body></html>"""
-            val intent = Intent(context, LibreViewActivity::class.java).putExtra(LibreViewActivity.EXTRA_TEST_HTML, html)
-            ActivityScenario.launch<LibreViewActivity>(intent).use { scenario ->
+            LibreViewActivity.pageForTests = html
+            ActivityScenario.launch(LibreViewActivity::class.java).use { scenario ->
                 Thread.sleep(1500)
                 val size = LinkedBlockingQueue<String>()
                 scenario.onActivity { activity ->
@@ -139,5 +152,67 @@ class LibreViewDownloadTest {
         val bitmap = instrumentation.uiAutomation.takeScreenshot()
         val dir = File(context.filesDir, "shots").apply { mkdirs() }
         File(dir, "$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+    }
+
+    /** No file comes through from a page of another site, and the title says whose page it is. */
+    @Test
+    fun anotherSitesPageOffersNoFileAndIsNamed() {
+        val result = File(context.cacheDir, "libreview.csv").apply { delete() }
+        LibreViewActivity.pageForTests = "<html><body>LibreView</body></html>"
+        ActivityScenario.launch(LibreViewActivity::class.java).use { scenario ->
+            Thread.sleep(1500)
+            scenario.onActivity { activity ->
+                findWebView(activity.window.decorView)!!.loadDataWithBaseURL("https://example.com/", page, "text/html", "utf-8", null)
+            }
+            compose.waitUntil(10_000) { runCatching { compose.onNodeWithText("example.com").assertExists() }.isSuccess }
+            Thread.sleep(7_000)   // the page clicks its download link after 5 seconds
+            assertFalse("a file came from example.com", result.exists())
+        }
+    }
+
+    /** A script that doesn't know the token, as in a frame of another site, gets nothing through the bridge. */
+    @Test
+    fun theBridgeTakesNothingWithoutItsToken() {
+        val result = File(context.cacheDir, "libreview.csv").apply { delete() }
+        val csv = android.util.Base64.encodeToString(
+            ("Device,Serial Number,Device Timestamp,Record Type,Historic Glucose mmol/L,Scan Glucose mmol/L\n" +
+                "FreeStyle LibreLink,X,08-10-2026 17:47,0,6.4,\n").toByteArray(),
+            android.util.Base64.NO_WRAP,
+        )
+        LibreViewActivity.pageForTests = "<html><script>SugarBridgeCsv.onData('wrong', 'data:text/csv;base64,$csv');</script></html>"
+        ActivityScenario.launch(LibreViewActivity::class.java).use {
+            Thread.sleep(3_000)
+            assertFalse("the bridge took a file without the token", result.exists())
+        }
+    }
+
+    /** A broken data: link is reported, as it used to crash the app. */
+    @Test
+    fun aBrokenDataLinkDoesNotCrash() {
+        LibreViewActivity.pageForTests = "<html><body><a id='d' href='data:text/csv,100%'>x</a><script>document.getElementById('d').click()</script></body></html>"
+        ActivityScenario.launch(LibreViewActivity::class.java).use { scenario ->
+            Thread.sleep(3_000)
+            scenario.onActivity { assertFalse(it.isFinishing) }
+        }
+    }
+
+    /** Signing out of SugarBridge signs out of LibreView's window too. */
+    @Test
+    fun signingOutForgetsTheSite() {
+        instrumentation.runOnMainSync {
+            CookieManager.getInstance().setCookie("https://www.libreview.com/", "session=1")
+            CookieManager.getInstance().flush()
+        }
+        assertTrue("WebView keeps its data elsewhere", File(context.dataDir, "app_webview").exists())
+        var cookie: String? = null
+        instrumentation.runOnMainSync { cookie = CookieManager.getInstance().getCookie("https://www.libreview.com/") }
+        assertNotNull(cookie)
+        instrumentation.runOnMainSync { LibreViewActivity.forgetSession(context) }
+        val deadline = SystemClock.uptimeMillis() + 5_000
+        while (cookie != null && SystemClock.uptimeMillis() < deadline) {
+            Thread.sleep(100)
+            instrumentation.runOnMainSync { cookie = CookieManager.getInstance().getCookie("https://www.libreview.com/") }
+        }
+        assertNull(cookie)
     }
 }

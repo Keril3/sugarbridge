@@ -4,6 +4,7 @@ import android.content.Context
 import com.sugarbridge.app.glucose.GlucoseUnit
 import com.sugarbridge.app.glucose.Reading
 import java.io.File
+import java.io.IOException
 import java.io.RandomAccessFile
 import java.time.Instant
 import java.time.ZoneId
@@ -29,6 +30,9 @@ object HistoryStore {
 
     /** Readings added by syncs are this far apart at least: one every 15 minutes like LibreView's, a minute off allowed. */
     internal const val APPEND_GAP_SECONDS = 14 * 60L
+
+    /** The year 2100: a later time in the file is a broken line. */
+    private const val LAST_SECOND = 4_102_444_800L
 
     /** Every change of the file goes through it: a sync may add readings while an export is being saved. */
     private val lock = Any()
@@ -66,22 +70,39 @@ object HistoryStore {
             if (first.isNotEmpty()) write(context, SavedHistory(first, unit, source, Instant.now()))
             return first.size
         }
-        val last = lastReading(file) ?: return 0
+        val tail = tailOf(file)
+        val last = lastReadingIn(tail) ?: return 0
         val added = thin(last, readings)
-        if (added.isNotEmpty()) file.appendText(added.joinToString("") { line(it) })
+        // a line cut off by a crash is ended first: the new ones must not grow onto it
+        if (added.isNotEmpty()) file.appendText((if (tail.endsWith('\n')) "" else "\n") + added.joinToString("") { line(it) })
         added.size
     }
 
-    /** The epoch second of the file's last reading, from its last line; null for a file without readings. */
-    private fun lastReading(file: File): Long? = RandomAccessFile(file, "r").use { f ->
+    private fun tailOf(file: File): String = RandomAccessFile(file, "r").use { f ->
         val size = f.length()
         val tail = ByteArray(minOf(size, 256L).toInt())
         f.seek(size - tail.size)
         f.readFully(tail)
-        String(tail).trimEnd().substringAfterLast('\n').split(',').takeIf { it.size == 3 }?.get(0)?.toLongOrNull()
+        String(tail)
     }
 
-    /** null for anything that isn't a history written by [encode]. */
+    /** The epoch second of the last whole reading in the end of a file; null for a file without readings. */
+    internal fun lastReadingIn(tail: String): Long? =
+        tail.split('\n').asReversed().firstNotNullOfOrNull { parseLine(it)?.time?.epochSecond }
+
+    /** A line of readings, or null for one that is cut off or broken, or for the header. */
+    private fun parseLine(line: String): Reading? {
+        val p = line.split(',')
+        if (p.size != 3) return null
+        val time = p[0].toLongOrNull()?.takeIf { it in 0..LAST_SECOND } ?: return null
+        val mgDl = p[1].toDoubleOrNull() ?: return null
+        return Reading(Instant.ofEpochSecond(time), mgDl, 0, scan = p[2] == "1")
+    }
+
+    /**
+     * null for anything that isn't a history written by [encode]. A line that can't be read costs only itself: the
+     * phone switching off in the middle of adding readings must not take the whole history with it.
+     */
     fun decode(text: String): SavedHistory? {
         val lines = text.lineSequence().filter { it.isNotBlank() }.iterator()
         if (!lines.hasNext()) return null
@@ -90,13 +111,7 @@ object HistoryStore {
         val unit = GlucoseUnit.entries.firstOrNull { it.name == head[1] } ?: return null
         val updatedAt = head[2].toLongOrNull()?.let(Instant::ofEpochSecond) ?: return null
         val readings = mutableListOf<Reading>()
-        for (line in lines) {
-            val p = line.split(',')
-            if (p.size != 3) return null
-            val time = p[0].toLongOrNull() ?: return null
-            val mgDl = p[1].toDoubleOrNull() ?: return null
-            readings += Reading(Instant.ofEpochSecond(time), mgDl, 0, scan = p[2] == "1")
-        }
+        for (line in lines) parseLine(line)?.let { readings += it }
         return SavedHistory(readings.sortedBy { it.time }, unit, head[3], updatedAt)
     }
 
@@ -106,7 +121,10 @@ object HistoryStore {
     private fun write(context: Context, h: SavedHistory) {
         val file = File(context.filesDir, FILE)
         val temp = File(context.filesDir, "$FILE.tmp")
-        temp.writeText(encode(h))
+        temp.outputStream().use { out ->
+            out.write(encode(h).toByteArray())
+            out.fd.sync()   // on the disk before the old file is replaced by it
+        }
         if (!temp.renameTo(file)) {
             file.delete()
             temp.renameTo(file)
@@ -114,11 +132,19 @@ object HistoryStore {
         File(context.filesDir, LEGACY_FILE).delete()
     }
 
-    /** The kept history, or null. A file that can't be read is deleted, so it doesn't fail on every start. */
-    fun load(context: Context, zone: ZoneId): SavedHistory? {
+    /**
+     * The kept history, or null. A file that isn't a history is deleted, so it doesn't fail on every start; a file
+     * that just can't be read this moment stays. Waits for a change in progress, so it never sees half of one.
+     */
+    fun load(context: Context, zone: ZoneId): SavedHistory? = synchronized(lock) {
         val file = File(context.filesDir, FILE)
         if (file.exists()) {
-            val h = runCatching { decode(file.readText()) }.getOrNull()
+            val text = try {
+                file.readText()
+            } catch (e: IOException) {
+                return null
+            }
+            val h = decode(text)
             if (h == null || h.readings.isEmpty()) file.delete()
             return h?.takeIf { it.readings.isNotEmpty() }
         }

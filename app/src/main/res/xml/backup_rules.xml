@@ -3,4 +3,6 @@
 <full-backup-content>
     <exclude domain="sharedpref" path="account.xml" />
     <exclude domain="sharedpref" path="sync.xml" />
+    <exclude domain="file" path="events.log" />
+    <exclude domain="root" path="app_webview/" />
 </full-backup-content>

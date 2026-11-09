@@ -50,14 +50,17 @@ suspend fun <T> withSyncLock(waitMs: Long = 20_000, block: suspend () -> T): T {
     }
 }
 
-/** Fetches readings from LibreLinkUp and writes the ones Health Connect doesn't have yet. */
-suspend fun syncOnce(context: Context): SyncResult = syncMutex.withLock {
+/**
+ * Fetches readings from LibreLinkUp and writes the ones Health Connect doesn't have yet. All of it away from the
+ * main thread, whoever asks: it decrypts the account and reads and writes files, and the screen would stutter.
+ */
+suspend fun syncOnce(context: Context): SyncResult = withContext(Dispatchers.IO) { syncMutex.withLock {
     if (healthConnectState(context) != HealthConnectState.AVAILABLE) throw SyncBlocked(Problem.Code.NO_HEALTH_CONNECT)
     val hc = HealthConnectClient.getOrCreate(context)
     if (WRITE_GLUCOSE !in hc.permissionController.getGrantedPermissions()) throw SyncBlocked(Problem.Code.NO_PERMISSION)
     val libre = Libre.client(context) ?: throw SyncBlocked(Problem.Code.SIGNED_OUT)
     val fetchStart = SystemClock.elapsedRealtime()
-    val readings = withContext(Dispatchers.IO) { libre.readings() }
+    val readings = libre.readings()
     val writeStart = SystemClock.elapsedRealtime()
 
     val store = SyncStore(context)
@@ -76,23 +79,25 @@ suspend fun syncOnce(context: Context): SyncResult = syncMutex.withLock {
     store.saveSuccess(readings, fresh.size)
     val done = SystemClock.elapsedRealtime()
     SyncResult(fresh.size, readings.lastOrNull(), readings, writeStart - fetchStart, done - writeStart)
-}
+} }
 
 /**
  * The same, but a failure is remembered so the home screen can show it, and every run goes to the event log
  * with its [trigger]: the minute mode, the background job, the app being opened or the button.
  */
-suspend fun syncAndRecord(context: Context, trigger: String = "other"): SyncResult = try {
-    syncOnce(context).also { DebugLog.add(context, "sync", describe(trigger, it)) }
-} catch (e: CancellationException) {
-    throw e
-} catch (e: Exception) {
-    val problem = Problem.of(e, context)
-    val store = SyncStore(context)
-    // while an app on the phone brings the glucose, the cloud being out of reach is no error to show
-    if (!(problem.isConnection && store.localRecent())) store.saveError(problem)
-    DebugLog.add(context, "error", "$trigger: ${problem.code} ${problem.detail.orEmpty()}".trim())
-    throw e
+suspend fun syncAndRecord(context: Context, trigger: String = "other"): SyncResult = withContext(Dispatchers.IO) {
+    try {
+        syncOnce(context).also { DebugLog.add(context, "sync", describe(trigger, it)) }
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        val problem = Problem.of(e, context)
+        val store = SyncStore(context)
+        // while an app on the phone brings the glucose, the cloud being out of reach is no error to show
+        if (!(problem.isConnection && store.localRecent())) store.saveError(problem)
+        DebugLog.add(context, "error", "$trigger: ${problem.code} ${problem.detail.orEmpty()}".trim())
+        throw e
+    }
 }
 
 /** "minute: newest 18:05:00, 64 s old; 48 points, wrote 1 (18:05); LibreLinkUp 610 ms, Health Connect 85 ms". */

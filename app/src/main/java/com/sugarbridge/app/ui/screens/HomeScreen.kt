@@ -207,12 +207,16 @@ private fun GlucoseHero(latest: Reading?, s: AppSettings, now: Instant) {
 @Composable
 internal fun DayStats(readings: List<Reading>, s: AppSettings) {
     val locale = currentLocale()
-    val values = readings.map { it.mgDl }
-    val inRange = (100.0 * readings.count { levelOf(it.mgDl, s.lowMgDl, s.highMgDl) == GlucoseLevel.IN_RANGE } / readings.size).roundToInt()
+    // over a whole history of years: counted once, not on every redraw
+    val stats = remember(readings, s.lowMgDl, s.highMgDl) {
+        val inRange = (100.0 * readings.count { levelOf(it.mgDl, s.lowMgDl, s.highMgDl) == GlucoseLevel.IN_RANGE } / readings.size).roundToInt()
+        Triple(readings.minOf { it.mgDl }, readings.sumOf { it.mgDl } / readings.size, readings.maxOf { it.mgDl }) to inRange
+    }
+    val (values, inRange) = stats
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Stat(stringResource(R.string.stat_min), formatGlucose(values.min(), s.unit, locale))
-        Stat(stringResource(R.string.stat_avg), formatGlucose(values.average(), s.unit, locale))
-        Stat(stringResource(R.string.stat_max), formatGlucose(values.max(), s.unit, locale))
+        Stat(stringResource(R.string.stat_min), formatGlucose(values.first, s.unit, locale))
+        Stat(stringResource(R.string.stat_avg), formatGlucose(values.second, s.unit, locale))
+        Stat(stringResource(R.string.stat_max), formatGlucose(values.third, s.unit, locale))
         Stat(stringResource(R.string.stat_in_range), stringResource(R.string.percent, inRange))
     }
 }

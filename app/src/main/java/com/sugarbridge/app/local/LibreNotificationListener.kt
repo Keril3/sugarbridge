@@ -32,7 +32,11 @@ class LibreNotificationListener : NotificationListenerService() {
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         if (!LibreNotifications.isAbbott(sbn.packageName)) return
-        LibreNotifications.handle(this, sbn.notification, sbn.postTime, scope)
+        try {
+            LibreNotifications.handle(this, sbn.notification, sbn.postTime, scope)
+        } catch (e: RuntimeException) {   // another app's notification must never bring SugarBridge down
+            DebugLog.add(this, "local", "LibreLink: a notification that can't be read, ${e.javaClass.simpleName}")
+        }
     }
 
     override fun onDestroy() {
@@ -55,12 +59,19 @@ class LibreNotificationListener : NotificationListenerService() {
  */
 object LibreNotifications {
 
-    fun isAbbott(packageName: String) = packageName.startsWith("com.freestylelibre")
+    private val ABBOTT = Regex("""com\.freestylelibre\d*(\.\w+)+""")
+
+    fun isAbbott(packageName: String) = ABBOTT.matches(packageName)
 
     fun handle(context: Context, notification: Notification, postTime: Long, scope: CoroutineScope) {
-        if (!SettingsStore(context).load().localNotification) return
-        val texts = texts(context, notification)
-        val found = LocalGlucose.inTexts(texts)
+        val settings = SettingsStore(context).load()
+        if (!settings.localNotification) return
+        var texts = standardTexts(notification)
+        var found = LocalGlucose.inTexts(texts, settings.unit)
+        if (found == null) {   // only then a layout of its own is drawn here to read it: that costs more and trusts more
+            texts = (texts + customTexts(context, notification)).distinct()
+            found = LocalGlucose.inTexts(texts, settings.unit)
+        }
         val now = Instant.now()
         if (found == null) {
             val first = texts.take(2).joinToString(" · ").take(80)   // the title and the first line
@@ -75,18 +86,23 @@ object LibreNotifications {
         scope.launch { LocalReadings.receive(context.applicationContext, reading, "LibreLink") }
     }
 
-    /** The visible texts: the standard fields and, for a notification of its own layout, the texts in it. */
-    fun texts(context: Context, n: Notification): List<String> {
+    /** The visible texts of the standard fields. */
+    private fun standardTexts(n: Notification): List<String> {
         val extras = n.extras
-        val standard = listOf(
+        return (listOf(
             Notification.EXTRA_TITLE, Notification.EXTRA_TITLE_BIG, Notification.EXTRA_TEXT, Notification.EXTRA_BIG_TEXT,
             Notification.EXTRA_SUB_TEXT, Notification.EXTRA_INFO_TEXT, Notification.EXTRA_SUMMARY_TEXT,
         ).mapNotNull { extras.getCharSequence(it)?.toString() } +
-            extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES).orEmpty().map { it.toString() }
-        @Suppress("DEPRECATION")
-        val custom = listOfNotNull(n.contentView, n.bigContentView).flatMap { textsIn(context, it) }
-        return (standard + custom).map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+            extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES).orEmpty().map { it.toString() }).cleaned()
     }
+
+    /** The texts in a notification of its own layout. */
+    private fun customTexts(context: Context, n: Notification): List<String> {
+        @Suppress("DEPRECATION")
+        return listOfNotNull(n.contentView, n.bigContentView).flatMap { textsIn(context, it) }.cleaned()
+    }
+
+    private fun List<String>.cleaned() = map { it.trim() }.filter { it.isNotEmpty() }.distinct()
 
     private fun textsIn(context: Context, views: RemoteViews): List<String> = try {
         val root = views.apply(context, FrameLayout(context))

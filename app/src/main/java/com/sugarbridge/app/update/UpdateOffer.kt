@@ -6,7 +6,6 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.util.Log
 import androidx.core.content.edit
@@ -67,7 +66,7 @@ object UpdateOffer {
         )
         fun open(action: String, code: Int) = PendingIntent.getActivity(
             context, code,
-            Intent(context, MainActivity::class.java).setAction(action).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            MainActivity.internalIntent(context, action),
             PendingIntent.FLAG_IMMUTABLE,
         )
         val notification = Notification.Builder(context, CHANNEL)

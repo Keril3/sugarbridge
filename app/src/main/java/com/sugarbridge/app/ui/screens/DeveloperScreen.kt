@@ -2,9 +2,11 @@ package com.sugarbridge.app.ui.screens
 
 import android.content.ActivityNotFoundException
 import android.content.ClipData
+import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.os.PersistableBundle
 import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -172,6 +174,8 @@ fun DeveloperDialog(vm: MainViewModel, actions: AppActions, onDismiss: () -> Uni
                         },
                         onCopy = {
                             val clip = ClipData.newPlainText("SugarBridge", report(status, log))
+                            // the log has glucose values in it: Android doesn't show it in its clipboard preview
+                            clip.description.extras = PersistableBundle().apply { putBoolean(ClipDescription.EXTRA_IS_SENSITIVE, true) }
                             context.getSystemService(ClipboardManager::class.java).setPrimaryClip(clip)   // Android confirms it itself
                         },
                         onShare = {

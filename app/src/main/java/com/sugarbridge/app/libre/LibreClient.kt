@@ -61,12 +61,25 @@ class ApiChanged(val minimum: String) : LibreError("LibreLinkUp asks for version
 class ServerError(val code: Int) : IOException("LibreLinkUp answered with HTTP $code")
 
 /** A saved sign-in: region, token and account-id. With it there is no need to sign in on every start. */
-data class Session(val region: String, val token: String, val accountId: String)
+data class Session(val region: String, val token: String, val accountId: String) {
+    override fun toString() = "Session(region=$region)"   // never the token, wherever one gets printed
+}
 
 // Russia is a separate Abbott system (its own LibreView and LibreLinkUp-RU); the rest of the world is libreview.io with regions
 private val SPECIAL_REGIONS = mapOf("ru" to "https://api.libreview.ru", "us" to "https://api.libreview.io")
 
-fun regionUrl(region: String): String = SPECIAL_REGIONS[region] ?: "https://api-$region.libreview.io"
+/**
+ * What a region may look like. It comes from the server and becomes a part of the address the password goes to,
+ * so a dot, a slash or a "#" must never get there: they would turn it into the address of another server.
+ */
+private val REGION = Regex("[A-Za-z0-9-]{1,16}")
+
+fun isValidRegion(region: String): Boolean = REGION.matches(region)
+
+fun regionUrl(region: String): String {
+    require(isValidRegion(region)) { "Not a LibreLinkUp region" }
+    return SPECIAL_REGIONS[region] ?: "https://api-$region.libreview.io"
+}
 
 /**
  * Servers to start signing in with while the account's region is unknown. The Russian and the world
@@ -101,7 +114,7 @@ private val BASE_HEADERS = mapOf(
 )
 
 class LibreClient(
-    private val email: String,
+    val email: String,
     private val password: String,
     private val http: HttpTransport = UrlConnectionTransport(),
     var session: Session? = null,
@@ -161,7 +174,9 @@ class LibreClient(
             val data = json.optJSONObject("data")
             if (data != null && data.optBoolean("redirect")) {   // the account lives in another region
                 if (++redirects > 1) throw LoginFailed("The server keeps redirecting in a loop")
-                region = data.getString("region")
+                val next = data.getString("region")
+                if (!isValidRegion(next)) throw LibreError("LibreLinkUp named an impossible region")
+                region = next
                 continue
             }
             val token = data?.optJSONObject("authTicket")?.optString("token")
@@ -180,7 +195,8 @@ class LibreClient(
         // both the Russian and the world servers answer like this when there is no such account or the password is wrong
         val message = json.optJSONObject("error")?.optString("message")
         val known = message != null && listOf("incorrect", "notauthenticated").any { it in message.lowercase() }
-        return if (known) WrongCredentials(message) else LoginFailed(message ?: json.toString())
+        // only the server's own words go on, and to the event log: never the whole answer, it may hold personal data
+        return if (known) WrongCredentials(message) else LoginFailed(message?.take(200) ?: "No reason given, status ${json.optInt("status", -1)}")
     }
 
     /** If the server requires a newer version than ours, remember it and report that the request is worth repeating. */

@@ -1,6 +1,7 @@
 package com.sugarbridge.app
 
 import android.content.Context
+import android.net.Uri
 import android.os.SystemClock
 import androidx.lifecycle.ViewModelProvider
 import androidx.test.core.app.ActivityScenario
@@ -121,6 +122,38 @@ class HistoryRestoreTest {
         withViewModel { _, vm ->
             assertTrue("the broken file was kept", waitFor { !HistoryStore.exists(context) })
             assertFalse(vm.history.loaded)
+        }
+    }
+
+    /** The phone switched off while a sync was adding readings: the rest of the history must survive it. */
+    @Test
+    fun aLineCutOffByACrashLosesNothingElse() {
+        val end = Instant.parse("2026-10-08T18:00:00Z")
+        File(context.filesDir, "history.txt").writeText(
+            "sugarbridge-history 1\tMMOL\t1\tLibreView\n${end.epochSecond},110.0,0\n${end.epochSecond + 900},120.0,0\n17600"
+        )
+        withViewModel { _, vm ->
+            assertTrue("the history is gone", waitFor { vm.history.loaded })
+            assertEquals(2, vm.history.readings.size)
+        }
+        // the next readings don't grow onto the cut-off line
+        val next = Reading(end.plusSeconds(1800), 130.0, 0)
+        assertEquals(1, HistoryStore.append(context, listOf(next), GlucoseUnit.MMOL, "LibreLinkUp"))
+        assertEquals(listOf(110.0, 120.0, 130.0), HistoryStore.load(context, ZoneId.systemDefault())!!.readings.map { it.mgDl })
+    }
+
+    /** A file: address could point at SugarBridge's own files: only what another app gives by content: is read. */
+    @Test
+    fun aFileAddressIsNotRead() {
+        val file = File(context.filesDir, "export.csv").apply { writeText(first) }
+        try {
+            withViewModel { scenario, vm ->
+                scenario.onActivity { vm.importUri(Uri.fromFile(file)) }
+                Thread.sleep(1500)
+                assertFalse(vm.history.loaded)
+            }
+        } finally {
+            file.delete()
         }
     }
 

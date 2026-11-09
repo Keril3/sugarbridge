@@ -1,6 +1,7 @@
 package com.sugarbridge.app
 
 import android.app.Application
+import android.content.ContentResolver
 import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
@@ -30,6 +31,7 @@ import com.sugarbridge.app.libre.Libre
 import com.sugarbridge.app.libre.LoginFailed
 import com.sugarbridge.app.libreview.DaySummary
 import com.sugarbridge.app.libreview.HistoryStore
+import com.sugarbridge.app.libreview.LibreViewActivity
 import com.sugarbridge.app.libreview.LibreViewCsv
 import com.sugarbridge.app.libreview.MergeMode
 import com.sugarbridge.app.libreview.MergePlan
@@ -170,14 +172,23 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     private var gmiJob: Job? = null
     private var gmiAt: Instant? = null
+    private var updateJob: Job? = null
 
     private val _messages = MutableSharedFlow<UiText>(extraBufferCapacity = 8)
     val messages: SharedFlow<UiText> = _messages
 
-    // the service and the background job write to the preferences: the screen updates by itself
+    // the service and the background job write to the preferences: the screen updates by itself. One save changes
+    // several keys and Android reports each of them, so they are taken together: one reading and one redraw a sync
+    private var refreshQueued = false
     private val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
-        refreshLocal()
-        showAddedReadings()
+        if (!refreshQueued) {
+            refreshQueued = true
+            viewModelScope.launch(Dispatchers.Main) {   // not Main.immediate: after the other keys of this save
+                refreshQueued = false
+                refreshLocal()
+                showAddedReadings()
+            }
+        }
     }
     private var historyChangedAt = 0L   // the kept history's file when it was last shown
     private val syncPrefs = app.getSharedPreferences(SyncStore.NAME, Context.MODE_PRIVATE)
@@ -255,8 +266,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     /** Looks for a newer version on GitHub: by itself on start at most every 6 hours, or when asked. */
     fun checkForUpdate(force: Boolean = true) {
         if (update.checking || update.progress != null) return
+        if (updateJob?.isActive == true) {   // the check by itself is under way: it isn't started twice, the button takes over
+            if (!force) return
+            updateJob?.cancel()
+        }
         update = update.copy(checking = force, checkedNothing = false)
-        viewModelScope.launch {
+        updateJob = viewModelScope.launch {
             try {
                 val found = withContext(Dispatchers.IO) { Updater.check(context, force) }
                 update = update.copy(available = found, checkedNothing = force && found == null)
@@ -279,12 +294,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         update = update.copy(progress = 0f)
         viewModelScope.launch {
             try {
-                val file = withContext(Dispatchers.IO) {
-                    Updater.download(context, release) { p -> update = update.copy(progress = p) }
-                }
                 withContext(Dispatchers.IO) {
-                    Updater.verify(context, file)
-                    Updater.install(context, file)
+                    val file = Updater.download(context, release) { p -> viewModelScope.launch { if (update.progress != null) update = update.copy(progress = p) } }
+                    try {
+                        Updater.verify(context, file)
+                        Updater.install(context, file)
+                    } finally {
+                        file.delete()   // the installer has its own copy: tens of megabytes needn't stay in the cache
+                    }
                 }
             } catch (e: CancellationException) {
                 throw e
@@ -303,14 +320,17 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /** An update failure in GitHub's words: the update doesn't come from LibreLinkUp. */
-    private fun sayUpdateError(e: Exception) = say { res ->
-        val reason = when (e) {
-            is GitHubError -> res.getString(R.string.error_github_server, e.code)
-            is IOException -> res.getString(R.string.error_github_network)
-            else -> e.message ?: e.javaClass.simpleName
+    /** An update failure in GitHub's words: the update doesn't come from LibreLinkUp. The technical part goes to the log. */
+    private fun sayUpdateError(e: Exception) {
+        DebugLog.add(context, "error", "update: ${e.message ?: e.javaClass.simpleName}")
+        say { res ->
+            val reason = when (e) {
+                is GitHubError -> res.getString(R.string.error_github_server, e.code)
+                is IOException -> res.getString(R.string.error_github_network)
+                else -> res.getString(R.string.error_other)
+            }
+            res.getString(R.string.update_failed, reason)
         }
-        res.getString(R.string.update_failed, reason)
     }
 
     /** The notification about a new version was tapped: offer it in the window. */
@@ -326,17 +346,21 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         updateOffer = null
     }
 
-    /** What Android's installer answered, for the Activity. */
-    fun updateFailed(message: String) = say(R.string.update_failed, message)
+    /** Android's installer refused, for the Activity. Its own words are technical and go to the log. */
+    fun updateFailed(conflict: Boolean, detail: String) {
+        DebugLog.add(context, "error", "installer: $detail")
+        say { res -> res.getString(R.string.update_failed, res.getString(if (conflict) R.string.update_other_key else R.string.error_other)) }
+    }
 
     /**
      * Estimated HbA1c (GMI) for 14 and 90 days from all SugarBridge readings in Health Connect, in one pass
-     * over 90 days of records. Recalculated at most every 10 minutes: it barely changes in that time.
+     * over 90 days of records. Recalculated at most every 30 minutes: it barely changes in that time, and minute
+     * mode leaves over a hundred thousand records to read.
      */
     private fun refreshGmi(force: Boolean = false) {
         if (gmiJob?.isActive == true) return
         val last = gmiAt
-        if (!force && last != null && Duration.between(last, Instant.now()) < Duration.ofMinutes(10)) return
+        if (!force && last != null && Duration.between(last, Instant.now()) < Duration.ofMinutes(30)) return
         gmiJob = viewModelScope.launch {
             val now = Instant.now()
             val s = ui.settings
@@ -411,6 +435,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun signOut() {
         LiveSyncService.stop(context)   // the mode stays on in the settings and comes back after signing in
         Libre.signOut(context)
+        LibreViewActivity.forgetSession(context)
         SyncStore(context).clearDisplay()
         ui = ui.copy(checkResult = null)
         refreshAccount()
@@ -467,21 +492,41 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             after.liveEnabled && liveChanged -> LiveSyncService.reload(context)
         }
         if (after.lowMgDl != before.lowMgDl || after.highMgDl != before.highMgDl) {
-            if (history.loaded) history = history.copy(days = summarize(history.readings, history.existing, after))
+            val h = history
+            if (h.loaded) {
+                viewModelScope.launch {
+                    val days = withContext(Dispatchers.Default) { summarize(h.readings, h.existing, after) }
+                    if (history.readings === h.readings) history = history.copy(days = days)
+                }
+            }
             if (ui.gmi90 != null) refreshGmi(force = true)   // its time in range follows the new target range
         }
     }
 
     // ---------- history from LibreView ----------
 
+    /**
+     * A file from the picker or from another app. Only through a content: address, by which another app gives what
+     * is its own: a file: address could point at SugarBridge's own files. Its size and name are another app's word,
+     * so they are checked, and it is read away from the main thread, since that app may take its time.
+     */
     fun importUri(uri: Uri) {
+        if (uri.scheme != ContentResolver.SCHEME_CONTENT) {
+            say(R.string.msg_file_unreadable)
+            return
+        }
         viewModelScope.launch {
-            val bytes = try {
-                withContext(Dispatchers.IO) { context.contentResolver.openInputStream(uri)?.use { it.readBytes() } }
-            } catch (e: Exception) {
-                null
+            val (bytes, name) = withContext(Dispatchers.IO) {
+                val read = try {
+                    context.contentResolver.openInputStream(uri)?.use { LibreViewCsv.readAtMost(it) }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    null
+                }
+                read to if (read != null) LibreViewCsv.cleanName(displayName(uri)) else null
             }
-            if (bytes == null) say(R.string.msg_file_unreadable) else importBytes(bytes, displayName(uri) ?: "CSV")
+            if (bytes == null) say(R.string.msg_file_unreadable) else importBytes(bytes, name ?: "CSV")
         }
     }
 
@@ -528,6 +573,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             throw e
         } catch (e: Exception) {
             if (run == importRun) sayError(R.string.msg_parse_failed, e)
+        } catch (e: OutOfMemoryError) {   // not an export: nothing a real one would come to
+            if (run == importRun) say(R.string.msg_file_unreadable)
         } finally {
             if (run == importRun) readingFile = false
         }
@@ -736,13 +783,15 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         HistoryStore.clear(context)
     }
 
+    /** Every pass over a history of years is done away from the main thread, or the screen would stop for it. */
     fun writeSelected() {
         val h = history
-        val chosen = readingsOnDays(h.readings, h.selected, zone)
-        if (chosen.isEmpty() || h.busy) return
+        if (h.selected.isEmpty() || h.busy) return
         history = h.copy(busy = true, progress = 0f)
         viewModelScope.launch {
             try {
+                val chosen = withContext(Dispatchers.Default) { readingsOnDays(h.readings, h.selected, zone) }
+                if (chosen.isEmpty()) return@launch
                 if (healthConnectState(context) != HealthConnectState.AVAILABLE || !hasGlucosePermission(context)) {
                     say(R.string.msg_allow_hc_first)
                     return@launch
@@ -750,15 +799,18 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 val existing = existingKeys(chosen)
                 val now = Instant.now()
                 // Health Connect won't take a time in the future; usually the file comes from another time zone
-                val future = chosen.count { it.time.isAfter(now) }
-                val toWrite = chosen.filter { minuteKey(it.time) !in existing && !it.time.isAfter(now) }
+                val (future, toWrite) = withContext(Dispatchers.Default) {
+                    chosen.count { it.time.isAfter(now) } to chosen.filter { minuteKey(it.time) !in existing && !it.time.isAfter(now) }
+                }
                 withContext(Dispatchers.IO) {
                     insertReadings(context, toWrite) { done ->
-                        history = history.copy(progress = done.toFloat() / toWrite.size)
+                        viewModelScope.launch { if (history.busy) history = history.copy(progress = done.toFloat() / toWrite.size) }
                     }
                 }
                 val allExisting = existingKeys(h.readings)
-                history = history.copy(existing = allExisting, days = summarize(h.readings, allExisting, ui.settings), selected = emptySet())
+                val settings = ui.settings
+                val days = withContext(Dispatchers.Default) { summarize(h.readings, allExisting, settings) }
+                history = history.copy(existing = allExisting, days = days, selected = emptySet())
                 refreshGmi(force = true)   // past days change the estimated HbA1c
                 val already = chosen.size - toWrite.size - future
                 say { res ->
@@ -792,7 +844,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     SyncStore(context).forget(from, to)   // LibreLinkUp may write these minutes again
                 }
                 val allExisting = existingKeys(h.readings)
-                history = history.copy(existing = allExisting, days = summarize(h.readings, allExisting, ui.settings), selected = emptySet())
+                val settings = ui.settings
+                val days = withContext(Dispatchers.Default) { summarize(h.readings, allExisting, settings) }
+                history = history.copy(existing = allExisting, days = days, selected = emptySet())
                 refreshGmi(force = true)
                 say(R.string.msg_deleted, h.selected.size)
             } catch (e: CancellationException) {

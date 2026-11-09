@@ -3,6 +3,7 @@ package com.sugarbridge.app
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInstaller
 import android.content.pm.PackageManager
@@ -119,20 +120,32 @@ class MainActivity : ComponentActivity(), AppActions {
         vm.refreshStatus()
     }
 
-    /** A CSV opened with SugarBridge from a browser, a file manager or "Share"; or the package installer answering. */
+    /**
+     * What SugarBridge itself asks through its door no other app can open ([internalIntent]): the package installer
+     * answering, a tap on the notification about a new version. Any other app may start this screen, so nothing of
+     * this is taken from a plain start: the installer's answer holds an Intent to launch, and another app would get
+     * to launch anything in SugarBridge's name with it.
+     *
+     * Open to all: Health Connect's link, and a CSV opened with SugarBridge from a browser, a file manager or "Share".
+     */
     private fun handleIntent(intent: Intent?) {
+        if (intent?.component?.className == INTERNAL_ENTRY) {
+            when (intent.action) {
+                Updater.ACTION_INSTALL_STATUS -> onInstallStatus(intent)
+                UpdateOffer.ACTION_OFFER -> vm.showUpdateOffer()
+                UpdateOffer.ACTION_INSTALL -> {   // "Download and install" in the notification
+                    vm.showUpdateOffer()
+                    vm.closeUpdateOffer()
+                    installUpdate()
+                }
+            }
+            return
+        }
         when (intent?.action) {
-            Updater.ACTION_INSTALL_STATUS -> return onInstallStatus(intent)
-            UpdateOffer.ACTION_OFFER -> return vm.showUpdateOffer()
             // Health Connect's "privacy policy" link, on the permission screen and in the permission settings
             ACTION_PERMISSIONS_RATIONALE, Intent.ACTION_VIEW_PERMISSION_USAGE -> {
                 vm.privacyOpen = true
                 return
-            }
-            UpdateOffer.ACTION_INSTALL -> {   // "Download and install" in the notification
-                vm.showUpdateOffer()
-                vm.closeUpdateOffer()
-                return installUpdate()
             }
         }
         val uri = when (intent?.action) {
@@ -187,7 +200,10 @@ class MainActivity : ComponentActivity(), AppActions {
                 intent.getParcelableExtra(Intent.EXTRA_INTENT, Intent::class.java)?.let(::open)
             PackageInstaller.STATUS_SUCCESS -> Unit   // Android restarts the app in its new version
             PackageInstaller.STATUS_FAILURE_ABORTED -> Unit   // the person said no
-            else -> vm.updateFailed(intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE).orEmpty())
+            else -> vm.updateFailed(
+                conflict = intent.getIntExtra(PackageInstaller.EXTRA_STATUS, 0) == PackageInstaller.STATUS_FAILURE_CONFLICT,
+                detail = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE).orEmpty(),
+            )
         }
     }
 
@@ -245,11 +261,18 @@ class MainActivity : ComponentActivity(), AppActions {
         }
     }
 
-    private companion object {
+    companion object {
         /** Faster than anyone can read and answer the Health Connect dialog. */
-        const val SILENT_REFUSAL_MS = 1_000L
+        private const val SILENT_REFUSAL_MS = 1_000L
 
         /** Health Connect's link to an app's privacy policy (see the manifest). */
-        const val ACTION_PERMISSIONS_RATIONALE = "androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE"
+        private const val ACTION_PERMISSIONS_RATIONALE = "androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE"
+
+        /** The manifest's alias of this screen that isn't exported. */
+        private const val INTERNAL_ENTRY = "com.sugarbridge.app.InternalEntry"
+
+        /** Opens this screen through the door only SugarBridge can open, see [handleIntent]. */
+        fun internalIntent(context: Context, action: String): Intent =
+            Intent().setClassName(context, INTERNAL_ENTRY).setAction(action).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
     }
 }

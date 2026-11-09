@@ -235,7 +235,10 @@ a cloud, so without the internet nothing comes from it. Settings → Sync → "W
   on the phone. Juggluco: Settings → Exchange data → Glucodata broadcast → tick `com.sugarbridge.app`. xDrip+:
   Settings → Inter-app settings → turn on "Broadcast locally" and "Compatible Broadcast", and put
   `com.sugarbridge.app` into "Identify receiver". A sensor usually connects to one app at a time: when Juggluco
-  or xDrip+ takes it over, LibreLink may lose it together with its alarms, so set up the alarms there.
+  or xDrip+ takes it over, LibreLink may lose it together with its alarms, so set up the alarms there. Android
+  can't tell which app sent such a reading, so another app on the phone could send a false one while this is on:
+  keep it off unless you use Juggluco or xDrip+. Impossible values are dropped, and at most one reading is taken
+  every 10 seconds.
 
 Readings from the phone go to Health Connect at once, also with no internet, and appear on the home screen and in
 minute mode's notification; LibreLinkUp fills in the rest when the phone is online again, without writing
@@ -266,7 +269,8 @@ that can't be taken off the phone. SugarBridge has no server, analytics or ads. 
 Connect it talks only to GitHub, to ask for the latest version and download it; with "Check for updates by
 itself" off, only when you tap "Check for updates". With "From LibreLink's notification" on it reads only the
 notifications of Abbott's apps, for the glucose in them, and keeps none. The same in short is in the app:
-Settings → App → Privacy, and Health Connect's "privacy policy" link for SugarBridge opens it.
+Settings → App → Privacy, and Health Connect's "privacy policy" link for SugarBridge opens it. Signing out erases
+the password and the sign-in in the LibreView window; the history and the event log stay until you delete them.
 
 **My language is missing or a translation is off.** Open an issue or a pull request: all texts are in
 `app/src/main/res/values-*/strings.xml`, and a unit test checks that every language has every string.
@@ -334,14 +338,14 @@ GitHub Actions builds and signs the APK in Releases when a `v*` tag arrives in t
    ```
 3. **Every release:** add the version's section to [CHANGELOG.md](CHANGELOG.md), then
    ```sh
-   git tag v1.14.0
-   git push origin v1.14.0
+   git tag v1.14.1
+   git push origin v1.14.1
    ```
    A few minutes later `SugarBridge.apk` appears in Releases with the notes from the CHANGELOG.
 
 A signed APK can be built locally too: put `sugarbridge.keystore`, `sugarbridge.keystorePassword`,
 `sugarbridge.keyAlias` and `sugarbridge.keyPassword` into `~/.gradle/gradle.properties` (outside the repository)
-and run `./gradlew assembleRelease -Psugarbridge.version=1.14.0`.
+and run `./gradlew assembleRelease -Psugarbridge.version=1.14.1`.
 
 ## Feedback
 

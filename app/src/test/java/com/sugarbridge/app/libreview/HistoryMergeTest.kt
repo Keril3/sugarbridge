@@ -4,6 +4,7 @@ import com.sugarbridge.app.glucose.GlucoseUnit
 import com.sugarbridge.app.glucose.Reading
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
 
@@ -64,6 +65,7 @@ class HistoryMergeTest {
     fun anythingElseIsNotAHistory() {
         assertNull(HistoryStore.decode(""))
         assertNull(HistoryStore.decode("Glucose Data,Generated on,08-10-2026\n1,2,3"))
-        assertNull(HistoryStore.decode("sugarbridge-history 1\tMMOL\t1\tx\nnot,a,number"))
+        // a history's first line with nothing readable after it holds no readings, and such a file isn't kept
+        assertTrue(HistoryStore.decode("sugarbridge-history 1\tMMOL\t1\tx\nnot,a,number")!!.readings.isEmpty())
     }
 }

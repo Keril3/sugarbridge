@@ -38,4 +38,20 @@ class HistoryAppendTest {
         val text = HistoryStore.encode(history) + HistoryStore.encode(SavedHistory(added, history.unit, "", end)).substringAfter('\n')
         assertEquals(listOf(0L, 15L, 30L), minutesOf(HistoryStore.decode(text)!!.readings))
     }
+
+    @Test
+    fun aLineCutOffByACrashCostsOnlyThatLine() {
+        val saved = HistoryStore.encode(SavedHistory(listOf(at(0), at(15)), GlucoseUnit.MMOL, "LibreView", end))
+        assertEquals(listOf(0L, 15L), minutesOf(HistoryStore.decode(saved + "17600")!!.readings))
+        assertEquals(listOf(0L, 15L), minutesOf(HistoryStore.decode(saved + "not,a,number\n")!!.readings))
+    }
+
+    @Test
+    fun theEndOfAFileIsFoundPastACutOffLine() {
+        val second = end.epochSecond
+        assertEquals(second, HistoryStore.lastReadingIn("$second,100.0,0\n"))
+        assertEquals(second, HistoryStore.lastReadingIn("$second,100.0,0\n17600"))
+        assertEquals(second, HistoryStore.lastReadingIn("$second,100.0,0\n17600,10"))
+        assertEquals(null, HistoryStore.lastReadingIn("sugarbridge-history 1\tMMOL\t1\tLibreView\n"))
+    }
 }

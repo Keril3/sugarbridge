@@ -57,6 +57,7 @@ class LocalSourcesTest {
         context.getSharedPreferences(SyncStore.NAME, Context.MODE_PRIVATE).edit().clear().commit()
         SettingsStore(context).save(AppSettings(backgroundMinutes = 0))
         LocalReadings.setBroadcasts(context, false)
+        LocalGlucoseReceiver.forgetLast()
         DebugLog.clear(context)
         runBlocking { deleteOwnGlucose(context, from, to) }
     }
@@ -138,6 +139,27 @@ class LocalSourcesTest {
         assertNull(SyncStore(context).snapshot().localReading)
     }
 
+    /** Any app can send these: hundreds a second must not reach Health Connect, nor fill the log. */
+    @Test
+    fun aFloodIsTakenOneReadingAtATime() {
+        broadcastsOn()
+        val at = Instant.now().minusSeconds(30)
+        repeat(50) { juggluco(100 + it, at.plusSeconds(it.toLong() % 20)) }
+        assertTrue(waitFor { SyncStore(context).snapshot().localReading != null })
+        Thread.sleep(2000)
+        assertEquals(100.0, SyncStore(context).snapshot().localReading!!.mgDl, 0.0)
+        assertEquals(1, DebugLog.read(context).count { it.kind == "local" })
+    }
+
+    @Test
+    fun aBadFloodDoesNotFillTheLogEither() {
+        broadcastsOn()
+        repeat(50) { juggluco(5, Instant.now().minusSeconds(30)) }
+        assertTrue(waitFor { DebugLog.read(context).any { it.text.contains("can't be right") } })
+        Thread.sleep(2000)
+        assertEquals(1, DebugLog.read(context).count { it.kind == "local" })
+    }
+
     @Test
     fun aReadingThatCantBeRightIsLeftOut() {
         broadcastsOn()
@@ -186,6 +208,7 @@ class LocalSourcesTest {
     fun onlyAbbottsAppsAreRead() {
         assertTrue(LibreNotifications.isAbbott("com.freestylelibre.app.ru"))
         assertTrue(LibreNotifications.isAbbott("com.freestylelibre3.app"))
+        assertFalse(LibreNotifications.isAbbott("com.freestylelibreevil.app"))
         assertFalse(LibreNotifications.isAbbott("org.telegram.messenger"))
         assertFalse(LibreNotifications.isAbbott(context.packageName))
     }

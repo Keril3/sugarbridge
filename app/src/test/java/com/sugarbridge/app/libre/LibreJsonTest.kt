@@ -51,4 +51,18 @@ class LibreJsonTest {
         assertEquals(listOf(100.0, 110.0, 121.0), readings.map { it.mgDl })
         assertEquals(3, readings.last().trend)
     }
+
+    @Test
+    fun aPointThatCantBeUsedCostsOnlyItself() {
+        val data = JSONObject()
+            .put("graphData", JSONArray()
+                .put(item("10/8/2026 5:30:00 PM", 100))
+                .put(item("not a time", 110))                      // a format nobody expected
+                .put(item("10/8/2026 5:45:00 PM", 0))              // no value: Health Connect would refuse the whole batch
+                .put(item("10/8/2026 5:50:00 PM", 2000))           // nor would it take this
+                .put("not even an object")
+                .put(item("10/8/2026 6:00:00 PM", 120)))
+            .put("connection", JSONObject().put("glucoseMeasurement", item("broken", 121)))
+        assertEquals(listOf(100.0, 120.0), parseGraph(data).map { it.mgDl })
+    }
 }

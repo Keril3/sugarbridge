@@ -1,5 +1,6 @@
 package com.sugarbridge.app.local
 
+import com.sugarbridge.app.glucose.GlucoseUnit
 import com.sugarbridge.app.glucose.MGDL_PER_MMOL
 import com.sugarbridge.app.glucose.Reading
 import java.time.Duration
@@ -68,10 +69,11 @@ object LocalGlucose {
 
     /**
      * The glucose in mg/dL in a notification's texts, and the arrow if one is there: a number with its unit, or a
-     * text that is only a number, where one with a decimal is mmol/L and a whole one mg/dL. Null when there is
-     * none or the texts disagree, so a notification that merely mentions numbers is never taken for a reading.
+     * text that is only a number and looks like the [unit] in use, a decimal in mmol/L and a whole one in mg/dL:
+     * a "60" in a mmol/L user's notification is more likely minutes than a glucose. Null when there is none or the
+     * texts disagree, so a notification that merely mentions numbers is never taken for a reading.
      */
-    fun inTexts(texts: List<String>): Pair<Double, Int>? {
+    fun inTexts(texts: List<String>, unit: GlucoseUnit): Pair<Double, Int>? {
         val values = texts.flatMap { text ->
             WITH_UNIT.findAll(text).map { m ->
                 val number = m.groupValues[1].replace(',', '.').toDouble()
@@ -79,7 +81,12 @@ object LocalGlucose {
                 else number * MGDL_PER_MMOL
             }.toList().ifEmpty {
                 ALONE.find(text)?.groupValues?.get(1)?.let { n ->
-                    if (n.contains('.') || n.contains(',')) n.replace(',', '.').toDouble() * MGDL_PER_MMOL else n.toDouble()
+                    val decimal = n.contains('.') || n.contains(',')
+                    when {
+                        decimal && unit == GlucoseUnit.MMOL -> n.replace(',', '.').toDouble() * MGDL_PER_MMOL
+                        !decimal && unit == GlucoseUnit.MGDL -> n.toDouble()
+                        else -> null
+                    }
                 }?.let(::listOf).orEmpty()
             }
         }.filter { it in PLAUSIBLE }
