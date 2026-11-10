@@ -138,7 +138,7 @@
     <string name="settings_live_value">Сахар в уведомлении</string>
     <string name="settings_live_value_hint">Значение в шторке уведомлений. Выключите — уведомление станет тихим и спрячется вниз шторки</string>
     <string name="settings_keep_awake">Не давать телефону засыпать</string>
-    <string name="settings_keep_awake_hint">Интервал не растягивается при выключенном экране, но батарея садится быстрее</string>
+    <string name="settings_keep_awake_hint">Интервал не растягивается при выключенном экране. Без ограничений батареи телефон просыпается только на время запроса; с ними он не засыпает и батарея садится быстрее</string>
     <string name="settings_hide_notification">Скрыть уведомление совсем</string>
     <string name="settings_battery">Снять ограничения батареи</string>
     <string name="settings_live_hint">Так часто Android даёт работать только приложению с уведомлением. Если оно мешает, выключите его кнопкой выше — режим продолжит работать.</string>

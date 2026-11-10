@@ -166,6 +166,12 @@ history has a point every 15 minutes. In the background SugarBridge fetches the 
 missed, but the points are 15 minutes apart. Every minute happens only in minute mode. How often LibreLinkUp
 really delivers values is shown on the home screen.
 
+**How much battery does it use?** Without minute mode almost none: one request every 15 minutes or as you set it. In
+minute mode what costs the most is reaching LibreLinkUp over the network every minute, so 2 or 5 minutes in Settings
+is the most effective saving. With the battery restrictions removed, the processor sleeps between requests and an
+alarm wakes it for each one; with them, "Keep the phone awake" keeps it awake all the time and drains faster. With no
+connection, or while the newest reading is half an hour old, minute mode asks every 5 minutes at most by itself.
+
 **Why does glucose show up in Samsung Health late?** The path has four links, and the home screen shows two
 of them: how often LibreLinkUp gets a new value and how long after the sensor reading values reach SugarBridge.
 SugarBridge's own share is measured by device tests: in minute mode every new value is in Health Connect within
@@ -296,6 +302,8 @@ You need Android Studio (it comes with a JDK) and Android SDK 37.
 ./gradlew testDebugUnitTest         # unit tests: a fake LibreLinkUp, CSV parsing, sync logic, translations
 ./gradlew lintDebug                 # Android Lint
 ./gradlew connectedDebugAndroidTest # on an Android 14+ phone or emulator: Health Connect, the whole chain, screenshots
+./gradlew assembleSmoke && python3 tools/smoke_test.py app/build/outputs/apk/smoke/app-smoke.apk
+                                    # the whole app walked through in an optimized build, against a fake LibreLinkUp
 ```
 
 On Windows use `gradlew.bat`. CI on GitHub runs the unit tests, Lint and the build on every push.
@@ -338,14 +346,14 @@ GitHub Actions builds and signs the APK in Releases when a `v*` tag arrives in t
    ```
 3. **Every release:** add the version's section to [CHANGELOG.md](CHANGELOG.md), then
    ```sh
-   git tag v1.14.1
-   git push origin v1.14.1
+   git tag v1.15.0
+   git push origin v1.15.0
    ```
    A few minutes later `SugarBridge.apk` appears in Releases with the notes from the CHANGELOG.
 
 A signed APK can be built locally too: put `sugarbridge.keystore`, `sugarbridge.keystorePassword`,
 `sugarbridge.keyAlias` and `sugarbridge.keyPassword` into `~/.gradle/gradle.properties` (outside the repository)
-and run `./gradlew assembleRelease -Psugarbridge.version=1.14.1`.
+and run `./gradlew assembleRelease -Psugarbridge.version=1.15.0`.
 
 ## Feedback
 

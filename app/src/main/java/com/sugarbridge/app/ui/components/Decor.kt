@@ -603,6 +603,18 @@ fun XpMeter(fraction: Float, modifier: Modifier = Modifier, color: Color = Local
 }
 
 /**
+ * The same bar for a value that just stands there, in a row of a long list: drawn straight from the value, so a row
+ * scrolling into view costs one drawing instead of being composed again once its width is known.
+ */
+@Composable
+fun StillMeter(fraction: Float, modifier: Modifier = Modifier, color: Color = LocalXp.current.meter) {
+    Canvas(modifier.meterTrough().semantics { progressBarRangeInfo = ProgressBarRangeInfo(fraction.coerceIn(0f, 1f), 0f..1f) }) {
+        val capacity = meterCapacity(size.width, MeterBlock.toPx(), MeterGap.toPx(), MeterInset.toPx())
+        meterBlocks(0 until meterBlocks(fraction, capacity), capacity, color)
+    }
+}
+
+/**
  * An XP bar for work of unknown length: a group of three blocks runs through the trough block by block and
  * starts over, the way Windows XP showed it was busy.
  */

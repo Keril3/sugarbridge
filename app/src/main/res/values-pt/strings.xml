@@ -138,7 +138,7 @@
     <string name="settings_live_value">Glicose na notificação</string>
     <string name="settings_live_value_hint">O valor na aba de notificações. Desligado, a notificação fica silenciosa e desce para o fim da aba</string>
     <string name="settings_keep_awake">Manter o telefone acordado</string>
-    <string name="settings_keep_awake_hint">O intervalo não se estica com a tela apagada, mas a bateria acaba mais rápido</string>
+    <string name="settings_keep_awake_hint">O intervalo não se estica com a tela apagada. Sem restrições de bateria o telefone só desperta para cada consulta; com elas fica desperto e a bateria acaba mais rápido</string>
     <string name="settings_hide_notification">Ocultar a notificação por completo</string>
     <string name="settings_battery">Remover restrições de bateria</string>
     <string name="settings_live_hint">O Android só deixa um app trabalhar com essa frequência se ele mostrar uma notificação. Se ela incomodar, desative-a no botão acima: o modo continua funcionando.</string>

@@ -1,5 +1,7 @@
 package com.sugarbridge.app.sync
 
+import android.annotation.SuppressLint
+import android.app.AlarmManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -13,6 +15,8 @@ import android.content.SharedPreferences
 import android.content.pm.ServiceInfo
 import android.content.res.Configuration
 import android.graphics.drawable.Icon
+import android.net.ConnectivityManager
+import android.net.Network
 import android.os.IBinder
 import android.os.PowerManager
 import android.os.SystemClock
@@ -34,6 +38,8 @@ import com.sugarbridge.app.settings.SettingsStore
 import com.sugarbridge.app.settings.ThemeMode
 import com.sugarbridge.app.settings.minuteModeOff
 import com.sugarbridge.app.ui.clockFormat
+import java.time.Duration
+import java.time.Instant
 import java.time.ZoneId
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -41,10 +47,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Minute mode: a foreground service that syncs every N minutes and shows glucose in a notification.
@@ -55,7 +63,19 @@ class LiveSyncService : Service() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var loop: Job? = null
-    private var keepAwake: PowerManager.WakeLock? = null
+    private var keepAwake: PowerManager.WakeLock? = null   // only when an alarm can't be used, see wakesByAlarm
+    private val pollLock by lazy {
+        getSystemService(PowerManager::class.java)
+            .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "SugarBridge:poll")
+            .apply { setReferenceCounted(false) }
+    }
+    private val alarms by lazy { getSystemService(AlarmManager::class.java) }
+    private val tickIntent by lazy {
+        PendingIntent.getBroadcast(this, 3, Intent(ACTION_TICK).setPackage(packageName), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+    }
+    private val tick = Channel<Unit>(Channel.CONFLATED)     // time for the next poll
+    @Volatile private var failures = 0                      // connection failures in a row
+    private var asksSlowly = false
     @Volatile private var hidden = false            // the notification was swiped away: don't bring it back until settings change
     @Volatile private var lastPosted: String? = null
     @Volatile private var lastSyncAt = 0L           // SystemClock.elapsedRealtime() of the last request
@@ -97,9 +117,29 @@ class LiveSyncService : Service() {
         }
     }
 
+    /** The alarm woke the phone: stay awake for the poll, Android lets go as soon as this returns. */
+    private val tickListener = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            holdForPoll()
+            tick.trySend(Unit)
+        }
+    }
+
+    /** The connection is back after failing: ask at once instead of at the next round. */
+    private val networkListener = object : ConnectivityManager.NetworkCallback() {
+        override fun onAvailable(network: Network) {
+            if (failures > 0) {
+                holdForPoll()
+                tick.trySend(Unit)
+            }
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
         running = true
+        registerReceiver(tickListener, IntentFilter(ACTION_TICK), RECEIVER_NOT_EXPORTED)
+        getSystemService(ConnectivityManager::class.java).registerDefaultNetworkCallback(networkListener)
         getSharedPreferences(SyncStore.NAME, MODE_PRIVATE).registerOnSharedPreferenceChangeListener(syncListener)
         val events = IntentFilter().apply {
             addAction(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED)
@@ -177,9 +217,13 @@ class LiveSyncService : Service() {
         running = false
         DebugLog.add(this, "service", "minute mode off")
         runCatching { unregisterReceiver(phoneListener) }
+        runCatching { unregisterReceiver(tickListener) }
+        runCatching { getSystemService(ConnectivityManager::class.java).unregisterNetworkCallback(networkListener) }
+        alarms.cancel(tickIntent)
         getSharedPreferences(SyncStore.NAME, MODE_PRIVATE).unregisterOnSharedPreferenceChangeListener(syncListener)
         scope.cancel()
         keepAwake?.let { if (it.isHeld) it.release() }
+        releasePollLock()
         super.onDestroy()
     }
 
@@ -188,6 +232,7 @@ class LiveSyncService : Service() {
         val sinceLast = SystemClock.elapsedRealtime() - lastSyncAt
         if (lastSyncAt > 0 && sinceLast < MIN_GAP_MS) delay(MIN_GAP_MS - sinceLast)
         while (currentCoroutineContext().isActive) {
+            holdForPoll()   // awake for this round, until the next wake-up is set
             var settings = SettingsStore(this).load()
             holdWakeLock(settings)
             var pause = settings.liveMinutes * 60_000L
@@ -197,9 +242,10 @@ class LiveSyncService : Service() {
             lastSyncAt = now
             lastTick = System.currentTimeMillis()
             try {
-                val result = withSyncWakeLock(settings) { syncAndRecord(this, trigger) }
+                val result = syncAndRecord(this, trigger)
                 latest = result.latest ?: latest
                 problem = null
+                failures = 0
                 Log.i(SyncWorker.TAG, "minute mode: written ${result.written}")
             } catch (e: CancellationException) {
                 throw e   // the service was stopped: leave the loop
@@ -217,14 +263,57 @@ class LiveSyncService : Service() {
                 pause = maxOf(pause, e.retryAfter * 1000L)   // wait as long as asked
                 problem = Problem.of(e)
             } catch (e: Exception) {
+                val failure = Problem.of(e, this)
+                if (failure.isConnection) failures++
                 // with the glucose coming from an app on the phone, the cloud out of reach changes nothing on screen
-                problem = Problem.of(e, this).takeUnless { it.isConnection && SyncStore(this).localRecent() }
+                problem = failure.takeUnless { it.isConnection && SyncStore(this).localRecent() }
             }
             problem?.let { Log.w(SyncWorker.TAG, "minute mode: ${it.code} ${it.detail.orEmpty()}") }
             settings = SettingsStore(this).load()   // settings may have changed during the request
             safePost(settings)
-            delay(pause)
+            val age = latest?.let { Duration.between(it.time, Instant.now()).toMillis() }
+            val wait = nextPollMillis(pause, failures, age)
+            noteTheRhythm(wait > pause)
+            waitForNextPoll(wait, settings)
         }
+    }
+
+    /** Asking less often goes to the event log, once each way: it explains the gaps between polls. */
+    private fun noteTheRhythm(slowly: Boolean) {
+        if (slowly == asksSlowly) return
+        asksSlowly = slowly
+        DebugLog.add(this, "service", if (slowly) "no connection or no new readings: asking less often" else "asking on schedule again")
+    }
+
+    /**
+     * With "Keep the phone awake" and without battery restrictions, an exact alarm wakes the phone for each poll
+     * and the processor sleeps in between: staying awake all the time costs far more than waking up once a minute.
+     * Android allows such alarms only to apps without battery restrictions, see [holdWakeLock] for the others.
+     */
+    private fun wakesByAlarm(s: AppSettings) = s.liveKeepAwake && alarms.canScheduleExactAlarms()
+
+    private suspend fun waitForNextPoll(pauseMs: Long, settings: AppSettings) {
+        plannedPauseMs = pauseMs
+        tick.tryReceive()   // one left over from before doesn't end this wait
+        val alarmSet = wakesByAlarm(settings) && setTickAlarm(pauseMs)
+        releasePollLock()
+        // with an alarm the timeout is only the safety net for one that never came, while the phone is awake anyway
+        withTimeoutOrNull(if (alarmSet) pauseMs + ALARM_GRACE_MS else pauseMs) { tick.receive() }
+        if (alarmSet) alarms.cancel(tickIntent)
+    }
+
+    @SuppressLint("MissingPermission")   // checked in wakesByAlarm: apps without battery restrictions need no permission
+    private fun setTickAlarm(pauseMs: Long): Boolean = try {
+        alarms.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + pauseMs, tickIntent)
+        true
+    } catch (e: SecurityException) {   // the battery restrictions came back a moment ago
+        false
+    }
+
+    private fun holdForPoll() = pollLock.acquire(POLL_LOCK_MS)
+
+    private fun releasePollLock() {
+        if (pollLock.isHeld) pollLock.release()
     }
 
     /** The service stops, the notification with the hint stays. */
@@ -348,9 +437,12 @@ class LiveSyncService : Service() {
 
     private fun action(name: String) = Intent(this, LiveSyncService::class.java).setAction(name)
 
-    /** "Keep the phone awake": the CPU doesn't sleep, so the pause between polls doesn't stretch. */
+    /**
+     * "Keep the phone awake" while Android allows no alarm for it (with battery restrictions): the processor doesn't
+     * sleep at all, so the pause between polls doesn't stretch.
+     */
     private fun holdWakeLock(s: AppSettings) {
-        if (s.liveKeepAwake) {
+        if (s.liveKeepAwake && !wakesByAlarm(s)) {
             val lock = keepAwake ?: getSystemService(PowerManager::class.java)
                 .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "SugarBridge:live")
                 .apply { setReferenceCounted(false) }
@@ -361,18 +453,6 @@ class LiveSyncService : Service() {
         }
     }
 
-    /** Without the permanent wake lock, keep the CPU awake at least for the request itself. */
-    private suspend fun <T> withSyncWakeLock(s: AppSettings, block: suspend () -> T): T {
-        if (s.liveKeepAwake) return block()
-        val lock = getSystemService(PowerManager::class.java).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "SugarBridge:sync")
-        lock.acquire(60_000L)
-        try {
-            return block()
-        } finally {
-            if (lock.isHeld) lock.release()
-        }
-    }
-
     companion object {
         /** For the developer tools: whether the service runs in this process and when it last asked LibreLinkUp. */
         @Volatile var running = false
@@ -380,6 +460,9 @@ class LiveSyncService : Service() {
         @Volatile var lastTick = 0L
             private set
 
+        /** How long the service waits between polls right now, for the developer tools. */
+        @Volatile var plannedPauseMs = 0L
+            private set
 
         // "live" was used by version 1.0.0 with LOW importance: such notifications get no status bar icon,
         // and an app can't change the importance of an existing channel, hence the new id
@@ -394,6 +477,9 @@ class LiveSyncService : Service() {
         private const val ACTION_STOP = "stop"
         internal const val ACTION_DISMISSED = "dismissed"
         private const val ACTION_RELOAD = "reload"
+        private const val ACTION_TICK = "com.sugarbridge.app.MINUTE_TICK"
+        private const val POLL_LOCK_MS = 2 * 60_000L      // a poll takes seconds; a longest one is under this
+        private const val ALARM_GRACE_MS = 30_000L
         private const val MIN_GAP_MS = 55_000L
 
         fun start(context: Context) = send(context, null)

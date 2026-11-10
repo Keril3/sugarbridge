@@ -99,4 +99,24 @@ class GmiTest {
         assertEquals(100.0, estimateGmi(listOf(before, inside, after), from, to)!!.meanMgDl, 1e-9)
         assertNull(estimateGmi(listOf(before, after), from, to))
     }
+
+    @Test
+    fun aResultIsKeptAndReadBack() {
+        val result = GmiResult(90, 126.5, 0.82, 0.71)
+        assertEquals(result, decodeGmi(encodeGmi(result)))
+        assertEquals(null, encodeGmi(null))
+        assertEquals(null, decodeGmi(null))
+        assertEquals(null, decodeGmi("not:a:result"))
+        assertEquals(null, decodeGmi("x:1:2:3"))
+    }
+
+    @Test
+    fun aKeptResultIsCountedAgainWhenOldOrForAnotherRange() {
+        val at = Instant.parse("2026-11-10T10:00:00Z")
+        val saved = GmiCache.Saved(null, GmiResult(90, 126.5, 0.82, 0.71), at, 70.0, 180.0)
+        assertTrue(saved.isFresh(at.plusSeconds(3_600), 70.0, 180.0))
+        assertFalse("too old", saved.isFresh(at.plus(GmiCache.MAX_AGE), 70.0, 180.0))
+        assertFalse("another target range", saved.isFresh(at.plusSeconds(3_600), 72.0, 180.0))
+        assertFalse("there was no data then", GmiCache.Saved(null, null, at, 70.0, 180.0).isFresh(at, 70.0, 180.0))
+    }
 }

@@ -138,7 +138,7 @@
     <string name="settings_live_value">Bildirimde şeker</string>
     <string name="settings_live_value_hint">Bildirim panelindeki değer. Kapatırsanız bildirim sessizleşir ve panelin altına iner</string>
     <string name="settings_keep_awake">Telefonu uyanık tut</string>
-    <string name="settings_keep_awake_hint">Ekran kapalıyken aralık uzamaz, ancak pil daha hızlı biter</string>
+    <string name="settings_keep_awake_hint">Ekran kapalıyken aralık uzamaz. Pil kısıtlaması yoksa telefon yalnızca her istek için uyanır; kısıtlama varsa uyanık kalır ve pil daha hızlı biter</string>
     <string name="settings_hide_notification">Bildirimi tamamen gizle</string>
     <string name="settings_battery">Pil kısıtlamalarını kaldır</string>
     <string name="settings_live_hint">Android bir uygulamanın bu kadar sık çalışmasına yalnızca bildirim gösterirken izin verir. Rahatsız ederse yukarıdaki düğmeyle kapatın; mod çalışmaya devam eder.</string>

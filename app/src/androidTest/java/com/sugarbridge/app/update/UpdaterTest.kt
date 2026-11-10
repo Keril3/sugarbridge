@@ -1,5 +1,7 @@
 package com.sugarbridge.app.update
 
+import com.sugarbridge.app.libre.UrlConnectionTransport
+import android.net.TrafficStats
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.assertEquals
@@ -59,5 +61,24 @@ class UpdaterTest {
         } catch (e: UpdateRejected) {
             assertEquals(UpdateRejected.Reason.NOT_SUGARBRIDGE, e.reason)
         }
+    }
+
+    /** One encrypted connection serves request after request: minute mode doesn't pay for a new one each time. */
+    @Test
+    fun repeatedRequestsShareAConnection() {
+        assumeTrue("GitHub is not reachable from this device", runCatching { Updater.fetchLatest() }.isSuccess)
+        val http = UrlConnectionTransport()
+        val uid = android.os.Process.myUid()
+        fun packetsOfOneRequest(): Long {
+            val before = TrafficStats.getUidTxPackets(uid)
+            http.send("GET", LATEST_RELEASE_API, mapOf("user-agent" to "SugarBridge"), null)
+            Thread.sleep(1_000)   // Android's counters lag a moment behind
+            return TrafficStats.getUidTxPackets(uid) - before
+        }
+        http.send("GET", LATEST_RELEASE_API, mapOf("user-agent" to "SugarBridge"), null)
+        Thread.sleep(1_000)
+        val kept = packetsOfOneRequest()
+        // a new connection needs a TCP and a TLS handshake: well over a dozen packets out, a kept one a handful
+        assertTrue("a request took $kept packets out", kept in 1..10)
     }
 }

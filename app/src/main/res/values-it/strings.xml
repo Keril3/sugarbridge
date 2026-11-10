@@ -138,7 +138,7 @@
     <string name="settings_live_value">Glicemia nella notifica</string>
     <string name="settings_live_value_hint">Il valore nella tendina delle notifiche. Se lo spegni, la notifica diventa silenziosa e scende in fondo alla tendina</string>
     <string name="settings_keep_awake">Tieni sveglio il telefono</string>
-    <string name="settings_keep_awake_hint">L’intervallo non si allunga a schermo spento, ma la batteria si scarica prima</string>
+    <string name="settings_keep_awake_hint">L’intervallo non si allunga a schermo spento. Senza limiti alla batteria il telefono si attiva solo per ogni richiesta; con i limiti resta attivo e la batteria si scarica prima</string>
     <string name="settings_hide_notification">Nascondi del tutto la notifica</string>
     <string name="settings_battery">Rimuovi le limitazioni della batteria</string>
     <string name="settings_live_hint">Android lascia lavorare un’app così spesso solo se mostra una notifica. Se ti dà fastidio, disattivala con il pulsante sopra: la modalità continua a funzionare.</string>

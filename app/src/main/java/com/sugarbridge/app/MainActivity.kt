@@ -23,6 +23,7 @@ import androidx.activity.viewModels
 import androidx.compose.runtime.LaunchedEffect
 import androidx.core.net.toUri
 import androidx.health.connect.client.PermissionController
+import androidx.lifecycle.lifecycleScope
 import com.sugarbridge.app.health.HealthConnectState
 import com.sugarbridge.app.health.SAMSUNG_HEALTH_PACKAGE
 import com.sugarbridge.app.health.WRITE_GLUCOSE
@@ -45,6 +46,8 @@ import com.sugarbridge.app.update.GITHUB_PAGE
 import com.sugarbridge.app.update.UpdateOffer
 import com.sugarbridge.app.update.Updater
 import com.sugarbridge.app.update.scheduleUpdateChecks
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity(), AppActions {
 
@@ -84,9 +87,11 @@ class MainActivity : ComponentActivity(), AppActions {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        createNotificationChannels(this)
-        scheduleSync(this)   // safe to call on every start
-        scheduleUpdateChecks(this)
+        lifecycleScope.launch(Dispatchers.IO) {   // safe to call on every start; not on the thread that draws the first screen
+            createNotificationChannels(this@MainActivity)
+            scheduleSync(this@MainActivity)
+            scheduleUpdateChecks(this@MainActivity)
+        }
         if (savedInstanceState == null) handleIntent(intent)
         setContent {
             SugarTheme(vm.ui.settings) {

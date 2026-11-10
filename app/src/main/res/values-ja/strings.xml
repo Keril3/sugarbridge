@@ -138,7 +138,7 @@
     <string name="settings_live_value">通知に血糖値を表示</string>
     <string name="settings_live_value_hint">通知シェードに表示する値。オフにすると通知はサイレントになり、シェードの下に移動します</string>
     <string name="settings_keep_awake">端末をスリープさせない</string>
-    <string name="settings_keep_awake_hint">画面オフでも間隔は延びませんが、バッテリーの減りが早くなります</string>
+    <string name="settings_keep_awake_hint">画面オフでも間隔は延びません。バッテリーの制限がなければ通信のたびに起動するだけで、制限があると起動したままになり、バッテリーの減りが早くなります</string>
     <string name="settings_hide_notification">通知を完全に非表示にする</string>
     <string name="settings_battery">バッテリーの制限を解除</string>
     <string name="settings_live_hint">Android がこれほど頻繁な動作を許すのは、通知を表示しているアプリだけです。通知が気になる場合は上のボタンでオフにしてください。モードはそのまま動き続けます。</string>

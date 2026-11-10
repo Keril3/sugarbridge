@@ -15,6 +15,7 @@ import androidx.lifecycle.viewModelScope
 import com.sugarbridge.app.debug.DebugLog
 import com.sugarbridge.app.glucose.GlucoseBins
 import com.sugarbridge.app.glucose.GlucoseUnit
+import com.sugarbridge.app.glucose.GmiCache
 import com.sugarbridge.app.glucose.GmiResult
 import com.sugarbridge.app.glucose.Reading
 import com.sugarbridge.app.glucose.text
@@ -125,6 +126,7 @@ data class ImportUi(
     val busy: Boolean = false,
     val progress: Float? = null,
     val updatedAt: Instant? = null,         // when the history was last imported or updated
+    val marksKnown: Boolean = true,         // false until Health Connect was asked which days it already has
 ) {
     val loaded: Boolean get() = readings.isNotEmpty()
     val visibleDays: List<DaySummary> get() = days.filter { inRange(it.date) }
@@ -171,8 +173,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     var tab by mutableStateOf(Tab.NOW)
 
     private var gmiJob: Job? = null
-    private var gmiAt: Instant? = null
+    private val gmiCache = GmiCache(app)
     private var updateJob: Job? = null
+    private var marksJob: Job? = null
 
     private val _messages = MutableSharedFlow<UiText>(extraBufferCapacity = 8)
     val messages: SharedFlow<UiText> = _messages
@@ -199,6 +202,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         settingsPrefs.registerOnSharedPreferenceChangeListener(listener)
         refreshAccount()
         refreshLocal()
+        gmiCache.load()?.let { ui = ui.copy(gmi14 = it.days14, gmi90 = it.days90) }   // at once, not after reading the records
         restoreHistory()
     }
 
@@ -244,15 +248,24 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun refreshStatus() {
         refreshAccount()
         refreshLocal()
-        val hc = healthConnectState(context)
-        val power = context.getSystemService(PowerManager::class.java)
-        ui = ui.copy(
-            healthConnect = hc,
-            samsungHealth = isInstalled(context, SAMSUNG_HEALTH_PACKAGE),
-            batteryUnrestricted = power.isIgnoringBatteryOptimizations(context.packageName),
-            notificationAccess = LibreNotificationListener.hasAccess(context),
-        )
         viewModelScope.launch {
+            // questions to Android's services, on every return to the screen: not on the thread that draws it
+            val status = withContext(Dispatchers.IO) {
+                val power = context.getSystemService(PowerManager::class.java)
+                ui.copy(
+                    healthConnect = healthConnectState(context),
+                    samsungHealth = isInstalled(context, SAMSUNG_HEALTH_PACKAGE),
+                    batteryUnrestricted = power.isIgnoringBatteryOptimizations(context.packageName),
+                    notificationAccess = LibreNotificationListener.hasAccess(context),
+                )
+            }
+            ui = ui.copy(
+                healthConnect = status.healthConnect,
+                samsungHealth = status.samsungHealth,
+                batteryUnrestricted = status.batteryUnrestricted,
+                notificationAccess = status.notificationAccess,
+            )
+            val hc = status.healthConnect
             val canWrite = hc == HealthConnectState.AVAILABLE && runCatching { hasGlucosePermission(context) }.getOrDefault(false)
             ui = ui.copy(canWrite = canWrite)
             if (ui.settings.liveEnabled && ui.signedIn && canWrite) LiveSyncService.start(context)
@@ -354,13 +367,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     /**
      * Estimated HbA1c (GMI) for 14 and 90 days from all SugarBridge readings in Health Connect, in one pass
-     * over 90 days of records. Recalculated at most every 30 minutes: it barely changes in that time, and minute
-     * mode leaves over a hundred thousand records to read.
+     * over 90 days of records. Kept between starts and counted again only when old enough, see [GmiCache].
      */
     private fun refreshGmi(force: Boolean = false) {
         if (gmiJob?.isActive == true) return
-        val last = gmiAt
-        if (!force && last != null && Duration.between(last, Instant.now()) < Duration.ofMinutes(30)) return
+        if (!force && gmiCache.load()?.isFresh(Instant.now(), ui.settings.lowMgDl, ui.settings.highMgDl) == true) return
         gmiJob = viewModelScope.launch {
             val now = Instant.now()
             val s = ui.settings
@@ -375,8 +386,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 }.isSuccess
             }
             if (ok) {
-                ui = ui.copy(gmi14 = days14.result(), gmi90 = days90.result())
-                gmiAt = now
+                val (gmi14, gmi90) = withContext(Dispatchers.Default) { days14.result() to days90.result() }
+                ui = ui.copy(gmi14 = gmi14, gmi90 = gmi90)
+                gmiCache.save(gmi14, gmi90, now, s.lowMgDl, s.highMgDl)
             }
         }
     }
@@ -394,6 +406,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             try {
                 val result = syncAndRecord(context, if (quiet) "app opened" else "button")
+                if (result.written > 0 && ui.gmi90 == null) refreshGmi(force = true)   // the very first readings
                 if (!quiet) {
                     if (result.written == 0) say(R.string.msg_nothing_new) else say(R.string.msg_written, result.written)
                 }
@@ -546,7 +559,27 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             readingFile = true
             val saved = withContext(Dispatchers.IO) { runCatching { HistoryStore.load(context, zone) }.getOrNull() }
             readingFile = false
-            if (saved != null) showHistory(run, saved, skipped = 0, save = false, open = false)
+            if (saved != null) showHistory(run, saved, skipped = 0, save = false, open = false, askHealthConnect = false)
+        }
+    }
+
+    /**
+     * Which days Health Connect already has, for a history restored at start. Asked only when the History tab
+     * opens: it means reading all of SugarBridge's records for the whole history, and most starts never go there.
+     */
+    fun markHistoryDays() {
+        val h = history
+        if (!h.loaded || h.marksKnown || h.busy || marksJob?.isActive == true) return
+        val run = importRun
+        val settings = ui.settings
+        marksJob = viewModelScope.launch {
+            val existing = existingKeys(h.readings)
+            val days = withContext(Dispatchers.Default) { summarize(h.readings, existing, settings) }
+            val now = history
+            if (run != importRun || now.readings !== h.readings || now.busy) return@launch
+            // the days not yet in Health Connect are selected, unless the person already picked some meanwhile
+            val selected = if (now.selected.isEmpty()) days.filterNot { it.complete }.filter { now.inRange(it.date) }.map { it.date }.toSet() else now.selected
+            history = now.copy(existing = existing, days = days, selected = selected, marksKnown = true)
         }
     }
 
@@ -674,8 +707,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** Shows a history in the History tab, marks what Health Connect already has and keeps it for the next start. */
-    private suspend fun showHistory(run: Int, saved: SavedHistory, skipped: Int, save: Boolean, open: Boolean) {
-        val existing = existingKeys(saved.readings)
+    private suspend fun showHistory(run: Int, saved: SavedHistory, skipped: Int, save: Boolean, open: Boolean, askHealthConnect: Boolean = true) {
+        val existing = if (askHealthConnect) existingKeys(saved.readings) else emptySet()
         val days = withContext(Dispatchers.Default) { summarize(saved.readings, existing, ui.settings) }
         if (run != importRun) return
         history = ImportUi(
@@ -687,8 +720,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             days = days,
             from = days.first().date,
             to = days.last().date,
-            selected = days.filterNot { it.complete }.map { it.date }.toSet(),
+            selected = if (askHealthConnect) days.filterNot { it.complete }.map { it.date }.toSet() else emptySet(),
             updatedAt = saved.updatedAt,
+            marksKnown = askHealthConnect,
         )
         if (open) historyOpen = true
         if (save) withContext(Dispatchers.IO) { runCatching { HistoryStore.save(context, saved) } }

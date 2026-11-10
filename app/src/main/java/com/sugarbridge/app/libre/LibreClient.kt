@@ -24,22 +24,20 @@ class UrlConnectionTransport : HttpTransport {
         conn.connectTimeout = 20_000
         conn.readTimeout = 20_000
         headers.forEach { (name, value) -> conn.setRequestProperty(name, value) }
-        try {
-            if (body != null) {
-                conn.doOutput = true
-                conn.outputStream.use { it.write(body.toByteArray()) }
-            }
-            val code = conn.responseCode
-            val stream = if (code < 400) conn.inputStream else conn.errorStream
-            val text = stream?.bufferedReader()?.use { it.readText() } ?: ""
-            val responseHeaders = conn.headerFields
-                .filterKeys { it != null }
-                .map { (name, values) -> name.lowercase() to values.first() }
-                .toMap()
-            return HttpResponse(code, text, responseHeaders)
-        } finally {
-            conn.disconnect()
+        if (body != null) {
+            conn.doOutput = true
+            conn.outputStream.use { it.write(body.toByteArray()) }
         }
+        val code = conn.responseCode
+        val stream = if (code < 400) conn.inputStream else conn.errorStream
+        // read to its end and closed, with no disconnect(): Android keeps the connection for the next request, so
+        // minute mode doesn't pay for a new encrypted connection and a longer radio session every minute
+        val text = stream?.bufferedReader()?.use { it.readText() } ?: ""
+        val responseHeaders = conn.headerFields
+            .filterKeys { it != null }
+            .map { (name, values) -> name.lowercase() to values.first() }
+            .toMap()
+        return HttpResponse(code, text, responseHeaders)
     }
 }
 

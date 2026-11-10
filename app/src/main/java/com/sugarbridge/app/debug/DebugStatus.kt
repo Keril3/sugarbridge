@@ -51,7 +51,8 @@ suspend fun collectStatus(context: Context): List<StatusLine> = withContext(Disp
         val tick = LiveSyncService.lastTick
         if (tick > 0) {
             val ago = (System.currentTimeMillis() - tick) / 1000
-            val late = ago > settings.liveMinutes * 60 + 90
+            val pause = LiveSyncService.plannedPauseMs.takeIf { it > 0 } ?: (settings.liveMinutes * 60_000L)
+            val late = ago > pause / 1000 + 90
             lines += StatusLine(s(R.string.dev_last_poll), s(R.string.dev_seconds_ago, Instant.ofEpochMilli(tick).atZone(zone).format(clock), ago), warn = late, fix = DevFix.MINUTE.takeIf { late })
         }
     } else {

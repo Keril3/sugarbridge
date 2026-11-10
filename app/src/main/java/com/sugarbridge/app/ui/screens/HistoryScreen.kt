@@ -26,6 +26,7 @@ import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -63,6 +64,7 @@ import com.sugarbridge.app.ui.components.PrimaryButton
 import com.sugarbridge.app.ui.components.ScreenColumn
 import com.sugarbridge.app.ui.components.SecondaryButton
 import com.sugarbridge.app.ui.components.SmallButton
+import com.sugarbridge.app.ui.components.StillMeter
 import com.sugarbridge.app.ui.components.SwitchRow
 import com.sugarbridge.app.ui.components.XpDialog
 import com.sugarbridge.app.ui.components.XpMarquee
@@ -85,6 +87,7 @@ private const val ALL_DAYS = 0L
 @Composable
 fun HistoryScreen(vm: MainViewModel, actions: AppActions) {
     val h = vm.history
+    LaunchedEffect(h.readings, h.marksKnown) { vm.markHistoryDays() }
     if (h.loaded && vm.historyOpen) LoadedHistory(vm) else HistoryStart(vm, actions)
     vm.pendingMerge?.let { MergeDialog(it, h, onChoose = vm::applyMerge, onCancel = vm::cancelMerge) }
 }
@@ -351,7 +354,7 @@ private fun DayRow(day: DaySummary, format: DateTimeFormatter, selected: Boolean
                 color = xp.textMuted,
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
-                XpMeter(day.inRangePercent / 100f, Modifier.width(110.dp), color = Tenshi.InRange)
+                StillMeter(day.inRangePercent / 100f, Modifier.width(110.dp), color = Tenshi.InRange)
                 Spacer(Modifier.width(6.dp))
                 Text(stringResource(R.string.history_day_in_range, day.inRangePercent), style = MaterialTheme.typography.labelSmall, color = xp.textMuted)
             }

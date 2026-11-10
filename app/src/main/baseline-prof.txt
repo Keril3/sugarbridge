@@ -1,0 +1,4 @@
+# SugarBridge's own code, compiled ahead of time when the app is installed instead of being interpreted at first use.
+# The libraries (Compose and the rest) bring profiles of their own.
+HSPLcom/sugarbridge/app/**;->**(**)**
+Lcom/sugarbridge/app/**;

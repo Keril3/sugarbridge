@@ -138,7 +138,7 @@
     <string name="settings_live_value">Zucker in der Benachrichtigung</string>
     <string name="settings_live_value_hint">Der Wert in der Benachrichtigungsleiste. Ausgeschaltet wird die Benachrichtigung leise und rutscht nach unten</string>
     <string name="settings_keep_awake">Telefon wach halten</string>
-    <string name="settings_keep_awake_hint">Das Intervall dehnt sich bei ausgeschaltetem Bildschirm nicht, aber der Akku leert sich schneller</string>
+    <string name="settings_keep_awake_hint">Das Intervall dehnt sich bei ausgeschaltetem Bildschirm nicht. Ohne Akkubeschränkungen wacht das Telefon nur für jede Abfrage auf; mit ihnen bleibt es wach und der Akku leert sich schneller</string>
     <string name="settings_hide_notification">Benachrichtigung ganz ausblenden</string>
     <string name="settings_battery">Akku-Beschränkungen aufheben</string>
     <string name="settings_live_hint">So oft darf eine App nur mit Benachrichtigung arbeiten. Stört sie, schalte sie mit der Taste oben aus – der Modus läuft weiter.</string>

@@ -2,6 +2,34 @@
 
 Newest version first. A version's section becomes the release notes on GitHub.
 
+## 1.15.0 — 2026-11-10
+
+Faster, and much lighter on the battery. Measured on an Android 14 emulator against 1.14.1.
+
+Battery:
+
+- Minute mode no longer keeps the processor awake around the clock. Without battery restrictions an exact alarm wakes
+  the phone for each poll and it sleeps in between: over 10 minutes with the screen off the processor was held for
+  0.2 s instead of 9 min 59 s, with the same 10 polls, and SugarBridge used 0.15 s of processor time instead of 23.5 s.
+  With battery restrictions Android allows no such alarm, and "Keep the phone awake" works as before.
+- One encrypted connection now serves poll after poll, instead of a new one every minute with its extra radio time.
+- With no connection, after three failures in a row, or while the newest reading is half an hour old, minute mode asks
+  every 5 minutes at most. When the connection comes back it asks at once.
+- The estimated HbA1c is kept between starts and counted again every 6 hours at most: with minute mode it means reading
+  over a hundred thousand records. It also shows at once when the app opens.
+- Health Connect is asked which days of a kept history it has only when the History tab opens, not on every start.
+- Tenshi-chan stands still in battery saver.
+
+Speed:
+
+- The release is now optimized with R8 and comes with a startup profile: the app went from 31 MB to 6 MB, a cold start
+  from 648 to 457 ms, and slow frames while scrolling the home screen from 12.4% to 1.1%.
+- Less happens on the thread that draws the screen when the app starts and every time you return to it.
+- A row of the history's days costs one drawing as it scrolls into view.
+
+Also: the estimated HbA1c appears after the very first sync instead of after the next start. Because instrumented tests
+can't run against optimized code, `tools/smoke_test.py` walks through an optimized build before a release.
+
 ## 1.14.1 — 2026-11-09
 
 An audit of the whole app for security problems, bugs and slowness.

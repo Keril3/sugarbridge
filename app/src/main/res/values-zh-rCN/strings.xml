@@ -138,7 +138,7 @@
     <string name="settings_live_value">在通知中显示血糖</string>
     <string name="settings_live_value_hint">通知栏中的数值。关闭后，通知会变为静默并移到通知栏底部</string>
     <string name="settings_keep_awake">保持手机唤醒</string>
-    <string name="settings_keep_awake_hint">熄屏时间隔不会被拉长，但耗电更快</string>
+    <string name="settings_keep_awake_hint">熄屏时间隔不会被拉长。没有电池限制时，手机只在每次请求时唤醒；有限制时手机不休眠，耗电更快</string>
     <string name="settings_hide_notification">完全隐藏通知</string>
     <string name="settings_battery">解除电池限制</string>
     <string name="settings_live_hint">只有显示通知的应用，Android 才允许这么频繁地运行。如果通知打扰你，可以用上面的按钮关闭它，模式会继续运行。</string>

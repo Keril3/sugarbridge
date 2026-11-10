@@ -59,6 +59,19 @@ fun encodeKeys(keys: Set<Long>): String = keys.sorted().joinToString(",")
 fun decodeKeys(text: String?): Set<Long> =
     text.orEmpty().split(',').mapNotNullTo(HashSet()) { it.trim().toLongOrNull() }
 
+private const val SLOW_AFTER_FAILURES = 3
+private const val STALE_READING_MS = 30 * 60_000L
+private const val SLOW_POLL_MS = 5 * 60_000L
+
+/**
+ * How long minute mode waits before asking LibreLinkUp again: as set, unless asking would only cost battery. After
+ * several failures in a row (no connection), or while the newest reading is half an hour old (the sensor is off or
+ * LibreLink's phone is), it asks every 5 minutes at most. LibreLinkUp's history fills such a gap anyway.
+ */
+fun nextPollMillis(everyMs: Long, failures: Int, newestAgeMs: Long?): Long =
+    if (failures >= SLOW_AFTER_FAILURES || (newestAgeMs != null && newestAgeMs > STALE_READING_MS)) maxOf(everyMs, SLOW_POLL_MS)
+    else everyMs
+
 /** A compact form of readings for the preferences: "epochSecond:mgdl:trend;...". */
 fun encodeReadings(readings: List<Reading>): String =
     readings.joinToString(";") { "${it.time.epochSecond}:${it.mgDl}:${it.trend}" }

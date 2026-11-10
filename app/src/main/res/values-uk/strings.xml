@@ -138,7 +138,7 @@
     <string name="settings_live_value">Цукор у сповіщенні</string>
     <string name="settings_live_value_hint">Значення в шторці сповіщень. Вимкніть — сповіщення стане тихим і сховається вниз шторки</string>
     <string name="settings_keep_awake">Не давати телефону засинати</string>
-    <string name="settings_keep_awake_hint">Інтервал не розтягується при вимкненому екрані, але батарея сідає швидше</string>
+    <string name="settings_keep_awake_hint">Інтервал не розтягується при вимкненому екрані. Без обмежень батареї телефон прокидається лише на час запиту; з ними він не засинає, і батарея сідає швидше</string>
     <string name="settings_hide_notification">Приховати сповіщення зовсім</string>
     <string name="settings_battery">Зняти обмеження батареї</string>
     <string name="settings_live_hint">Так часто Android дає працювати лише застосунку зі сповіщенням. Якщо воно заважає, вимкніть його кнопкою вище — режим працюватиме далі.</string>

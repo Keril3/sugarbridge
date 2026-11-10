@@ -172,6 +172,13 @@ CSV, скачанный в браузере, можно открыть чере�
 пропусков нет, но точки идут раз в 15 минут. Каждую минуту — только в минутном режиме. Насколько часто
 LibreLinkUp на самом деле присылает значения, видно на главном экране.
 
+**Сколько батареи тратит приложение?** Без минутного режима почти нисколько: один запрос раз в 15 минут или как вы
+настроите. В минутном режиме больше всего стоит обращение к LibreLinkUp по сети каждую минуту, поэтому самая действенная
+экономия — поставить в настройках 2 или 5 минут. Если сняты ограничения батареи, процессор между запросами спит, а на
+каждый запрос его будит будильник; с ограничениями настройка «Не давать телефону засыпать» держит его включённым всё
+время, и батарея садится быстрее. Без связи или пока новейшему значению уже полчаса минутный режим сам спрашивает не чаще
+раза в 5 минут.
+
 **Почему сахар приходит в Samsung Health с задержкой?** В цепочке четыре звена, и два из них видно на главном
 экране: как часто LibreLinkUp получает новое значение и через сколько после замера датчиком значения доходят до
 SugarBridge. Долю самого SugarBridge измеряют тесты на устройстве: в минутном режиме каждое новое значение
@@ -305,6 +312,8 @@ iPhone нет, и это приложение ею стать не может: H
 ./gradlew assembleDebug             # APK: app/build/outputs/apk/debug/
 ./gradlew testDebugUnitTest         # unit-тесты: поддельный LibreLinkUp, разбор CSV, синхронизация, переводы
 ./gradlew lintDebug                 # Android Lint
+./gradlew assembleSmoke && python3 tools/smoke_test.py app/build/outputs/apk/smoke/app-smoke.apk
+                                    # всё приложение пройдено в оптимизированной сборке, с поддельным LibreLinkUp
 ./gradlew connectedDebugAndroidTest # на телефоне или эмуляторе Android 14+: Health Connect, вся цепочка, скриншоты
 ```
 
@@ -349,14 +358,14 @@ APK в Releases собирает и подписывает GitHub Actions, ко�
    ```
 3. **Каждый выпуск:** допишите раздел версии в [CHANGELOG.md](CHANGELOG.md) (на английском), затем
    ```sh
-   git tag v1.14.1
-   git push origin v1.14.1
+   git tag v1.15.0
+   git push origin v1.15.0
    ```
    Через несколько минут в Releases появится `SugarBridge.apk` с описанием из CHANGELOG.
 
 Подписанный APK можно собрать и у себя: пропишите в `~/.gradle/gradle.properties` (вне репозитория)
 `sugarbridge.keystore`, `sugarbridge.keystorePassword`, `sugarbridge.keyAlias`, `sugarbridge.keyPassword`
-и запустите `./gradlew assembleRelease -Psugarbridge.version=1.14.1`.
+и запустите `./gradlew assembleRelease -Psugarbridge.version=1.15.0`.
 
 ## Обратная связь
 

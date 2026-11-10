@@ -138,7 +138,7 @@
     <string name="settings_live_value">Glucosa en la notificación</string>
     <string name="settings_live_value_hint">El valor en el panel de notificaciones. Si lo desactivas, la notificación se vuelve silenciosa y baja al final del panel</string>
     <string name="settings_keep_awake">Mantener el teléfono despierto</string>
-    <string name="settings_keep_awake_hint">El intervalo no se alarga con la pantalla apagada, pero la batería se gasta antes</string>
+    <string name="settings_keep_awake_hint">El intervalo no se alarga con la pantalla apagada. Sin restricciones de batería el teléfono solo se activa para cada consulta; con ellas sigue activo y la batería se gasta antes</string>
     <string name="settings_hide_notification">Ocultar la notificación por completo</string>
     <string name="settings_battery">Quitar las restricciones de batería</string>
     <string name="settings_live_hint">Android solo deja que una app funcione tan a menudo si muestra una notificación. Si te molesta, desactívala con el botón de arriba: el modo seguirá funcionando.</string>

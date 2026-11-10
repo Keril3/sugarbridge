@@ -104,4 +104,22 @@ class SyncLogicTest {
         assertEquals(1.5, medianMinutes(listOf(60, 90, 600))!!, 1e-9)  // one late value doesn't move it
         assertEquals(1.25, medianMinutes(listOf(60, 90))!!, 1e-9)
     }
+
+    @Test
+    fun minuteModeAsksAsSetWhileThereIsAnythingToGet() {
+        assertEquals(60_000L, nextPollMillis(60_000L, failures = 0, newestAgeMs = 90_000L))
+        assertEquals(60_000L, nextPollMillis(60_000L, failures = 2, newestAgeMs = 90_000L))
+        assertEquals(60_000L, nextPollMillis(60_000L, failures = 0, newestAgeMs = null))   // nothing seen yet
+    }
+
+    @Test
+    fun itAsksLessOftenWhenThatWouldOnlyCostBattery() {
+        assertEquals(300_000L, nextPollMillis(60_000L, failures = 3, newestAgeMs = 90_000L))
+        assertEquals(300_000L, nextPollMillis(60_000L, failures = 0, newestAgeMs = 31 * 60_000L))
+    }
+
+    @Test
+    fun aLongerIntervalIsNeverShortened() {
+        assertEquals(600_000L, nextPollMillis(600_000L, failures = 5, newestAgeMs = 3_600_000L))
+    }
 }

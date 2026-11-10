@@ -141,7 +141,7 @@
     <string name="settings_live_value">Glucose in the notification</string>
     <string name="settings_live_value_hint">The value in the notification shade. Turn it off and the notification becomes quiet and moves to the bottom of the shade</string>
     <string name="settings_keep_awake">Keep the phone awake</string>
-    <string name="settings_keep_awake_hint">The interval doesn’t stretch while the screen is off, but the battery drains faster</string>
+    <string name="settings_keep_awake_hint">The interval doesn’t stretch while the screen is off. Without battery restrictions the phone wakes up only for each request; with them it stays awake and the battery drains faster</string>
     <string name="settings_hide_notification">Hide the notification completely</string>
     <string name="settings_battery">Remove battery restrictions</string>
     <string name="settings_live_hint">Android lets an app work this often only while it shows a notification. If it bothers you, turn it off with the button above; the mode keeps working.</string>

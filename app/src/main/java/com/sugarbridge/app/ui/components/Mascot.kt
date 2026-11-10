@@ -1,5 +1,6 @@
 package com.sugarbridge.app.ui.components
 
+import android.os.PowerManager
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.spring
@@ -34,6 +35,7 @@ import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.layout.onVisibilityChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlin.coroutines.coroutineContext
@@ -110,14 +112,16 @@ internal fun blinkAt(time: Long): Float = when (val at = time % 4200) {
 /**
  * Tenshi-chan. A tap makes her tilt her head to the side, close her eyes and smile, the way anime girls do,
  * then she straightens up again. She moves only while she is on the screen, and stands still when the phone's
- * animations are turned off.
+ * animations are turned off or it is saving battery.
  */
 @Composable
 fun Mascot(mood: Mood, modifier: Modifier = Modifier, size: Dp = 120.dp) {
     var time by remember { mutableLongStateOf(0L) }
     var visible by remember { mutableStateOf(true) }
-    LaunchedEffect(visible) {
-        if (!visible || coroutineContext[MotionDurationScale]?.scaleFactor == 0f) return@LaunchedEffect
+    val context = LocalContext.current
+    val saver = remember { context.getSystemService(PowerManager::class.java).isPowerSaveMode }
+    LaunchedEffect(visible, saver) {
+        if (!visible || saver || coroutineContext[MotionDurationScale]?.scaleFactor == 0f) return@LaunchedEffect
         var last = -1L
         while (true) {
             withInfiniteAnimationFrameMillis { now ->

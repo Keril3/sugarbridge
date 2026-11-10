@@ -3,9 +3,9 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
-// The version: a release takes it from the git tag (./gradlew -Psugarbridge.version=1.14.1), otherwise this one.
+// The version: a release takes it from the git tag (./gradlew -Psugarbridge.version=1.15.0), otherwise this one.
 // versionCode grows with it: 1.2.3 → 10203.
-val appVersion = providers.gradleProperty("sugarbridge.version").getOrElse("1.14.1")
+val appVersion = providers.gradleProperty("sugarbridge.version").getOrElse("1.15.0")
 val appVersionCode = (appVersion.substringBefore('-').split('.').map { it.toIntOrNull() ?: 0 } + listOf(0, 0, 0))
     .take(3)
     .let { (major, minor, patch) -> major * 10_000 + minor * 100 + patch }
@@ -54,12 +54,21 @@ android {
     buildTypes {
         release {
             if (releaseKeystore != null) signingConfig = signingConfigs.getByName("release")
-            // R8 is off: the partial optimization from the Android Studio template (packageScope) built an APK
-            // that crashed on start (IllegalAccessError in kotlin.collections). Without R8 the release behaves
-            // exactly like the tested debug build; a few extra megabytes don't matter for a personal app.
+            // R8 over the whole app, a fifth of the size and faster. Only the whole app: the partial optimization of the
+            // Android Studio template (packageScope) built an APK that crashed on start (IllegalAccessError in
+            // kotlin.collections). Instrumented tests can't run against optimized code, so tools/smoke_test.py walks
+            // through the "smoke" build below, optimized the same way, before a release.
             optimization {
-                enable = false
+                enable = true
+                keepRules {
+                    files.add(file("keep-rules.pro"))
+                }
             }
+        }
+        create("smoke") {
+            initWith(getByName("release"))
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += "release"
         }
     }
     compileOptions {

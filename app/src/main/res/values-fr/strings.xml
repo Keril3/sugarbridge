@@ -138,7 +138,7 @@
     <string name="settings_live_value">Glycémie dans la notification</string>
     <string name="settings_live_value_hint">La valeur dans le volet des notifications. Désactivée, la notification devient silencieuse et descend en bas du volet</string>
     <string name="settings_keep_awake">Garder le téléphone éveillé</string>
-    <string name="settings_keep_awake_hint">L’intervalle ne s’allonge pas écran éteint, mais la batterie se vide plus vite</string>
+    <string name="settings_keep_awake_hint">L’intervalle ne s’allonge pas écran éteint. Sans restrictions de batterie, le téléphone ne se réveille que pour chaque requête ; avec elles, il reste éveillé et la batterie se vide plus vite</string>
     <string name="settings_hide_notification">Masquer complètement la notification</string>
     <string name="settings_battery">Lever les restrictions de batterie</string>
     <string name="settings_live_hint">Android ne laisse une appli travailler aussi souvent que si elle affiche une notification. Si elle vous gêne, désactivez-la avec le bouton ci-dessus : le mode continue de fonctionner.</string>
