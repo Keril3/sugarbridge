@@ -104,7 +104,7 @@ class LocalSourcesTest {
         assertTrue("the reading didn't arrive", waitFor { SyncStore(context).snapshot().localReading != null })
         val snapshot = SyncStore(context).snapshot()
         assertEquals(123.0, snapshot.localReading!!.mgDl, 0.0)
-        assertEquals(4, snapshot.localReading!!.trend)   // rising
+        assertEquals(4, snapshot.localReading.trend)   // rising
         assertEquals("Juggluco", snapshot.localSource)
         assertEquals(123.0, snapshot.recent.last().mgDl, 0.0)
         assertTrue(written(at))

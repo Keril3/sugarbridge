@@ -2,6 +2,28 @@
 
 Newest version first. A version's section becomes the release notes on GitHub.
 
+## 1.15.1 — 2026-11-14
+
+Newer libraries under the hood. Nothing changes in how the app looks or works, and it is as fast as 1.15.0. Both
+builds were measured on an Android 14 emulator, taking turns three times:
+
+- a cold start took 486–510 ms against 485–507;
+- slow frames while scrolling the home screen were 1.9% against 2.1%;
+- switching the settings tabs is the same.
+
+Screenshots of every screen match apart from the clock and the demo data that moves with it.
+
+- Compose 1.10 → 1.12, Activity 1.8 → 1.13, Core 1.16 → 1.19, Lifecycle 2.9 → 2.11, Kotlin 2.2 → 2.4, and the
+  Android Gradle Plugin 9.4 → 9.5 with its newer R8. Activity had stayed at a version from 2023.
+- Whether usage access is on is now asked the way Android 17 recommends, since it deprecates the old call.
+
+For developers:
+
+- The rules for R8 are in `app/src/main/keepRules/`, where AGP 9.5 looks for them.
+- The build has no warnings.
+- The device tests keep the first Compose test rule on purpose: the new one holds coroutines back until the test
+  clock moves, while these tests check what appears at once.
+
 ## 1.15.0 — 2026-11-10
 
 Faster, and much lighter on the battery. Measured on an Android 14 emulator against 1.14.1.

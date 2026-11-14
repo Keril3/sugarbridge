@@ -5,7 +5,7 @@ that R8 optimized, and what R8 can break is exactly what they would not see: any
 So this goes through every such place in the real app: Health Connect, WorkManager, the foreground service, the
 receivers, the WebView's bridge, fonts, the Keystore. An emulator with Android 14 works best.
 
-    ./gradlew assembleSmoke -Psugarbridge.r8
+    ./gradlew assembleSmoke
     python3 tools/smoke_test.py app/build/outputs/apk/smoke/app-smoke.apk
 
 Set ANDROID_SERIAL if more than one device is connected, and ADB if adb is not on the PATH.

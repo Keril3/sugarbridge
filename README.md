@@ -307,6 +307,8 @@ You need Android Studio (it comes with a JDK) and Android SDK 37.
 ```
 
 On Windows use `gradlew.bat`. CI on GitHub runs the unit tests, Lint and the build on every push.
+Before the device tests, uninstall a SugarBridge signed with another key from the device (one from Releases, for
+example): the tests can't be installed over it, and Gradle may still report success with no test run.
 
 ### Project layout
 
@@ -325,6 +327,7 @@ app/src/main/java/com/sugarbridge/app/
 └── ui/          theme and fonts, components (windows, chart, the mascot), screens
 app/src/main/res/values-*/  translations
 app/src/main/res/font/      the fonts, cut to the app's texts by tools/make_fonts.py
+app/src/main/keepRules/     rules for R8, which optimizes the release
 app/src/test/               unit tests, laid out the same way
 app/src/androidTest/        device tests
 ```
@@ -346,14 +349,14 @@ GitHub Actions builds and signs the APK in Releases when a `v*` tag arrives in t
    ```
 3. **Every release:** add the version's section to [CHANGELOG.md](CHANGELOG.md), then
    ```sh
-   git tag v1.15.0
-   git push origin v1.15.0
+   git tag v1.15.1
+   git push origin v1.15.1
    ```
    A few minutes later `SugarBridge.apk` appears in Releases with the notes from the CHANGELOG.
 
 A signed APK can be built locally too: put `sugarbridge.keystore`, `sugarbridge.keystorePassword`,
 `sugarbridge.keyAlias` and `sugarbridge.keyPassword` into `~/.gradle/gradle.properties` (outside the repository)
-and run `./gradlew assembleRelease -Psugarbridge.version=1.15.0`.
+and run `./gradlew assembleRelease -Psugarbridge.version=1.15.1`.
 
 ## Feedback
 

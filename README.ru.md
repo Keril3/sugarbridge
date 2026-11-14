@@ -318,6 +318,8 @@ iPhone нет, и это приложение ею стать не может: H
 ```
 
 На Windows — `gradlew.bat`. CI на GitHub гоняет unit-тесты, Lint и сборку на каждый push.
+Перед тестами на устройстве удалите с него SugarBridge, подписанный другим ключом (например, установленный из
+Releases): поверх него тесты не установятся, а Gradle может всё равно сообщить об успехе, не запустив ни одного теста.
 Комментарии в коде и сообщения коммитов — на английском.
 
 ### Устройство проекта
@@ -337,6 +339,7 @@ app/src/main/java/com/sugarbridge/app/
 └── ui/          theme — оформление и шрифты, components — окна, график, маскот, screens — экраны
 app/src/main/res/values-*/  переводы
 app/src/main/res/font/      шрифты, обрезанные до текстов приложения скриптом tools/make_fonts.py
+app/src/main/keepRules/     правила для R8, который оптимизирует выпуск
 app/src/test/               unit-тесты, разложены так же
 app/src/androidTest/        тесты на устройстве
 ```
@@ -358,14 +361,14 @@ APK в Releases собирает и подписывает GitHub Actions, ко�
    ```
 3. **Каждый выпуск:** допишите раздел версии в [CHANGELOG.md](CHANGELOG.md) (на английском), затем
    ```sh
-   git tag v1.15.0
-   git push origin v1.15.0
+   git tag v1.15.1
+   git push origin v1.15.1
    ```
    Через несколько минут в Releases появится `SugarBridge.apk` с описанием из CHANGELOG.
 
 Подписанный APK можно собрать и у себя: пропишите в `~/.gradle/gradle.properties` (вне репозитория)
 `sugarbridge.keystore`, `sugarbridge.keystorePassword`, `sugarbridge.keyAlias`, `sugarbridge.keyPassword`
-и запустите `./gradlew assembleRelease -Psugarbridge.version=1.15.0`.
+и запустите `./gradlew assembleRelease -Psugarbridge.version=1.15.1`.
 
 ## Обратная связь
 

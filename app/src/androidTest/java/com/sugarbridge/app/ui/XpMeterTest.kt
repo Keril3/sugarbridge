@@ -26,6 +26,8 @@ import org.junit.runner.RunWith
 class XpMeterTest {
 
     @get:Rule
+    // v1 on purpose: the v2 rule holds coroutines back until the test clock moves; these tests check what shows at once
+    @Suppress("DEPRECATION")
     val compose = createComposeRule()
 
     private fun shown() = compose.onNodeWithTag("meter").fetchSemanticsNode().config[SemanticsProperties.ProgressBarRangeInfo].current

@@ -85,6 +85,8 @@ import kotlinx.coroutines.runBlocking
 class ScreenshotTest {
 
     @get:Rule
+    // v1 on purpose: the v2 rule holds coroutines back until the test clock moves; these tests check what shows at once
+    @Suppress("DEPRECATION")
     val compose = createEmptyComposeRule()
 
     private val instrumentation = InstrumentationRegistry.getInstrumentation()

@@ -49,6 +49,8 @@ import java.time.Instant
 class DeveloperLogTest {
 
     @get:Rule
+    // v1 on purpose: the v2 rule holds coroutines back until the test clock moves; these tests check what shows at once
+    @Suppress("DEPRECATION")
     val compose = createEmptyComposeRule()
 
     private val context = InstrumentationRegistry.getInstrumentation().targetContext

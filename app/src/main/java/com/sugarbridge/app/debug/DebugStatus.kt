@@ -122,7 +122,9 @@ private fun bucketName(bucket: Int): String = when (bucket) {
 /** Whether the user let SugarBridge read Android's usage statistics (Settings → Usage access). */
 fun hasUsageAccess(context: Context): Boolean {
     val ops = context.getSystemService(AppOpsManager::class.java)
-    return ops.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), context.packageName) == AppOpsManager.MODE_ALLOWED
+    // checkOpNoThrow, not unsafeCheckOpNoThrow: Android 17 deprecates the latter and points back to the former,
+    // which every Android version has and which asks the same question.
+    return ops.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), context.packageName) == AppOpsManager.MODE_ALLOWED
 }
 
 /**

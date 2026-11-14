@@ -3,9 +3,9 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
-// The version: a release takes it from the git tag (./gradlew -Psugarbridge.version=1.15.0), otherwise this one.
+// The version: a release takes it from the git tag (./gradlew -Psugarbridge.version=1.15.1), otherwise this one.
 // versionCode grows with it: 1.2.3 → 10203.
-val appVersion = providers.gradleProperty("sugarbridge.version").getOrElse("1.15.0")
+val appVersion = providers.gradleProperty("sugarbridge.version").getOrElse("1.15.1")
 val appVersionCode = (appVersion.substringBefore('-').split('.').map { it.toIntOrNull() ?: 0 } + listOf(0, 0, 0))
     .take(3)
     .let { (major, minor, patch) -> major * 10_000 + minor * 100 + patch }
@@ -57,12 +57,10 @@ android {
             // R8 over the whole app, a fifth of the size and faster. Only the whole app: the partial optimization of the
             // Android Studio template (packageScope) built an APK that crashed on start (IllegalAccessError in
             // kotlin.collections). Instrumented tests can't run against optimized code, so tools/smoke_test.py walks
-            // through the "smoke" build below, optimized the same way, before a release.
+            // through the "smoke" build below, optimized the same way, before a release. The rules for R8 are in
+            // src/main/keepRules/, where AGP finds them by itself.
             optimization {
                 enable = true
-                keepRules {
-                    files.add(file("keep-rules.pro"))
-                }
             }
         }
         create("smoke") {
