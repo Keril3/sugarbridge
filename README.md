@@ -2,8 +2,23 @@
 
 # SugarBridge ✧
 
-Glucose from a FreeStyle Libre sensor, in Samsung Health. No server of your own: the app fetches readings
-from the LibreLinkUp cloud and writes them to Health Connect, where Samsung Health picks them up.
+Your FreeStyle Libre glucose in Samsung Health. The sensor's readings live in LibreLink and Abbott's cloud;
+SugarBridge, an Android app, fetches them from LibreLinkUp by itself and writes them to Health Connect, so
+Samsung Health shows them beside your sleep, steps, meals and workouts. Any other app that reads Health Connect
+sees them too.
+
+What it gives you day to day:
+
+- **Glucose in Samsung Health by itself**: every 15 minutes the background sync brings the new readings in, with
+  nothing to tap.
+- **Glucose at a glance**: in minute mode the value and its trend arrow sit in the status bar and change with
+  every new reading, about once a minute.
+- **The past too**: months and years of history from LibreView can go into Samsung Health as well, and the app
+  shows them on a chart.
+
+SugarBridge works beside LibreLink, not instead of it: LibreLink keeps the sensor and its low and high glucose
+alarms, while SugarBridge doesn't connect to the sensor and takes what LibreLink has sent to the cloud. No server
+of your own, no ads, no analytics.
 
 <p>
   <img src="docs/screenshots/en/home.png" width="190" alt="Home screen">
