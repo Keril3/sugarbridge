@@ -47,7 +47,9 @@ import kotlinx.coroutines.runBlocking
  * How long a new glucose value takes to reach Health Connect in minute mode, measured in real time.
  * The fake cloud publishes a value every minute, [CLOUD_LAG] after its sensor time, the way LibreLinkUp
  * shows a reading some seconds after the sensor took it. The test watches Health Connect and records when
- * each value shows up there. The report goes to logcat (tag Latency) and to files/latency.txt.
+ * each value shows up there. Minute mode aims each ask just after the next value should be in the cloud, so a
+ * value waits seconds there, not up to the whole minute of a steady rhythm that doesn't know when values come.
+ * The report goes to logcat (tag Latency) and to files/latency.txt.
  */
 @LargeTest
 @RunWith(AndroidJUnit4::class)
@@ -108,7 +110,7 @@ class LatencyTest {
     }
 
     @Test
-    fun minuteModeDeliversEveryValueWithinAMinute() = measure(doze = false)
+    fun minuteModeDeliversEveryValueWithinHalfAMinute() = measure(doze = false)
 
     /** The screen is off and the phone is in deep Doze: the foreground service and its wake lock keep it going. */
     @Test
@@ -192,7 +194,7 @@ class LatencyTest {
         File(context.filesDir, if (doze) "latency_doze.txt" else "latency.txt").writeText(report)
 
         // every value the cloud published early enough to be due before the watch ended must be there,
-        // and none may wait longer than a poll interval plus slack
+        // and none may wait longer than an aimed ask and a second one need
         val due = generateSequence(Instant.ofEpochSecond(started.epochSecond / 60 * 60 + 60)) { it.plusSeconds(60) }
             .takeWhile { !it.plus(CLOUD_LAG).plusSeconds(MAX_DELAY_S).isAfter(watchEnd) }
             .toList()
@@ -204,7 +206,7 @@ class LatencyTest {
     companion object {
         private val CLOUD_LAG: Duration = Duration.ofSeconds(20)
         private val RUN: Duration = Duration.ofMinutes(5)
-        private const val MAX_DELAY_S = 75L   // a poll interval of 60 s plus slack
+        private const val MAX_DELAY_S = 30L   // an ask just after the reading, at worst a second one 15 s later, and slack
 
         /** The newest value the cloud has at [now]: sensor values every whole minute, visible [CLOUD_LAG] later. */
         fun latestPublished(now: Instant): Instant = Instant.ofEpochSecond(now.minus(CLOUD_LAG).epochSecond / 60 * 60)

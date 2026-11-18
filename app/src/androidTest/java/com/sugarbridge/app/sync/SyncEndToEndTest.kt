@@ -430,6 +430,26 @@ class SyncEndToEndTest {
         assertEquals("Juggluco", SyncStore(context).snapshot().localSource)
     }
 
+    /**
+     * LibreLinkUp gets a reading a minute or two after an app on the phone has it. Its answer, older, must not take the
+     * phone's newer value off the screens and the notification: the glucose went back in time on every sync.
+     */
+    @Test
+    fun aNewerReadingFromThePhoneStaysWhenLibreLinkUpAnswersWithAnOlderOne() {
+        val res = context.resources
+        val locale = res.configuration.locales[0]
+        runBlocking { LocalReadings.receive(context, Reading(Instant.now().minusSeconds(20), 140.0, 4), "Juggluco") }
+        SettingsStore(context).save(AppSettings(backgroundMinutes = 0, liveEnabled = true, liveShowValue = true, liveKeepAwake = false))
+        LiveSyncService.start(context)   // its first round asks LibreLinkUp at once: 115, 3.5 minutes old
+        val deadline = SystemClock.uptimeMillis() + 30_000
+        while (SyncStore(context).snapshot().lastWritten == 0 && SystemClock.uptimeMillis() < deadline) Thread.sleep(250)
+        assertTrue("LibreLinkUp wasn't asked", SyncStore(context).snapshot().lastWritten > 0)
+        Thread.sleep(2_000)   // the round ends with the notification
+        assertEquals(140.0, SyncStore(context).snapshot().recent.last().mgDl, 0.0)
+        val shown = ours().notification.extras.getCharSequence(Notification.EXTRA_TITLE).toString()
+        assertTrue(shown, shown.contains(formatGlucose(140.0, GlucoseUnit.MMOL, locale)))
+    }
+
     private fun waitForNotification(timeoutMs: Long = 30_000, matches: (String) -> Boolean): String {
         val manager = context.getSystemService(NotificationManager::class.java)
         val deadline = SystemClock.uptimeMillis() + timeoutMs

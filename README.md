@@ -178,8 +178,9 @@ Exports in any LibreView language work: the columns are recognized by their head
 
 **How often is the glucose updated?** LibreLinkUp gets a new value about once a minute, and its 12-hour
 history has a point every 15 minutes. In the background SugarBridge fetches the whole history, so nothing is
-missed, but the points are 15 minutes apart. Every minute happens only in minute mode. How often LibreLinkUp
-really delivers values is shown on the home screen.
+missed, but the points are 15 minutes apart. Every minute happens only in minute mode, which learns when new
+values reach LibreLinkUp and asks just after that, so each one comes within seconds instead of up to a minute
+later. How often LibreLinkUp really delivers values is shown on the home screen.
 
 **How much battery does it use?** Without minute mode almost none: one request every 15 minutes or as you set it. In
 minute mode what costs the most is reaching LibreLinkUp over the network every minute, so 2 or 5 minutes in Settings
@@ -190,7 +191,7 @@ connection, or while the newest reading is half an hour old, minute mode asks ev
 **Why does glucose show up in Samsung Health late?** The path has four links, and the home screen shows two
 of them: how often LibreLinkUp gets a new value and how long after the sensor reading values reach SugarBridge.
 SugarBridge's own share is measured by device tests: in minute mode every new value is in Health Connect within
-a minute of LibreLinkUp having it, also with the screen off in deep Doze. The background sync is different: on an
+half a minute of LibreLinkUp having it, usually within seconds, also with the screen off in deep Doze. The background sync is different: on an
 idle phone Android holds it back for hours unless the battery restrictions are removed, so do that (the home
 screen asks). The last link is Samsung Health: it reads Health Connect on its own schedule, which Samsung doesn't
 document, and other apps can neither hurry it nor see when it reads. Samsung says it syncs when its home screen
@@ -202,6 +203,16 @@ each value reached Health Connect, and Health Connect's own "Recent access" show
 SugarBridge can't put that moment into its log: Android gives the record of which app read what only to Health
 Connect's own settings, not to other apps. With usage access the log's "Samsung Health" lines show when Samsung
 Health was active, which is as close as an app can see.
+
+**Why is the value sometimes behind LibreLink?** LibreLink shows a reading as soon as the sensor sends it, and
+SugarBridge gets it from LibreLinkUp once LibreLink has uploaded it, usually a minute or two later; the home screen
+shows how long it takes on your phone. Minute mode's own share is seconds: it asks just after the next value
+should be in LibreLinkUp, and once more 15 seconds later if it isn't there yet. The upload is LibreLink's, and
+SugarBridge can't hurry it. On an idle phone Android may let LibreLink upload only now and then, several readings
+at once, so remove the battery restrictions for LibreLink too. For the value just as LibreLink shows it, with no
+cloud in between, take it from LibreLink's notification, if it shows the glucose, or from Juggluco or xDrip+
+(Settings → Sync, see "Can it work without the internet?" below). A newer value from the phone stays on the
+screens until LibreLinkUp catches up.
 
 **"Give usage access" opens a greyed-out switch.** Android 15 and newer do that for apps installed from an APK
 rather than a store ("restricted settings"). Open Settings → Apps → SugarBridge → ⋮ (top right) → "Allow
@@ -368,14 +379,14 @@ GitHub Actions builds and signs the APK in Releases when a `v*` tag arrives in t
    ```
 3. **Every release:** add the version's section to [CHANGELOG.md](CHANGELOG.md), then
    ```sh
-   git tag v1.15.2
-   git push origin v1.15.2
+   git tag v1.16.0
+   git push origin v1.16.0
    ```
    A few minutes later `SugarBridge.apk` appears in Releases with the notes from the CHANGELOG.
 
 A signed APK can be built locally too: put `sugarbridge.keystore`, `sugarbridge.keystorePassword`,
 `sugarbridge.keyAlias` and `sugarbridge.keyPassword` into `~/.gradle/gradle.properties` (outside the repository)
-and run `./gradlew assembleRelease -Psugarbridge.version=1.15.2`.
+and run `./gradlew assembleRelease -Psugarbridge.version=1.16.0`.
 
 ## Feedback
 

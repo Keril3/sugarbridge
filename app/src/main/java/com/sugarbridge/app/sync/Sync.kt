@@ -150,9 +150,10 @@ class SyncStore(context: Context) {
             val lag = Duration.between(newest.time, now).seconds
             if (lag in 0..MAX_LAG_SECONDS) lags += lag
         }
+        val shown = shownAfterSync(readings, decodeReadings(prefs.getString("recent", null)), now)
         prefs.edit {
             putString("lags", lags.takeLast(16).joinToString(","))
-            putString("recent", encodeReadings(readings))
+            putString("recent", encodeReadings(shown))
             putLong(KEY_OK_AT, System.currentTimeMillis())
             putInt("ok_written", written)
             putString("seen", seen.joinToString(","))
@@ -223,6 +224,12 @@ class SyncStore(context: Context) {
         localMissAt = prefs.getLong("local_miss_at", 0).takeIf { it > 0 }?.let(Instant::ofEpochMilli),
         localMissText = prefs.getString("local_miss_text", null),
     )
+
+    /**
+     * How soon after the sensor reading a new value reached SugarBridge at best lately, in seconds: where minute mode
+     * starts aiming its asks (see AskClock). Null while there are fewer than two.
+     */
+    fun quickestDeliverySeconds(): Long? = lags().takeIf { it.size >= 2 }?.minOrNull()
 
     private fun seen(): List<Long> = prefs.getString("seen", null).orEmpty().split(',').mapNotNull { it.toLongOrNull() }
 

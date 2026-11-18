@@ -75,12 +75,15 @@ class LiveSyncService : Service() {
     }
     private val tick = Channel<Unit>(Channel.CONFLATED)     // time for the next poll
     @Volatile private var failures = 0                      // connection failures in a row
-    private var asksSlowly = false
+    @Volatile private var asksSlowly = false        // without a connection or a new reading: every 5 minutes
     @Volatile private var hidden = false            // the notification was swiped away: don't bring it back until settings change
     @Volatile private var lastPosted: String? = null
     @Volatile private var lastSyncAt = 0L           // SystemClock.elapsedRealtime() of the last request
     @Volatile private var latest: Reading? = null
     @Volatile private var problem: Problem? = null  // the last failure, until a sync succeeds
+
+    /** When to ask: just after LibreLinkUp should have the next reading. It keeps learning while the service runs. */
+    private val clock by lazy { AskClock(SyncStore(this).quickestDeliverySeconds() ?: AskClock.DEFAULT_OFFSET_S) }
 
     /**
      * The notification's time, fixed while the service runs. Android sorts ongoing notifications by it; a new
@@ -95,9 +98,7 @@ class LiveSyncService : Service() {
      */
     private val syncListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
         if (key == SyncStore.KEY_OK_AT) {
-            SyncStore(this).snapshot().recent.lastOrNull()?.let { newest ->
-                if (latest == null || !newest.time.isBefore(latest!!.time)) latest = newest
-            }
+            latest = newerOf(SyncStore(this).snapshot().recent.lastOrNull(), latest)
             problem = null
             safePost(SettingsStore(this).load())
         }
@@ -109,7 +110,10 @@ class LiveSyncService : Service() {
             val text = when (intent.action) {
                 PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED ->
                     if (getSystemService(PowerManager::class.java).isDeviceIdleMode) "Doze on" else "Doze off"
-                Intent.ACTION_SCREEN_ON -> "screen on"
+                Intent.ACTION_SCREEN_ON -> {
+                    askIfLate()
+                    "screen on"
+                }
                 Intent.ACTION_SCREEN_OFF -> "screen off"
                 else -> return
             }
@@ -231,6 +235,7 @@ class LiveSyncService : Service() {
         // after the loop restarts, don't poll LibreLinkUp more often than once a minute
         val sinceLast = SystemClock.elapsedRealtime() - lastSyncAt
         if (lastSyncAt > 0 && sinceLast < MIN_GAP_MS) delay(MIN_GAP_MS - sinceLast)
+        clock.reset()   // the interval may have changed
         while (currentCoroutineContext().isActive) {
             holdForPoll()   // awake for this round, until the next wake-up is set
             var settings = SettingsStore(this).load()
@@ -238,12 +243,22 @@ class LiveSyncService : Service() {
             var pause = settings.liveMinutes * 60_000L
             val now = SystemClock.elapsedRealtime()
             // a gap much longer than planned means Android held the service back (Doze, battery limits)
-            val trigger = if (lastSyncAt > 0) "minute, ${(now - lastSyncAt) / 1000} s after the previous" else "minute, first"
+            val trigger = when {
+                lastSyncAt == 0L -> "minute, first"
+                clock.secondTry -> "minute, ${(now - lastSyncAt) / 1000} s after the previous, which came before the reading was there"
+                else -> "minute, ${(now - lastSyncAt) / 1000} s after the previous"
+            }
             lastSyncAt = now
             lastTick = System.currentTimeMillis()
+            val askedAt = Instant.now()
+            var cloudNewest: Instant? = null
+            var answered = false
             try {
                 val result = syncAndRecord(this, trigger)
-                latest = result.latest ?: latest
+                // a reading an app on the phone brought may be newer than LibreLinkUp's: the notification keeps it
+                latest = newerOf(result.latest, latest)
+                cloudNewest = result.latest?.time
+                answered = true
                 problem = null
                 failures = 0
                 Log.i(SyncWorker.TAG, "minute mode: written ${result.written}")
@@ -272,8 +287,16 @@ class LiveSyncService : Service() {
             settings = SettingsStore(this).load()   // settings may have changed during the request
             safePost(settings)
             val age = latest?.let { Duration.between(it.time, Instant.now()).toMillis() }
-            val wait = nextPollMillis(pause, failures, age)
-            noteTheRhythm(wait > pause)
+            val steady = nextPollMillis(pause, failures, age)
+            noteTheRhythm(steady > pause)
+            // while LibreLinkUp answers with fresh readings, the next ask is aimed at the next one; otherwise the rhythm
+            val wait = if (answered && steady == pause) {
+                // the aim counts from the moment of asking, the wait begins now that the request is done
+                (clock.next(askedAt, cloudNewest, pause) - (SystemClock.elapsedRealtime() - now)).coerceAtLeast(1_000L)
+            } else {
+                clock.reset()
+                steady
+            }
             waitForNextPoll(wait, settings)
         }
     }
@@ -308,6 +331,21 @@ class LiveSyncService : Service() {
         true
     } catch (e: SecurityException) {   // the battery restrictions came back a moment ago
         false
+    }
+
+    /**
+     * The screen came on after the next ask was due: the phone slept through it (without "Keep the phone awake", or
+     * held back by Android). Or minute mode asks only every 5 minutes, without a connection or a new reading for half an
+     * hour, and LibreLink may just have sent the readings it held. Someone is looking at the glucose now, so ask at
+     * once instead of when the wait ends, still no sooner than a minute after the last ask.
+     */
+    private fun askIfLate() {
+        if (loop?.isActive != true || lastSyncAt == 0L) return
+        val since = SystemClock.elapsedRealtime() - lastSyncAt
+        if (since > plannedPauseMs + LATE_MS || (asksSlowly && since > MIN_GAP_MS)) {
+            holdForPoll()
+            tick.trySend(Unit)
+        }
     }
 
     private fun holdForPoll() = pollLock.acquire(POLL_LOCK_MS)
@@ -481,6 +519,7 @@ class LiveSyncService : Service() {
         private const val POLL_LOCK_MS = 2 * 60_000L      // a poll takes seconds; a longest one is under this
         private const val ALARM_GRACE_MS = 30_000L
         private const val MIN_GAP_MS = 55_000L
+        private const val LATE_MS = 15_000L   // a request takes seconds: later than this the wait was stretched
 
         fun start(context: Context) = send(context, null)
 

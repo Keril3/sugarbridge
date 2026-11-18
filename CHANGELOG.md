@@ -2,6 +2,37 @@
 
 Newest version first. A version's section becomes the release notes on GitHub.
 
+## 1.16.0 — 2026-11-18
+
+The glucose catches up with LibreLink sooner.
+
+- Minute mode asks LibreLinkUp just after the next value should be there. It used to ask at a steady minute, which
+  found each new value anywhere up to a minute after it reached LibreLinkUp, half a minute on average, and as that
+  minute slowly drifted against LibreLinkUp's, for a while nearly the whole minute every time. Now it learns how long
+  after the sensor reading values reach LibreLinkUp and asks seconds after that; when a value isn't there yet, it asks
+  once more 15 seconds later, about one ask in ten. With 2 or 5 minutes in Settings the asks land just after a value
+  too. When LibreLink uploads several readings at once, as an idle phone lets it now and then, and while the phone
+  sleeps through the asks without "Keep the phone awake", minute mode keeps its steady rhythm and learns nothing wrong
+  from it.
+- Fixed: with the glucose from LibreLink's notification, Juggluco or xDrip+, every sync with LibreLinkUp put its older
+  value back on the home screen and in the notification until the next reading from the phone. The newer value now
+  stays until LibreLinkUp catches up.
+- When the screen comes on after the phone slept through an ask, or while minute mode asks only every 5 minutes
+  because no new reading came for half an hour, it asks at once, no sooner than a minute after the last ask: the value
+  is fresh when you look, also right after LibreLink sends the readings it held back.
+- README: "Why is the value sometimes behind LibreLink?" names the links of the delay and what helps.
+
+For developers:
+
+- `AskClock` in sync/SyncLogic.kt aims the asks. Unit tests run it against a simulated LibreLinkUp: a steady delay,
+  one that wanders, one over a minute, readings late by chance, a delay that changes, uploads of five at once and late
+  asks. Against a steady 25 s delay a value used to wait 29 s on average and up to 59 s after reaching LibreLinkUp;
+  now 5 s and at most 14 s, with 1.11 asks a minute instead of 0.98.
+- The latency test on the device allows 30 s instead of 75 s: on the emulator each value was in Health Connect 6 to
+  10 s after the fake LibreLinkUp had it, in deep Doze too, where it used to be anything from 5 to 60 s from run to
+  run. A new end-to-end test keeps a reading from the phone when LibreLinkUp answers with an older one. 164 unit
+  tests, 91 device tests on the emulator with 2 skipped, lint clean.
+
 ## 1.15.2 — 2026-11-18
 
 The texts in all twelve languages, read line by line and checked against what the app does.
