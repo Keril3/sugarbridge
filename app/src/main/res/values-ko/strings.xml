@@ -113,7 +113,7 @@
     <string name="history_write">Health Connect에 기록</string>
     <string name="history_pick_title">동기화할 날짜</string>
     <string name="history_delete_title">Health Connect에서 삭제할까요?</string>
-    <string name="history_delete_text">선택한 날짜(%1$d일)에 SugarBridge가 기록한 혈당이 LibreView에서 온 것과 LibreLinkUp에서 온 것 모두 Health Connect와 Samsung Health에서 사라져요. LibreView의 데이터는 그대로 남아요.</string>
+    <string name="history_delete_text">선택한 날짜(%1$d일)에 SugarBridge가 기록한 혈당은 어디서 왔든 모두 Health Connect와 Samsung Health에서 사라져요. LibreView의 데이터는 그대로 남아요.</string>
 
     <!-- Settings -->
     <string name="settings_title">설정</string>
@@ -129,22 +129,22 @@
     <string name="settings_hc_hint">Samsung Health는 자기 일정에 따라 Health Connect에서 혈당을 알아서 가져가요. 새 값을 바로 가져가게 하려면 홈 화면을 열고 아래로 당기세요. 점이 안 보이면 Samsung Health → 설정 → Health Connect에서 ‘혈당’ 읽기가 허용되어 있는지 확인하세요.</string>
     <string name="settings_background_title">백그라운드 동기화</string>
     <string name="settings_off">끔</string>
-    <string name="settings_background_hint">알림이 없으면 Android는 15분보다 자주 작동하는 것을 허용하지 않아요. 매번 최근 12시간 기록을 가져오므로 휴대폰이 잠들어 있었어도 빠지는 값이 없어요.</string>
+    <string name="settings_background_hint">알림이 없으면 Android는 15분보다 자주 작동하는 것을 허용하지 않아요. 매번 최근 12시간 기록을 가져오므로 휴대전화가 잠들어 있었어도 빠지는 값이 없어요.</string>
     <string name="settings_live_title">분 단위 모드</string>
     <string name="settings_live_switch">켜기</string>
-    <string name="settings_live_switch_hint">측정 후 1~2분 안에 혈당이 Samsung Health에 들어가요. 모드가 켜져 있는 동안 알림창에 알림이 표시돼요.</string>
+    <string name="settings_live_switch_hint">LibreLinkUp의 새 값은 1분 안에 Health Connect에 들어가고, Samsung Health가 거기서 가져가요. 모드가 켜져 있는 동안 알림창에 알림이 표시돼요.</string>
     <string name="settings_live_every_minute">매분</string>
     <string name="settings_live_every">%1$d분마다</string>
     <string name="settings_live_value">알림에 혈당 표시</string>
-    <string name="settings_live_value_hint">알림창의 값이에요. 끄면 알림이 무음이 되고 알림창 아래로 내려가요</string>
+    <string name="settings_live_value_hint">알림창의 값이에요. 끄면 알림이 무음이 되고 알림창 아래로 내려가요.</string>
     <string name="settings_keep_awake">휴대전화 깨어 있게 하기</string>
-    <string name="settings_keep_awake_hint">화면이 꺼져도 간격이 늘어나지 않아요. 배터리 제한이 없으면 요청할 때만 깨어나고, 제한이 있으면 계속 깨어 있어 배터리가 더 빨리 닳아요</string>
+    <string name="settings_keep_awake_hint">화면이 꺼져도 간격이 늘어나지 않아요. 배터리 제한이 없으면 요청할 때만 깨어나고, 제한이 있으면 계속 깨어 있어 배터리가 더 빨리 닳아요.</string>
     <string name="settings_hide_notification">알림 완전히 숨기기</string>
     <string name="settings_battery">배터리 제한 해제</string>
     <string name="settings_live_hint">Android는 알림을 표시하는 앱에만 이렇게 자주 작동하도록 허용해요. 알림이 거슬리면 위 버튼으로 끄세요. 모드는 계속 작동해요.</string>
     <string name="settings_display_title">측정값</string>
     <string name="settings_target_range">목표 범위:\n%1$s – %2$s %3$s</string>
-    <string name="settings_target_hint">이 범위 안의 혈당은 정상으로 봐요. 범위 안은 초록, 아래는 분홍, 위는 주황으로 표시돼요. 그래프의 띠와 ‘범위 내’ 비율도 이 값으로 계산해요. LibreLink 알람은 바뀌지 않아요.</string>
+    <string name="settings_target_hint">이 범위 안의 혈당은 정상으로 봐요. 범위 안은 초록, 아래는 분홍, 위는 주황으로 표시돼요. 그래프의 띠와 ‘범위 안’ 비율도 이 값으로 계산해요. LibreLink 알람은 바뀌지 않아요.</string>
     <string name="settings_about_title">SugarBridge 정보</string>
     <string name="settings_version">버전 %1$s</string>
     <string name="settings_about_hint">의료기기가 아니에요. 혈당 알람과 치료 결정은 LibreLink만 따르세요. LibreLinkUp과 LibreView는 비공식 API로, 본인 계정과 데이터로만 사용해요.</string>
@@ -308,7 +308,7 @@
     <string name="dev_not_installed">설치 안 됨</string>
     <string name="dev_delivery">지연</string>
     <string name="dev_usage">사용 정보 접근</string>
-    <string name="dev_sh_text">Samsung Health는 Health Connect에서 혈당을 언제 가져갈지 스스로 정해요. 다른 앱은 재촉할 수 없고, Health Connect도 누가 언제 데이터를 읽었는지 다른 앱에 알려 주지 않아요. Samsung에 따르면 홈 화면을 열 때와 그 화면을 아래로 당길 때 동기화해요. 앱을 열어 두기만 해서는 부족해요. 실제로 ‘혈당’을 읽은 시간은 Health Connect → ‘최근 액세스’에서 볼 수 있으니 아래 기록의 ‘wrote’ 줄과 비교해 보세요.</string>
+    <string name="dev_sh_text">Samsung Health는 Health Connect에서 혈당을 언제 가져갈지 스스로 정해요. 다른 앱은 재촉할 수 없고, Health Connect도 누가 언제 데이터를 읽었는지 다른 앱에 알려 주지 않아요. Samsung에 따르면 홈 화면을 열 때와 그 화면을 아래로 당길 때 동기화해요. 앱을 열어 두기만 해서는 부족해요. 실제로 ‘혈당’을 읽은 시간은 Health Connect → ‘최근 데이터에 액세스한 앱’에서 볼 수 있으니 아래 기록의 ‘wrote’ 줄과 비교해 보세요.</string>
     <string name="dev_usage_hint">Samsung Health가 언제 열렸는지, 언제 백그라운드에서 작동했는지 기록에서 보려면 SugarBridge에 사용 정보 접근 권한을 주세요. 여기서만 사용해요.</string>
     <string name="dev_usage_grant">사용 정보 접근 허용</string>
     <string name="dev_tools">도구</string>
@@ -346,7 +346,7 @@
     <string name="merge_overwrite">추가하고 다른 값은 바꾸기</string>
     <string name="merge_replace">이 파일로 전체 기록 바꾸기</string>
     <string name="merge_hint">‘새 측정값 추가’는 불러온 기록을 그대로 두고 새 측정값만 더해요. 어느 쪽이든 SugarBridge 안의 사본만 바뀌고, Health Connect는 직접 날짜를 기록할 때 바뀌어요.</string>
-    <string name="dev_usage_restricted">스위치가 회색이고 제한된 설정이라고 나오나요? 스토어가 아닌 APK로 설치한 앱에 Android가 이렇게 해요. ‘애플리케이션 정보’ → ⋮ (오른쪽 위) → ‘제한된 설정 허용’을 열어 확인한 뒤 ‘사용 정보 접근 허용’를 다시 누르세요.</string>
+    <string name="dev_usage_restricted">스위치가 회색이고 제한된 설정이라고 나오나요? 스토어가 아닌 APK로 설치한 앱에 Android가 이렇게 해요. ‘애플리케이션 정보’ → ⋮ (오른쪽 위) → ‘제한된 설정 허용’을 열어 확인한 뒤 ‘사용 정보 접근 허용’을 다시 누르세요.</string>
     <string name="dev_app_info">애플리케이션 정보</string>
     <string name="dev_fix_saver">절전 모드 끄기</string>
     <string name="dev_fix_install_samsung">Samsung Health 설치</string>
@@ -376,8 +376,8 @@
     <string name="error_github_server">GitHub가 코드 %1$d로 응답했어요</string>
     <string name="error_github_network">GitHub에 연결할 수 없어요</string>
     <string name="privacy_title">개인정보 보호</string>
-    <string name="privacy_health">SugarBridge는 LibreLinkUp 계정의 혈당만 Health Connect에 기록해요. 읽는 것도 자신이 기록한 데이터뿐이며, 기록과 예상 HbA1c에 써요. 다른 앱의 건강 데이터는 건드리지 않아요.</string>
-    <string name="privacy_password">LibreLinkUp 비밀번호는 Android Keystore 키로 암호화해 휴대폰에 저장하고 LibreLinkUp에만 보내요. 앱은 LibreLinkUp 외에는 새 버전을 확인하고 다운로드하기 위해 GitHub에만 연결해요.</string>
+    <string name="privacy_health">SugarBridge는 Health Connect에 혈당만 기록해요. LibreLinkUp 계정, 불러온 LibreView 기록, 그리고 켜 두었다면 이 휴대전화의 앱에서 온 혈당이에요. 읽는 것도 자신이 기록한 데이터뿐이며, 기록과 추정 HbA1c에 써요. 다른 앱의 건강 데이터는 건드리지 않아요.</string>
+    <string name="privacy_password">LibreLinkUp 비밀번호는 Android Keystore 키로 암호화해 휴대전화에 저장하고 LibreLinkUp에만 보내요. 앱은 LibreLinkUp 외에는 기록 탭에서 열었을 때의 LibreView, 그리고 새 버전을 확인하고 다운로드하기 위한 GitHub에만 연결해요.</string>
     <string name="privacy_nothing_else">SugarBridge에는 자체 서버, 분석, 광고가 없어요. 아무것도 수집하지 않고, 다른 곳으로 보내거나 팔지 않아요. 기록한 데이터는 Health Connect나 기록 탭에서 삭제할 수 있어요.</string>
 
     <!-- Added in 1.13.0 -->

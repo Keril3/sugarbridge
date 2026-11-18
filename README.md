@@ -287,8 +287,8 @@ that, and it has no effect on your data or permissions.
 
 **Where does the password go?** Only to LibreLinkUp. On the phone it is encrypted with an Android Keystore key
 that can't be taken off the phone. SugarBridge has no server, analytics or ads. Besides LibreLinkUp and Health
-Connect it talks only to GitHub, to ask for the latest version and download it; with "Check for updates by
-itself" off, only when you tap "Check for updates". With "From LibreLink's notification" on it reads only the
+Connect it talks only to LibreView, while you have it open in History, and to GitHub, to ask for the latest version
+and download it; with "Check for updates by itself" off, only when you tap "Check for updates". With "From LibreLink's notification" on it reads only the
 notifications of Abbott's apps, for the glucose in them, and keeps none. The same in short is in the app:
 Settings → App → Privacy, and Health Connect's "privacy policy" link for SugarBridge opens it. Signing out erases
 the password and the sign-in in the LibreView window; the history and the event log stay until you delete them.
@@ -322,6 +322,10 @@ You need Android Studio (it comes with a JDK) and Android SDK 37.
 ```
 
 On Windows use `gradlew.bat`. CI on GitHub runs the unit tests, Lint and the build on every push.
+To check a translation on the screens, the screenshot test walks through all twelve languages, not only English and
+Russian, with `-Pandroid.testInstrumentationRunnerArguments.class=com.sugarbridge.app.ui.ScreenshotTest
+-Pandroid.testInstrumentationRunnerArguments.languages=all`; each language's `files/shots/<language>/cut.txt` lists
+the texts that don't fit (add `-Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true` to keep them).
 Before the device tests, uninstall a SugarBridge signed with another key from the device (one from Releases, for
 example): the tests can't be installed over it, and Gradle may still report success with no test run.
 
@@ -364,14 +368,14 @@ GitHub Actions builds and signs the APK in Releases when a `v*` tag arrives in t
    ```
 3. **Every release:** add the version's section to [CHANGELOG.md](CHANGELOG.md), then
    ```sh
-   git tag v1.15.1
-   git push origin v1.15.1
+   git tag v1.15.2
+   git push origin v1.15.2
    ```
    A few minutes later `SugarBridge.apk` appears in Releases with the notes from the CHANGELOG.
 
 A signed APK can be built locally too: put `sugarbridge.keystore`, `sugarbridge.keystorePassword`,
 `sugarbridge.keyAlias` and `sugarbridge.keyPassword` into `~/.gradle/gradle.properties` (outside the repository)
-and run `./gradlew assembleRelease -Psugarbridge.version=1.15.1`.
+and run `./gradlew assembleRelease -Psugarbridge.version=1.15.2`.
 
 ## Feedback
 

@@ -1,4 +1,7 @@
-# R8 rules. R8 is currently off for release (see app/build.gradle.kts), but in case it is turned on:
+# R8 rules for the optimized release and smoke builds (see app/build.gradle.kts).
+
+# Names stay as written: a crash report stays readable, and WorkManager finds the workers it saved by class name.
+-dontobfuscate
 
 # the LibreView window calls these methods from JavaScript by name: they must not be renamed or removed
 -keepclassmembers class * {

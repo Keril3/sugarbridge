@@ -113,7 +113,7 @@
     <string name="history_write">Scrivi in Health Connect</string>
     <string name="history_pick_title">Quali giorni sincronizzare</string>
     <string name="history_delete_title">Eliminare da Health Connect?</string>
-    <string name="history_delete_text">Tutti i valori di glicemia di SugarBridge dei giorni scelti (%1$d) spariranno da Health Connect e Samsung Health, sia quelli da LibreView sia quelli da LibreLinkUp. I tuoi dati in LibreView restano intatti.</string>
+    <string name="history_delete_text">Tutti i valori di glicemia di SugarBridge dei giorni scelti (%1$d) spariranno da Health Connect e Samsung Health, da qualunque fonte arrivino. I tuoi dati in LibreView restano intatti.</string>
 
     <!-- Settings -->
     <string name="settings_title">Impostazioni</string>
@@ -132,19 +132,19 @@
     <string name="settings_background_hint">Senza notifica Android non consente più di una volta ogni 15 minuti. Ogni volta vengono prese le ultime 12 ore, quindi non manca nulla anche se il telefono dormiva.</string>
     <string name="settings_live_title">Modalità minuto</string>
     <string name="settings_live_switch">Attiva</string>
-    <string name="settings_live_switch_hint">La glicemia arriva in Samsung Health uno o due minuti dopo la misurazione. Finché la modalità è attiva, resta una notifica nella tendina.</string>
+    <string name="settings_live_switch_hint">Ogni nuovo valore di LibreLinkUp arriva in Health Connect entro un minuto, e Samsung Health lo prende da lì. Finché la modalità è attiva, resta una notifica nella tendina.</string>
     <string name="settings_live_every_minute">ogni min</string>
     <string name="settings_live_every">ogni %1$d min</string>
     <string name="settings_live_value">Glicemia nella notifica</string>
-    <string name="settings_live_value_hint">Il valore nella tendina delle notifiche. Se lo spegni, la notifica diventa silenziosa e scende in fondo alla tendina</string>
+    <string name="settings_live_value_hint">Il valore nella tendina delle notifiche. Se lo spegni, la notifica diventa silenziosa e scende in fondo alla tendina.</string>
     <string name="settings_keep_awake">Tieni sveglio il telefono</string>
-    <string name="settings_keep_awake_hint">L’intervallo non si allunga a schermo spento. Senza limiti alla batteria il telefono si attiva solo per ogni richiesta; con i limiti resta attivo e la batteria si scarica prima</string>
+    <string name="settings_keep_awake_hint">L’intervallo non si allunga a schermo spento. Senza limiti alla batteria il telefono si attiva solo per ogni richiesta; con i limiti resta attivo e la batteria si scarica prima.</string>
     <string name="settings_hide_notification">Nascondi del tutto la notifica</string>
     <string name="settings_battery">Rimuovi le limitazioni della batteria</string>
     <string name="settings_live_hint">Android lascia lavorare un’app così spesso solo se mostra una notifica. Se ti dà fastidio, disattivala con il pulsante sopra: la modalità continua a funzionare.</string>
     <string name="settings_display_title">Valori</string>
     <string name="settings_target_range">Intervallo obiettivo:\n%1$s – %2$s %3$s</string>
-    <string name="settings_target_hint">La glicemia entro questo intervallo è considerata normale: appare in verde, sotto in rosa e sopra in arancione. Anche la fascia del grafico e la quota “nell’intervallo” lo usano. Gli allarmi di LibreLink non cambiano.</string>
+    <string name="settings_target_hint">La glicemia entro questo intervallo è considerata normale: appare in verde, sotto in rosa e sopra in arancione. Anche la fascia del grafico e la quota “in intervallo” lo usano. Gli allarmi di LibreLink non cambiano.</string>
     <string name="settings_about_title">Informazioni su SugarBridge</string>
     <string name="settings_version">Versione %1$s</string>
     <string name="settings_about_hint">Non è un dispositivo medico: allarmi della glicemia e decisioni di terapia spettano solo a LibreLink. LibreLinkUp e LibreView sono usati tramite un’API non ufficiale, solo con il tuo account e i tuoi dati.</string>
@@ -363,7 +363,7 @@
     <string name="feedback_site_link">Apri il sito</string>
     <string name="settings_arrow_place_hint">Sopra il numero le cifre vengono più grandi: accanto, la freccia toglie larghezza al numero nell’icona quadrata.</string>
     <string name="settings_statusbar_tenshi">Senza numero e freccia, in alto sullo schermo c’è l’icona di Tenshi-chan.</string>
-    <string name="settings_update_auto">Cerca aggiornamenti da sola</string>
+    <string name="settings_update_auto">Cerca aggiornamenti automaticamente</string>
     <string name="settings_update_auto_hint">All’apertura dell’app, al massimo ogni 6 ore: SugarBridge chiede a GitHub l’ultima versione</string>
     <string name="settings_update_prompt">Proponi l’installazione</string>
     <string name="settings_update_prompt_hint">Una finestra nell’app e, mentre l’app è chiusa, un controllo al giorno con una notifica; una volta per ogni nuova versione</string>
@@ -376,9 +376,9 @@
     <string name="error_github_server">GitHub ha risposto con il codice %1$d</string>
     <string name="error_github_network">nessuna connessione a GitHub</string>
     <string name="privacy_title">Privacy</string>
-    <string name="privacy_health">SugarBridge scrive in Health Connect solo la glicemia del tuo account LibreLinkUp. Da lì legge solo i propri dati, per lo storico e l’HbA1c stimata; i dati sanitari delle altre app restano intatti.</string>
-    <string name="privacy_password">La password di LibreLinkUp resta sul telefono, cifrata con una chiave dell’Android Keystore, e va solo a LibreLinkUp. Oltre a LibreLinkUp, l’app contatta solo GitHub, per sapere di una nuova versione e scaricarla.</string>
-    <string name="privacy_nothing_else">SugarBridge non ha server, statistiche né pubblicità: nulla viene raccolto, inviato altrove o venduto. Ciò che ha scritto si può cancellare in Health Connect o in «Storico».</string>
+    <string name="privacy_health">SugarBridge scrive in Health Connect solo la glicemia: dal tuo account LibreLinkUp, dallo storico LibreView caricato e, se lo attivi, dalle app di questo telefono. Da lì legge solo i propri dati, per lo storico e l’HbA1c stimata; i dati sanitari delle altre app restano intatti.</string>
+    <string name="privacy_password">La password di LibreLinkUp resta sul telefono, cifrata con una chiave dell’Android Keystore, e va solo a LibreLinkUp. Oltre a LibreLinkUp, l’app contatta solo LibreView, quando lo apri nello storico, e GitHub, per sapere di una nuova versione e scaricarla.</string>
+    <string name="privacy_nothing_else">SugarBridge non ha server, statistiche né pubblicità: nulla viene raccolto, inviato altrove o venduto. Ciò che ha scritto si può cancellare in Health Connect o in “Storico”.</string>
 
     <!-- Added in 1.13.0 -->
     <string name="settings_tab_sync">Connessione</string>

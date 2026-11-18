@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasScrollToNodeAction
 import androidx.compose.ui.test.hasSetTextAction
@@ -20,6 +21,7 @@ import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.lifecycle.ViewModelProvider
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso
@@ -49,6 +51,7 @@ import com.sugarbridge.app.libreview.HistoryStore
 import com.sugarbridge.app.resourcesIn
 import com.sugarbridge.app.settings.AppFont
 import com.sugarbridge.app.settings.AppSettings
+import com.sugarbridge.app.settings.LANGUAGES
 import com.sugarbridge.app.settings.SettingsStore
 import com.sugarbridge.app.settings.ThemeMode
 import com.sugarbridge.app.sync.SyncStore
@@ -62,6 +65,7 @@ import com.sugarbridge.app.withUpdateOffers
 import com.sugarbridge.app.withoutUpdateOffers
 import org.junit.After
 import org.junit.Assert.assertTrue
+import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -78,8 +82,9 @@ import kotlin.math.sin
 import kotlinx.coroutines.runBlocking
 
 /**
- * Walks through the screens with demo data in English and in Russian and saves screenshots to the app's
- * files/shots/<language>. Get one with: adb exec-out run-as com.sugarbridge.app cat files/shots/en/home.png > home.png
+ * Walks through the screens with demo data in English and in Russian (and the other languages when asked, see
+ * [otherLanguages]) and saves screenshots to the app's files/shots/<language>, with cut.txt listing the texts that
+ * didn't fit. Get one with: adb exec-out run-as com.sugarbridge.app cat files/shots/en/home.png > home.png
  */
 @RunWith(AndroidJUnit4::class)
 class ScreenshotTest {
@@ -170,6 +175,39 @@ class ScreenshotTest {
         val bitmap = instrumentation.uiAutomation.takeScreenshot()
         val dir = File(context.filesDir, "shots/$language").apply { mkdirs() }
         File(dir, "$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+        findCutText(name)
+    }
+
+    /** Texts on the screens that didn't fit, as "screen: text", for the language being walked through. */
+    private val cut = mutableListOf<String>()
+
+    /**
+     * A translation longer than the room for it shows up as a text taller or wider than its place, lines left out,
+     * an ending "…" or a word broken between two lines. Chinese, Japanese and Korean break between any two letters,
+     * so only other scripts count for that.
+     */
+    private fun findCutText(screen: String) {
+        val cjk = setOf(Character.UnicodeScript.HAN, Character.UnicodeScript.HIRAGANA, Character.UnicodeScript.KATAKANA, Character.UnicodeScript.HANGUL)
+        fun Char.breaksWords() = isLetter() && Character.UnicodeScript.of(code) !in cjk
+        compose.onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsActions.GetTextLayoutResult), useUnmergedTree = true)
+            .fetchSemanticsNodes(atLeastOneRootRequired = false)
+            .forEach { node ->
+                val layouts = mutableListOf<TextLayoutResult>()
+                if (node.config[SemanticsActions.GetTextLayoutResult].action?.invoke(layouts) != true) return@forEach
+                val layout = layouts.firstOrNull() ?: return@forEach
+                val text = layout.layoutInput.text.text
+                val lines = 0 until layout.lineCount
+                // not didOverflowWidth: the layout handed to tests is as wide as a short text, its paragraph as wide as
+                // the room, so it says "overflow" for every single line
+                val tooWide = lines.any { layout.getLineRight(it) - layout.getLineLeft(it) > layout.layoutInput.constraints.maxWidth + 1 }
+                val hidden = layout.lineCount > 0 && layout.getLineEnd(layout.lineCount - 1, visibleEnd = true) < text.trimEnd().length
+                val ellipsis = lines.any { layout.isLineEllipsized(it) }
+                val brokenWord = (0 until layout.lineCount - 1).any { line ->
+                    val end = layout.getLineEnd(line)
+                    end in 1 until text.length && text[end - 1].breaksWords() && text[end].breaksWords()
+                }
+                if (layout.didOverflowHeight || tooWide || hidden || ellipsis || brokenWord) cut += "$screen: ${text.replace('\n', ' ').take(80)}"
+            }
     }
 
     @Test
@@ -178,7 +216,26 @@ class ScreenshotTest {
     @Test
     fun russianScreens() = allScreens("ru")
 
+    /**
+     * The other ten languages, for checking a translation: -e languages all (or de,fr,…). They take long, so an
+     * ordinary run skips them; the screenshots and files/shots/<language>/cut.txt show how each one fits.
+     */
+    @Test
+    fun otherLanguages() {
+        val asked = InstrumentationRegistry.getArguments().getString("languages")
+        assumeTrue("run with -e languages all", asked != null)
+        val languages = if (asked == "all") LANGUAGES.map { it.tag } - setOf("en", "ru") else asked!!.split(',')
+        languages.forEachIndexed { i, language ->
+            if (i > 0) {
+                cleanUp()
+                seed()
+            }
+            allScreens(language)
+        }
+    }
+
     private fun allScreens(language: String) {
+        cut.clear()
         useAppLanguage(context, language)
         val res = resourcesIn(context, language)
         fun text(id: Int) = res.getString(id)
@@ -382,5 +439,6 @@ class ScreenshotTest {
         compose.waitUntil(5_000) { vm.updateOffer == null }
         assertTrue("offered again", !UpdateOffer.shouldOffer(context, vm.ui.settings, Updater.known(context)!!))
         scenario.close()
+        File(context.filesDir, "shots/$language/cut.txt").writeText(cut.distinct().joinToString("\n"))
     }
 }

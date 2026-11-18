@@ -113,7 +113,7 @@
     <string name="history_write">Escribir en Health Connect</string>
     <string name="history_pick_title">Qué días sincronizar</string>
     <string name="history_delete_title">¿Eliminar de Health Connect?</string>
-    <string name="history_delete_text">Todos los registros de glucosa de SugarBridge de los días elegidos (%1$d) desaparecerán de Health Connect y Samsung Health, tanto los de LibreView como los de LibreLinkUp. Tus datos en LibreView no se tocan.</string>
+    <string name="history_delete_text">Todos los registros de glucosa de SugarBridge de los días elegidos (%1$d) desaparecerán de Health Connect y Samsung Health, vengan de donde vengan. Tus datos en LibreView no se tocan.</string>
 
     <!-- Settings -->
     <string name="settings_title">Ajustes</string>
@@ -132,19 +132,19 @@
     <string name="settings_background_hint">Sin notificación, Android no permite más de una vez cada 15 minutos. Cada vez se descargan las últimas 12 horas, así que no faltará nada aunque el teléfono haya estado en reposo.</string>
     <string name="settings_live_title">Modo minuto</string>
     <string name="settings_live_switch">Activar</string>
-    <string name="settings_live_switch_hint">La glucosa llega a Samsung Health uno o dos minutos después de la medición. Mientras el modo funciona, hay una notificación en la barra.</string>
+    <string name="settings_live_switch_hint">Cada valor nuevo de LibreLinkUp llega a Health Connect en menos de un minuto, y Samsung Health lo toma de allí. Mientras el modo funciona, hay una notificación en la barra.</string>
     <string name="settings_live_every_minute">cada min</string>
     <string name="settings_live_every">cada %1$d min</string>
     <string name="settings_live_value">Glucosa en la notificación</string>
-    <string name="settings_live_value_hint">El valor en el panel de notificaciones. Si lo desactivas, la notificación se vuelve silenciosa y baja al final del panel</string>
+    <string name="settings_live_value_hint">El valor en el panel de notificaciones. Si lo desactivas, la notificación se vuelve silenciosa y baja al final del panel.</string>
     <string name="settings_keep_awake">Mantener el teléfono despierto</string>
-    <string name="settings_keep_awake_hint">El intervalo no se alarga con la pantalla apagada. Sin restricciones de batería el teléfono solo se activa para cada consulta; con ellas sigue activo y la batería se gasta antes</string>
+    <string name="settings_keep_awake_hint">El intervalo no se alarga con la pantalla apagada. Sin restricciones de batería el teléfono solo se activa para cada consulta; con ellas sigue activo y la batería se gasta antes.</string>
     <string name="settings_hide_notification">Ocultar la notificación por completo</string>
     <string name="settings_battery">Quitar las restricciones de batería</string>
     <string name="settings_live_hint">Android solo deja que una app funcione tan a menudo si muestra una notificación. Si te molesta, desactívala con el botón de arriba: el modo seguirá funcionando.</string>
     <string name="settings_display_title">Mediciones</string>
     <string name="settings_target_range">Rango objetivo:\n%1$s – %2$s %3$s</string>
-    <string name="settings_target_hint">La glucosa dentro de este rango se considera normal: se muestra en verde, por debajo en rosa y por encima en naranja. La franja del gráfico y el porcentaje «en rango» también lo usan. Las alarmas de LibreLink no cambian.</string>
+    <string name="settings_target_hint">La glucosa dentro de este rango se considera normal: se muestra en verde, por debajo en rosa y por encima en naranja. La franja de la gráfica y el porcentaje «en rango» también lo usan. Las alarmas de LibreLink no cambian.</string>
     <string name="settings_about_title">Acerca de SugarBridge</string>
     <string name="settings_version">Versión %1$s</string>
     <string name="settings_about_hint">No es un producto sanitario: las alarmas de glucosa y las decisiones de tratamiento corresponden solo a LibreLink. LibreLinkUp y LibreView se usan mediante una API no oficial, solo con tu cuenta y tus datos.</string>
@@ -260,7 +260,7 @@
     <string name="cal_hint_last">Ahora toca el último día</string>
     <string name="cal_earlier">Antes</string>
     <string name="cal_later">Después</string>
-    <string name="view_title">Gráfico del historial</string>
+    <string name="view_title">Gráfica del historial</string>
     <string name="view_day">Día</string>
     <string name="view_week">Semana</string>
     <string name="view_month">Mes</string>
@@ -308,7 +308,7 @@
     <string name="dev_not_installed">no instalado</string>
     <string name="dev_delivery">Retraso</string>
     <string name="dev_usage">Acceso a datos de uso</string>
-    <string name="dev_sh_text">Samsung Health decide por sí mismo cuándo tomar la glucosa de Health Connect: otras apps no pueden apurarlo, y Health Connect no les dice quién leyó los datos ni cuándo. Según Samsung, sincroniza cuando se abre su pantalla de inicio y cuando se desliza hacia abajo; tener la app abierta no basta. Cuándo leyó de verdad «Glucosa en sangre» se ve en Health Connect → «Acceso reciente»; compáralo con las líneas «wrote» del registro de abajo.</string>
+    <string name="dev_sh_text">Samsung Health decide por sí mismo cuándo tomar la glucosa de Health Connect: otras apps no pueden meterle prisa, y Health Connect no les dice quién leyó los datos ni cuándo. Según Samsung, sincroniza cuando se abre su pantalla de inicio y cuando se desliza hacia abajo; tener la app abierta no basta. Cuándo leyó de verdad «Glucosa en sangre» se ve en Health Connect → «Acceso reciente»; compáralo con las líneas «wrote» del registro de abajo.</string>
     <string name="dev_usage_hint">Para ver en el registro cuándo se abrió Samsung Health o cuándo trabajó en segundo plano, da a SugarBridge acceso a los datos de uso. Solo se usa aquí.</string>
     <string name="dev_usage_grant">Dar acceso a los datos de uso</string>
     <string name="dev_tools">Herramientas</string>
@@ -350,9 +350,9 @@
     <string name="dev_app_info">Información de la aplicación</string>
     <string name="dev_fix_saver">Desactivar el ahorro de batería</string>
     <string name="dev_fix_install_samsung">Instalar Samsung Health</string>
-    <string name="notice_background_off">El modo minuto está activado, así que la sincronización en segundo plano está desactivada: haría lo mismo, pero con menos frecuencia. Vuelve cuando desactivas el modo minuto.</string>
+    <string name="notice_background_off">El modo minuto está activado, así que la sincronización en segundo plano está desactivada: haría lo mismo, pero con menos frecuencia. Vuelve cuando desactives el modo minuto.</string>
     <string name="notice_background_link">Ajustes de la sincronización en segundo plano ›</string>
-    <string name="settings_background_paused">Desactivada por ahora: el modo minuto está en marcha. Vuelve cuando lo desactivas.</string>
+    <string name="settings_background_paused">Desactivada por ahora: el modo minuto está en marcha. Vuelve cuando lo desactives.</string>
     <string name="feedback_title">Comentarios</string>
     <string name="feedback_site">Sitio web del desarrollador</string>
     <string name="feedback_intro">Puedes contactar con el desarrollador aquí:</string>
@@ -376,8 +376,8 @@
     <string name="error_github_server">GitHub respondió con el código %1$d</string>
     <string name="error_github_network">sin conexión con GitHub</string>
     <string name="privacy_title">Privacidad</string>
-    <string name="privacy_health">SugarBridge solo escribe en Health Connect la glucosa de tu cuenta de LibreLinkUp. Solo lee allí sus propios registros, para el historial y la HbA1c estimada; los datos de salud de otras apps no se tocan.</string>
-    <string name="privacy_password">La contraseña de LibreLinkUp se guarda en el teléfono, cifrada con una clave de Android Keystore, y solo va a LibreLinkUp. Aparte de LibreLinkUp, la app solo se comunica con GitHub, para saber de una versión nueva y descargarla.</string>
+    <string name="privacy_health">SugarBridge solo escribe glucosa en Health Connect: la de tu cuenta de LibreLinkUp, la del historial de LibreView que cargues y, si lo activas, la de las apps de este teléfono. Solo lee allí sus propios registros, para el historial y la HbA1c estimada; los datos de salud de otras apps no se tocan.</string>
+    <string name="privacy_password">La contraseña de LibreLinkUp se guarda en el teléfono, cifrada con una clave de Android Keystore, y solo va a LibreLinkUp. Aparte de LibreLinkUp, la app solo se comunica con LibreView, cuando lo abres en el historial, y con GitHub, para saber de una versión nueva y descargarla.</string>
     <string name="privacy_nothing_else">SugarBridge no tiene servidor, analíticas ni anuncios: no se recopila nada, no se envía a ningún otro sitio ni se vende. Lo que escribió se puede borrar en Health Connect o en el historial.</string>
 
     <!-- Added in 1.13.0 -->

@@ -113,7 +113,7 @@
     <string name="history_write">In Health Connect schreiben</string>
     <string name="history_pick_title">Welche Tage synchronisieren</string>
     <string name="history_delete_title">Aus Health Connect löschen?</string>
-    <string name="history_delete_text">Alle Zuckereinträge von SugarBridge für die gewählten Tage (%1$d) verschwinden aus Health Connect und Samsung Health, sowohl die aus LibreView als auch die aus LibreLinkUp. Deine Daten in LibreView bleiben unberührt.</string>
+    <string name="history_delete_text">Alle Zuckereinträge von SugarBridge für die gewählten Tage (%1$d) verschwinden aus Health Connect und Samsung Health, egal woher sie kamen. Deine Daten in LibreView bleiben unberührt.</string>
 
     <!-- Settings -->
     <string name="settings_title">Einstellungen</string>
@@ -129,19 +129,19 @@
     <string name="settings_hc_hint">Samsung Health holt den Zucker selbst aus Health Connect, nach eigenem Zeitplan; damit es neue Werte sofort holt, öffne seinen Startbildschirm und zieh ihn nach unten. Keine Punkte? Prüfe in Samsung Health → Einstellungen → Health Connect, ob es „Blutzucker“ lesen darf.</string>
     <string name="settings_background_title">Hintergrund-Synchronisierung</string>
     <string name="settings_off">aus</string>
-    <string name="settings_background_hint">Öfter als alle 15 Minuten erlaubt Android ohne Benachrichtigung nicht. Jedes Mal werden die letzten 12 Stunden geholt, es fehlt also nichts, auch wenn das Handy geschlafen hat.</string>
+    <string name="settings_background_hint">Öfter als alle 15 Minuten erlaubt Android ohne Benachrichtigung nicht. Jedes Mal werden die letzten 12 Stunden geholt, es fehlt also nichts, auch wenn das Telefon geschlafen hat.</string>
     <string name="settings_live_title">Minutenmodus</string>
     <string name="settings_live_switch">Einschalten</string>
-    <string name="settings_live_switch_hint">Der Zucker ist ein bis zwei Minuten nach der Messung in Samsung Health. Solange der Modus läuft, steht eine Benachrichtigung in der Leiste.</string>
+    <string name="settings_live_switch_hint">Jeder neue Wert aus LibreLinkUp ist innerhalb einer Minute in Health Connect, und Samsung Health holt ihn von dort. Solange der Modus läuft, steht eine Benachrichtigung in der Leiste.</string>
     <string name="settings_live_every_minute">jede Min.</string>
     <string name="settings_live_every">alle %1$d Min.</string>
     <string name="settings_live_value">Zucker in der Benachrichtigung</string>
-    <string name="settings_live_value_hint">Der Wert in der Benachrichtigungsleiste. Ausgeschaltet wird die Benachrichtigung leise und rutscht nach unten</string>
+    <string name="settings_live_value_hint">Der Wert in der Benachrichtigungsleiste. Ausgeschaltet wird die Benachrichtigung leise und rutscht nach unten.</string>
     <string name="settings_keep_awake">Telefon wach halten</string>
-    <string name="settings_keep_awake_hint">Das Intervall dehnt sich bei ausgeschaltetem Bildschirm nicht. Ohne Akkubeschränkungen wacht das Telefon nur für jede Abfrage auf; mit ihnen bleibt es wach und der Akku leert sich schneller</string>
+    <string name="settings_keep_awake_hint">Das Intervall dehnt sich bei ausgeschaltetem Bildschirm nicht. Ohne Akkubeschränkungen wacht das Telefon nur für jede Abfrage auf; mit ihnen bleibt es wach und der Akku leert sich schneller.</string>
     <string name="settings_hide_notification">Benachrichtigung ganz ausblenden</string>
     <string name="settings_battery">Akku-Beschränkungen aufheben</string>
-    <string name="settings_live_hint">So oft darf eine App nur mit Benachrichtigung arbeiten. Stört sie, schalte sie mit der Taste oben aus – der Modus läuft weiter.</string>
+    <string name="settings_live_hint">So oft darf eine App nur mit Benachrichtigung arbeiten. Stört sie, schalte sie mit der Schaltfläche oben aus – der Modus läuft weiter.</string>
     <string name="settings_display_title">Messwerte</string>
     <string name="settings_target_range">Zielbereich:\n%1$s – %2$s %3$s</string>
     <string name="settings_target_hint">Zucker in diesem Bereich gilt als normal: Er wird grün angezeigt, darunter rosa, darüber orange. Danach richten sich auch das Band im Diagramm und der Anteil „im Bereich“. LibreLink-Alarme ändern sich nicht.</string>
@@ -257,7 +257,7 @@
     <string name="cal_from">Von</string>
     <string name="cal_to">Bis</string>
     <string name="cal_hint_first">Tippe auf den ersten Tag des Zeitraums</string>
-    <string name="cal_hint_last">Jetzt auf den letzten Tag tippen</string>
+    <string name="cal_hint_last">Tippe jetzt auf den letzten Tag</string>
     <string name="cal_earlier">Früher</string>
     <string name="cal_later">Später</string>
     <string name="view_title">Verlauf als Diagramm</string>
@@ -267,7 +267,7 @@
     <string name="view_quarter">3 Monate</string>
     <string name="view_all">Alles</string>
     <string name="view_custom">Eigener…</string>
-    <string name="view_pick_title">Welcher Zeitraum angezeigt wird</string>
+    <string name="view_pick_title">Welchen Zeitraum anzeigen</string>
     <string name="view_readings">Messwerte: %1$d</string>
     <string name="view_no_data">In diesem Zeitraum gibt es keine Messwerte</string>
     <string name="settings_status_value">Zahl in der Statusleiste</string>
@@ -282,10 +282,10 @@
     <string name="text_size_huge">Am größten</string>
     <string name="settings_low_vision">Modus für Sehbehinderte</string>
     <string name="settings_low_vision_hint">Größer und kontrastreicher auf einfarbigem Hintergrund; die Schrift des Telefons statt der Pixelschrift</string>
-    <string name="settings_developer">Entwickleroptionen</string>
+    <string name="settings_developer">Entwicklerwerkzeuge</string>
     <string name="settings_developer_hint">Ein Ereignisprotokoll und Prüfungen, die zeigen, wo Zeit verloren geht</string>
     <string name="settings_developer_open">Werkzeuge öffnen</string>
-    <string name="dev_title">Entwickleroptionen</string>
+    <string name="dev_title">Entwicklerwerkzeuge</string>
     <string name="dev_status">Status</string>
     <string name="dev_refresh">Aktualisieren</string>
     <string name="dev_version">Version</string>
@@ -308,7 +308,7 @@
     <string name="dev_not_installed">nicht installiert</string>
     <string name="dev_delivery">Verzögerung</string>
     <string name="dev_usage">Zugriff auf Nutzungsdaten</string>
-    <string name="dev_sh_text">Samsung Health entscheidet selbst, wann es den Zucker aus Health Connect holt: Andere Apps können es nicht beschleunigen, und Health Connect verrät ihnen nicht, wer wann Daten gelesen hat. Laut Samsung synchronisiert es, wenn sein Startbildschirm geöffnet und wenn dieser nach unten gezogen wird; die App nur offen zu lassen, reicht nicht. Wann es „Blutzucker“ wirklich gelesen hat, steht in Health Connect unter „Letzter Zugriff“; vergleiche das mit den „wrote“-Zeilen im Protokoll unten.</string>
+    <string name="dev_sh_text">Samsung Health entscheidet selbst, wann es den Zucker aus Health Connect holt: Andere Apps können es nicht beschleunigen, und Health Connect verrät ihnen nicht, wer wann Daten gelesen hat. Laut Samsung synchronisiert es, wenn sein Startbildschirm geöffnet und wenn dieser nach unten gezogen wird; die App nur offen zu lassen, reicht nicht. Wann es „Blutzucker“ wirklich gelesen hat, steht in Health Connect unter „Letzte Zugriffe“; vergleiche das mit den „wrote“-Zeilen im Protokoll unten.</string>
     <string name="dev_usage_hint">Damit das Protokoll zeigt, wann Samsung Health geöffnet war oder im Hintergrund lief, gib SugarBridge Zugriff auf Nutzungsdaten. Er wird nur hier verwendet.</string>
     <string name="dev_usage_grant">Zugriff auf Nutzungsdaten geben</string>
     <string name="dev_tools">Werkzeuge</string>
@@ -376,8 +376,8 @@
     <string name="error_github_server">GitHub antwortete mit Code %1$d</string>
     <string name="error_github_network">keine Verbindung zu GitHub</string>
     <string name="privacy_title">Datenschutz</string>
-    <string name="privacy_health">SugarBridge schreibt nur den Blutzucker aus deinem LibreLinkUp-Konto in Health Connect. Es liest dort nur seine eigenen Einträge, für den Verlauf und den geschätzten HbA1c; Gesundheitsdaten anderer Apps bleiben unberührt.</string>
-    <string name="privacy_password">Das LibreLinkUp-Passwort bleibt auf dem Handy, verschlüsselt mit einem Android-Keystore-Schlüssel, und geht nur an LibreLinkUp. Außer mit LibreLinkUp spricht die App nur mit GitHub, um von einer neuen Version zu erfahren und sie herunterzuladen.</string>
+    <string name="privacy_health">SugarBridge schreibt nur Blutzucker in Health Connect: aus deinem LibreLinkUp-Konto, dem geladenen LibreView-Verlauf und, wenn du es einschaltest, von Apps auf diesem Telefon. Es liest dort nur seine eigenen Einträge, für den Verlauf und den geschätzten HbA1c; Gesundheitsdaten anderer Apps bleiben unberührt.</string>
+    <string name="privacy_password">Das LibreLinkUp-Passwort bleibt auf dem Telefon, verschlüsselt mit einem Android-Keystore-Schlüssel, und geht nur an LibreLinkUp. Außer mit LibreLinkUp spricht die App nur mit LibreView, wenn du es im Verlauf öffnest, und mit GitHub, um von einer neuen Version zu erfahren und sie herunterzuladen.</string>
     <string name="privacy_nothing_else">SugarBridge hat keinen Server, keine Analyse und keine Werbung: Nichts wird gesammelt, anderswohin gesendet oder verkauft. Was es geschrieben hat, lässt sich in Health Connect oder im Verlauf löschen.</string>
 
     <!-- Added in 1.13.0 -->
@@ -391,7 +391,7 @@
     <string name="font_system">Wie das Telefon</string>
     <string name="font_pixel">Pixel</string>
     <string name="font_hint">„Wie das Telefon“ ist die Schrift aus den Anzeigeeinstellungen des Telefons. Die anderen gehören zur App und sehen in jeder Sprache gleich aus.</string>
-    <string name="settings_developer_switch">Entwickleroptionen einschalten</string>
+    <string name="settings_developer_switch">Entwicklerwerkzeuge einschalten</string>
     <string name="dev_log_keep">Protokoll behalten für</string>
     <string name="dev_log_show">Anzeigen</string>
     <string name="dev_kind_all">Alle</string>
@@ -412,7 +412,7 @@
 
     <!-- Added in 1.14.0 -->
     <string name="error_offline">das Telefon hat kein Internet</string>
-    <string name="error_other">etwas ist schiefgelaufen; Einzelheiten stehen im Ereignisprotokoll der Entwickleroptionen</string>
+    <string name="error_other">etwas ist schiefgelaufen; Einzelheiten stehen im Ereignisprotokoll der Entwicklerwerkzeuge</string>
     <string name="notif_no_internet">Kein Internet</string>
     <string name="notif_retry">SugarBridge versucht es selbst erneut</string>
     <string name="notif_last">Letzter Wert %1$s um %2$s</string>

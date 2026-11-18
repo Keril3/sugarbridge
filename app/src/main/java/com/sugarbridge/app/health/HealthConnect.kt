@@ -75,8 +75,8 @@ fun Reading.toRecord() = BloodGlucoseRecord(
 )
 
 /**
- * Minutes for which SugarBridge has already written glucose. Health Connect returns an app's own records
- * without the read permission and without the 30-day limit (Android 14+).
+ * Minutes for which SugarBridge has already written glucose. Health Connect returns an app's own records without
+ * the read permission; an older one, as Android 14 comes without its updates, only those of the last 30 days.
  */
 suspend fun ownMinuteKeys(context: Context, from: Instant, to: Instant): Set<Long> {
     val keys = HashSet<Long>()
@@ -98,7 +98,9 @@ suspend fun forEachOwnGlucose(context: Context, from: Instant, to: Instant, acti
                 pageToken = page,
             )
         )
-        response.records.forEach { action(it.time, it.level.inMilligramsPerDeciliter) }
+        // that older Health Connect answers a request for records older than 30 days with recent ones instead:
+        // whatever lies outside the period asked for is left out, so every caller gets only what it asked for
+        response.records.forEach { if (!it.time.isBefore(from) && it.time.isBefore(to)) action(it.time, it.level.inMilligramsPerDeciliter) }
         page = response.pageToken
     } while (page != null)
 }
@@ -114,7 +116,11 @@ suspend fun insertReadings(context: Context, readings: List<Reading>, onProgress
     }
 }
 
-/** Deletes glucose within a period. Health Connect only lets SugarBridge delete its own records. */
+/**
+ * Deletes glucose from [from] up to, not including, [to]. Health Connect only lets SugarBridge delete its own
+ * records. It counts the end of the period in, so a reading at 00:00:00 of the next day would go with a deleted day:
+ * the period ends a millisecond earlier, and no reading's time is finer than a millisecond.
+ */
 suspend fun deleteOwnGlucose(context: Context, from: Instant, to: Instant) {
-    HealthConnectClient.getOrCreate(context).deleteRecords(BloodGlucoseRecord::class, TimeRangeFilter.between(from, to))
+    HealthConnectClient.getOrCreate(context).deleteRecords(BloodGlucoseRecord::class, TimeRangeFilter.between(from, to.minusMillis(1)))
 }

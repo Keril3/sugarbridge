@@ -20,6 +20,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.time.Duration
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import kotlinx.coroutines.runBlocking
 
 /** The real Health Connect on a phone or emulator: writing, reading our own records, rewriting and deleting. */
@@ -27,7 +28,8 @@ import kotlinx.coroutines.runBlocking
 class HealthConnectTest {
 
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
-    private val base = Instant.parse("2025-03-01T10:00:00Z")   // more than 30 days ago: checks that too
+    // a few days back: every Health Connect lets an app read its own records of the last 30 days, older ones see below
+    private val base = Instant.now().minus(Duration.ofDays(5)).truncatedTo(ChronoUnit.HOURS)
     private val from = base.minusSeconds(3600)
     private val to = base.plusSeconds(3 * 3600)
 
@@ -41,9 +43,15 @@ class HealthConnectTest {
     @After
     fun tearDown() = runBlocking { deleteOwnGlucose(context, from, to) }
 
-    private suspend fun countOwn(): Int = HealthConnectClient.getOrCreate(context).readRecords(
+    /**
+     * Our records from [from] up to, not including, [to], as SugarBridge counts a period. Health Connect counts the
+     * end in, and a reading another test left at that very minute isn't one of these.
+     */
+    private suspend fun ownRecords(): List<BloodGlucoseRecord> = HealthConnectClient.getOrCreate(context).readRecords(
         ReadRecordsRequest(BloodGlucoseRecord::class, TimeRangeFilter.between(from, to), setOf(DataOrigin(context.packageName)))
-    ).records.size
+    ).records.filter { it.time.isBefore(to) }
+
+    private suspend fun countOwn(): Int = ownRecords().size
 
     @Test
     fun permissionIsGranted() = runBlocking {
@@ -52,10 +60,26 @@ class HealthConnectTest {
 
     @Test
     fun ownRecordsAreReadableWithoutReadPermission() = runBlocking {
-        // SugarBridge has no read permission and the data is older than 30 days: our own records are visible anyway
+        // SugarBridge has no read permission: our own records are visible anyway
         val readings = (0 until 4).map { Reading(base.plusSeconds(it * 900L + 17), 100.0 + it, 0) }
         insertReadings(context, readings)
         assertEquals(readings.map { minuteKey(it.time) }.toSet(), ownMinuteKeys(context, from, to))
+    }
+
+    @Test
+    fun ownRecordsOlderThan30DaysWhereHealthConnectReadsThem() = runBlocking {
+        val old = Instant.parse("2025-03-01T10:00:00Z")
+        val readings = (0 until 4).map { Reading(old.plusSeconds(it * 900L + 17), 100.0 + it, 0) }
+        try {
+            insertReadings(context, readings)
+            val keys = ownMinuteKeys(context, old.minusSeconds(3600), old.plusSeconds(3 * 3600))
+            // Health Connect without its updates (the Android 14 emulator) gives an app's own records of the last
+            // 30 days only, and recent ones for an older period, which ownMinuteKeys leaves out
+            assumeTrue("this Health Connect reads an app's own records of the last 30 days only", keys.isNotEmpty())
+            assertEquals(readings.map { minuteKey(it.time) }.toSet(), keys)
+        } finally {
+            deleteOwnGlucose(context, old.minusSeconds(3600), old.plusSeconds(3 * 3600))
+        }
     }
 
     @Test
@@ -80,9 +104,7 @@ class HealthConnectTest {
     fun recordsCarryDeviceAndMinuteKey() = runBlocking {
         val reading = Reading(base.plusSeconds(28), 115.3, 4)
         insertReadings(context, listOf(reading))
-        val record = HealthConnectClient.getOrCreate(context).readRecords(
-            ReadRecordsRequest(BloodGlucoseRecord::class, TimeRangeFilter.between(from, to), setOf(DataOrigin(context.packageName)))
-        ).records.single()
+        val record = ownRecords().single()
         assertEquals(recordIdFor(reading.time), record.metadata.clientRecordId)
         assertEquals("Abbott", record.metadata.device?.manufacturer)
         assertEquals(115.3, record.level.inMilligramsPerDeciliter, 0.01)
@@ -91,10 +113,11 @@ class HealthConnectTest {
 
     @Test
     fun gmiIsCalculatedFromOwnRecords() = runBlocking {
-        // two weeks of points every 15 minutes at 150 mg/dL, far in the past so other tests are not affected
-        val start = Instant.parse("2025-01-01T00:00:00Z")
-        val end = start.plus(Duration.ofDays(14))
+        // two weeks of points every 15 minutes at 150 mg/dL, ending before the other tests' hours
+        val end = base.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS)
+        val start = end.minus(Duration.ofDays(14))
         try {
+            deleteOwnGlucose(context, start, end)   // whatever earlier runs left in these days
             insertReadings(context, (0 until 14 * 96).map { Reading(start.plusSeconds(it * 900L), 150.0, 0) })
             val bins = GlucoseBins(start, end)
             forEachOwnGlucose(context, start, end) { time, mgDl -> bins.add(time, mgDl) }

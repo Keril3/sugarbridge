@@ -82,6 +82,12 @@ class BatteryTest {
 
     private fun wakeLocks() = shell("dumpsys power").lines().filter { "SugarBridge:" in it && "PARTIAL_WAKE_LOCK" in it }
 
+    /**
+     * The alarms waiting to go off. "dumpsys alarm" also keeps the history of alarms that went off or were removed,
+     * the minute tick of an earlier test among them, so the whole dump would say an alarm is set when none is.
+     */
+    private fun pendingAlarms() = shell("dumpsys alarm").substringAfter("pending alarms", "").substringBefore("history")
+
     private fun nextPollComes(): Boolean {
         val before = LiveSyncService.lastTick
         return waitFor(95_000) { LiveSyncService.lastTick != before }
@@ -92,7 +98,7 @@ class BatteryTest {
         shell("dumpsys deviceidle whitelist +$app")
         startAndWaitForFirstPoll()
         assertTrue("still holding the processor: ${wakeLocks()}", wakeLocks().isEmpty())
-        assertTrue("no alarm is set for the next poll", shell("dumpsys alarm").contains("MINUTE_TICK"))
+        assertTrue("no alarm is set for the next poll", pendingAlarms().contains("MINUTE_TICK"))
         assertTrue("the alarm didn't bring the next poll", nextPollComes())
     }
 
@@ -111,7 +117,7 @@ class BatteryTest {
         assumeTrue("exact alarms are allowed on this device", !context.getSystemService(android.app.AlarmManager::class.java).canScheduleExactAlarms())
         startAndWaitForFirstPoll()
         assertTrue(wakeLocks().toString(), wakeLocks().any { "SugarBridge:live" in it })
-        assertFalse(shell("dumpsys alarm").contains("MINUTE_TICK"))
+        assertFalse("an alarm is set although Android allows none", pendingAlarms().contains("MINUTE_TICK"))
     }
 
     @Test

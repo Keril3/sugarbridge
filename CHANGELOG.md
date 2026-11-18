@@ -2,6 +2,66 @@
 
 Newest version first. A version's section becomes the release notes on GitHub.
 
+## 1.15.2 — 2026-11-18
+
+The texts in all twelve languages, read line by line and checked against what the app does.
+
+What the app said wrong, in every language:
+
+- Minute mode promised glucose in Samsung Health "a minute or two after the sensor reads it". SugarBridge can promise
+  its own part only: each new value from LibreLinkUp is in Health Connect within a minute, and Samsung Health picks it
+  up from there on its own schedule. The hint now says that.
+- Privacy didn't name LibreView, which the app talks to while it is open in History, nor glucose from the LibreView
+  history and from apps on the phone. Both are named now, in the app and in the README.
+- Deleting days from Health Connect said it removes readings from LibreView and LibreLinkUp; it removes SugarBridge's
+  readings from anywhere, Juggluco, xDrip+ and LibreLink's notification included, and now says so.
+
+Names of other apps' screens:
+
+- "Blood glucose" and "Recent access" are now quoted as Health Connect itself names them in each language, taken from
+  its own texts: in Russian «Уровень глюкозы в крови» and «Доступ за последнее время», in Ukrainian, French,
+  Portuguese, German, Korean, Turkish and Chinese likewise.
+
+Each language:
+
+- Russian and Ukrainian: "Like the phone" is «Как на телефоне» / «Як на телефоні», like the other "phone" choices;
+  LibreLink's alarms are «тревоги» / «тривоги» everywhere; a percentage is written one way throughout.
+- German: the developer tools are no longer called "Entwickleroptionen", which is Android's own menu; a button is a
+  "Schaltfläche", not a "Taste"; "Telefon" throughout.
+- French: "appli" throughout; the in-range share is quoted as the screen shows it.
+- Spanish: the subjunctive after "cuando"; "gráfica" throughout.
+- Portuguese, Japanese, Korean: one word for the phone throughout; Korean: a particle, and "추정 HbA1c" as in the title.
+- Italian, Turkish, Chinese: quotes, a suffix and a stray space.
+- Hints of two sentences end with a full stop.
+
+Fixed:
+
+- Deleting days from Health Connect also deleted a reading at exactly 00:00 of the next day: Health Connect counts
+  the end of a period in. Such readings come from LibreView exports, which have no seconds. The day now ends a
+  millisecond before midnight.
+
+Under the hood:
+
+- SugarBridge's own readings are read back from Health Connect only for the period asked for. Health Connect of
+  Android 14 without its later updates, as on the emulator the tests run on, answers a request for readings older
+  than 30 days with recent ones; they are now left out instead of counted.
+
+For developers:
+
+- The screenshot test lists the texts that don't fit on every screen (taller or wider than their place, lines left
+  out, ended with "…" or a word broken between lines) in `files/shots/<language>/cut.txt`, and walks through the
+  other ten languages with `-e languages all`. In all twelve, no text is cut on any screen.
+- A changed translation runs the translation and font tests again: Gradle used to count them as up to date when no
+  code had changed, since they read `src/main/res` themselves.
+- The rules for R8 are one file, `rules.keep`, whose comment no longer says R8 is off.
+- The bug report template finds the version and the event log under Settings → App, where they are since 1.13.0.
+- The battery test looks only at the alarms still to go off: `dumpsys alarm` also lists those of earlier tests, so
+  it failed or passed depending on what ran before it.
+- The Health Connect and history tests write a few days back instead of on fixed dates, which had grown older than
+  the 30 days an un-updated Health Connect reads, and leave out readings other runs left behind. Reading records
+  older than 30 days is a test of its own, skipped where Health Connect doesn't allow it. On the Android 14 emulator
+  all device tests pass now: 90, with 2 skipped.
+
 ## 1.15.1 — 2026-11-14
 
 Newer libraries under the hood. Nothing changes in how the app looks or works, and it is as fast as 1.15.0. Both

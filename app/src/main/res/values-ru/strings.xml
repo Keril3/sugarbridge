@@ -45,7 +45,7 @@
     <string name="home_permission_title">Разрешите запись в Health Connect</string>
     <string name="home_permission_text">Без этого разрешения сахар не попадёт в Samsung Health.</string>
     <string name="home_permission_button">Разрешить</string>
-    <string name="home_permission_hint">И проверьте, что в Samsung Health → Настройки → Health Connect разрешено читать «Уровень глюкозы».</string>
+    <string name="home_permission_hint">И проверьте, что в Samsung Health → Настройки → Health Connect разрешено читать «Уровень глюкозы в крови».</string>
     <string name="home_no_samsung_title">Samsung Health не найден</string>
     <string name="home_no_samsung_hint">Сахар всё равно будет попадать в Health Connect — его увидят и другие приложения. Установите Samsung Health, чтобы смотреть графики там.</string>
     <string name="home_chart_title">Последние 12 часов</string>
@@ -62,11 +62,11 @@
     <string name="gmi_title">Расчётный HbA1c (GMI)</string>
     <string name="gmi_14_days">14 дней</string>
     <string name="gmi_90_days">90 дней</string>
-    <string name="gmi_percent">%1$.1f %%</string>
+    <string name="gmi_percent">%1$.1f%%</string>
     <string name="gmi_mmol_mol">%1$d ммоль/моль</string>
     <string name="gmi_no_data">нет данных</string>
-    <string name="gmi_low_coverage">мало данных: %1$d %%</string>
-    <string name="gmi_hint">Оценка по средней глюкозе с датчика, а не анализ крови: лабораторный HbA1c может отличаться. Надёжна, когда данных хотя бы %1$d %% за 14 дней. В Samsung Health HbA1c вносится только вручную — Health Connect этот показатель не передаёт.</string>
+    <string name="gmi_low_coverage">мало данных: %1$d%%</string>
+    <string name="gmi_hint">Оценка по средней глюкозе с датчика, а не анализ крови: лабораторный HbA1c может отличаться. Надёжна, когда данных хотя бы %1$d%% за 14 дней. В Samsung Health HbA1c вносится только вручную — Health Connect этот показатель не передаёт.</string>
 
     <string name="sync_title">Синхронизация</string>
     <string name="sync_never">Ещё не было</string>
@@ -92,14 +92,14 @@
     <string name="history_step_3">3. Отметьте «Я не робот» и нажмите «Загрузить» — SugarBridge заберёт файл сам.</string>
     <string name="history_step_browser">Скачали CSV в браузере? Откройте его через SugarBridge или выберите кнопкой выше.</string>
     <string name="history_loaded">%1$s · замеров: %2$d</string>
-    <string name="history_loaded_range">С %1$s по %2$s · в файле %3$s</string>
-    <string name="history_loaded_range_skipped">С %1$s по %2$s · в файле %3$s · пропущено строк: %4$d</string>
+    <string name="history_loaded_range">С %1$s по %2$s · в %3$s</string>
+    <string name="history_loaded_range_skipped">С %1$s по %2$s · в %3$s · пропущено строк: %4$d</string>
     <string name="history_period">Период для записи</string>
     <string name="history_all">Вся история</string>
     <string name="history_last_days">%1$d дн.</string>
     <string name="history_period_summary">Дней: %1$d · замеров: %2$d · среднее %3$s %4$s · в диапазоне %5$d%%</string>
-    <string name="history_period_gmi">Расчётный HbA1c (GMI) за период: %1$.1f %% · %2$d ммоль/моль</string>
-    <string name="history_period_gmi_low">Расчётный HbA1c (GMI) за период: %1$.1f %% · %2$d ммоль/моль · мало данных (%3$d %%)</string>
+    <string name="history_period_gmi">Расчётный HbA1c (GMI) за период: %1$.1f%% · %2$d ммоль/моль</string>
+    <string name="history_period_gmi_low">Расчётный HbA1c (GMI) за период: %1$.1f%% · %2$d ммоль/моль · мало данных (%3$d%%)</string>
     <string name="history_days">Дни</string>
     <string name="history_select_new">Новые</string>
     <string name="history_select_all">Все</string>
@@ -113,7 +113,7 @@
     <string name="history_write">Записать в Health Connect</string>
     <string name="history_pick_title">Какие дни синхронизировать</string>
     <string name="history_delete_title">Удалить из Health Connect?</string>
-    <string name="history_delete_text">Все записи сахара от SugarBridge за выбранные дни (%1$d) пропадут из Health Connect и Samsung Health — и из истории LibreView, и полученные через LibreLinkUp. Данные в LibreView не тронем.</string>
+    <string name="history_delete_text">Все записи сахара от SugarBridge за выбранные дни (%1$d) пропадут из Health Connect и Samsung Health, откуда бы они ни пришли. Данные в LibreView не тронем.</string>
 
     <!-- Settings -->
     <string name="settings_title">Настройки</string>
@@ -126,19 +126,19 @@
     <string name="settings_permissions">Разрешить запись</string>
     <string name="settings_open_hc">Открыть Health Connect</string>
     <string name="settings_open_samsung">Открыть Samsung Health</string>
-    <string name="settings_hc_hint">Samsung Health сам забирает сахар из Health Connect — по своему расписанию; чтобы он забрал новое сразу, откройте его главный экран и потяните его вниз. Если точек нет — проверьте в Samsung Health → Настройки → Health Connect, что ему разрешено читать «Уровень глюкозы».</string>
+    <string name="settings_hc_hint">Samsung Health сам забирает сахар из Health Connect — по своему расписанию; чтобы он забрал новое сразу, откройте его главный экран и потяните его вниз. Если точек нет — проверьте в Samsung Health → Настройки → Health Connect, что ему разрешено читать «Уровень глюкозы в крови».</string>
     <string name="settings_background_title">Фоновая синхронизация</string>
     <string name="settings_off">выкл</string>
     <string name="settings_background_hint">Чаще раза в 15 минут без уведомления Android не разрешает. Каждый раз забирается история за 12 часов, так что пропусков не будет, даже если телефон спал.</string>
     <string name="settings_live_title">Минутный режим</string>
     <string name="settings_live_switch">Включить</string>
-    <string name="settings_live_switch_hint">Сахар попадает в Samsung Health через 1–2 минуты после замера. Пока режим работает, в шторке висит уведомление.</string>
+    <string name="settings_live_switch_hint">Каждое новое значение из LibreLinkUp попадает в Health Connect в течение минуты, а оттуда его забирает Samsung Health. Пока режим работает, в шторке висит уведомление.</string>
     <string name="settings_live_every_minute">каждую мин</string>
     <string name="settings_live_every">раз в %1$d мин</string>
     <string name="settings_live_value">Сахар в уведомлении</string>
-    <string name="settings_live_value_hint">Значение в шторке уведомлений. Выключите — уведомление станет тихим и спрячется вниз шторки</string>
+    <string name="settings_live_value_hint">Значение в шторке уведомлений. Выключите — уведомление станет тихим и спрячется вниз шторки.</string>
     <string name="settings_keep_awake">Не давать телефону засыпать</string>
-    <string name="settings_keep_awake_hint">Интервал не растягивается при выключенном экране. Без ограничений батареи телефон просыпается только на время запроса; с ними он не засыпает и батарея садится быстрее</string>
+    <string name="settings_keep_awake_hint">Интервал не растягивается при выключенном экране. Без ограничений батареи телефон просыпается только на время запроса; с ними он не засыпает и батарея садится быстрее.</string>
     <string name="settings_hide_notification">Скрыть уведомление совсем</string>
     <string name="settings_battery">Снять ограничения батареи</string>
     <string name="settings_live_hint">Так часто Android даёт работать только приложению с уведомлением. Если оно мешает, выключите его кнопкой выше — режим продолжит работать.</string>
@@ -253,7 +253,7 @@
     <string name="target_invalid">Введите два числа от %1$s до %2$s %3$s, меньшее — первым</string>
     <string name="settings_background_intro">Без уведомления, раз в 15 минут или реже. Пока работает минутный режим, она не нужна и выключена.</string>
     <string name="settings_hc_manage">Разрешения меняются в Health Connect: найдите там SugarBridge.</string>
-    <string name="msg_hc_no_dialog">Разрешите здесь: SugarBridge → «Уровень глюкозы»</string>
+    <string name="msg_hc_no_dialog">Разрешите здесь: SugarBridge → «Уровень глюкозы в крови»</string>
     <string name="cal_from">С</string>
     <string name="cal_to">По</string>
     <string name="cal_hint_first">Нажмите на первый день периода</string>
@@ -308,7 +308,7 @@
     <string name="dev_not_installed">не установлен</string>
     <string name="dev_delivery">Задержка</string>
     <string name="dev_usage">Доступ к статистике использования</string>
-    <string name="dev_sh_text">Samsung Health сам решает, когда забирать сахар из Health Connect: другие приложения не могут его поторопить, а Health Connect не сообщает им, кто и когда читал данные. По словам Samsung, он синхронизирует данные, когда открывают его главный экран и когда этот экран тянут вниз; просто держать приложение открытым недостаточно. Когда он на самом деле читал «Уровень глюкозы», видно в Health Connect → «Недавний доступ»; сравните это время со строками «wrote» в журнале ниже.</string>
+    <string name="dev_sh_text">Samsung Health сам решает, когда забирать сахар из Health Connect: другие приложения не могут его поторопить, а Health Connect не сообщает им, кто и когда читал данные. По словам Samsung, он синхронизирует данные, когда открывают его главный экран и когда этот экран тянут вниз; просто держать приложение открытым недостаточно. Когда он на самом деле читал «Уровень глюкозы в крови», видно в Health Connect → «Доступ за последнее время»; сравните это время со строками «wrote» в журнале ниже.</string>
     <string name="dev_usage_hint">Чтобы в журнале было видно, когда Samsung Health открывался или работал в фоне, дайте SugarBridge доступ к статистике использования. Он нужен только здесь.</string>
     <string name="dev_usage_grant">Дать доступ к статистике</string>
     <string name="dev_tools">Инструменты</string>
@@ -376,8 +376,8 @@
     <string name="error_github_server">GitHub ответил кодом %1$d</string>
     <string name="error_github_network">нет связи с GitHub</string>
     <string name="privacy_title">Конфиденциальность</string>
-    <string name="privacy_health">SugarBridge записывает в Health Connect только уровень сахара из вашего аккаунта LibreLinkUp. Читает оттуда он только свои же записи — для истории и расчётного HbA1c; данные других приложений не трогает.</string>
-    <string name="privacy_password">Пароль LibreLinkUp хранится на телефоне, зашифрованный ключом Android Keystore, и уходит только в LibreLinkUp. Кроме LibreLinkUp, приложение обращается только к GitHub — узнать о новой версии и скачать её.</string>
+    <string name="privacy_health">SugarBridge записывает в Health Connect только уровень сахара: из вашего аккаунта LibreLinkUp, загруженной истории LibreView и, если вы это включите, от приложений на этом телефоне. Читает оттуда он только свои же записи — для истории и расчётного HbA1c; данные других приложений не трогает.</string>
+    <string name="privacy_password">Пароль LibreLinkUp хранится на телефоне, зашифрованный ключом Android Keystore, и уходит только в LibreLinkUp. Кроме LibreLinkUp, приложение обращается только к LibreView, когда вы открываете его в «Истории», и к GitHub — узнать о новой версии и скачать её.</string>
     <string name="privacy_nothing_else">У SugarBridge нет своего сервера, аналитики и рекламы: ничего не собирается, никуда больше не отправляется и не продаётся. Записанное им можно удалить в Health Connect или в «Истории».</string>
 
     <!-- Added in 1.13.0 -->
@@ -388,9 +388,9 @@
     <string name="theme_neutral">Нейтральная</string>
     <string name="theme_neutral_hint">Нейтральная: мягкие серые тона без звёзд и ярких цветов, не утомляет глаза. Светлая или тёмная, как телефон.</string>
     <string name="font_title">Шрифт</string>
-    <string name="font_system">Как на устройстве</string>
+    <string name="font_system">Как на телефоне</string>
     <string name="font_pixel">Пиксельный</string>
-    <string name="font_hint">«Как на устройстве» — шрифт, выбранный в настройках экрана телефона. Остальные встроены в приложение и одинаково выглядят на всех языках.</string>
+    <string name="font_hint">«Как на телефоне» — шрифт, выбранный в настройках экрана телефона. Остальные встроены в приложение и одинаково выглядят на всех языках.</string>
     <string name="settings_developer_switch">Включить инструменты разработчика</string>
     <string name="dev_log_keep">Хранить журнал</string>
     <string name="dev_log_show">Показывать</string>
@@ -425,7 +425,7 @@
     <string name="local_notification_access">Дать доступ к уведомлениям</string>
     <string name="local_notification_restricted">Переключатель серый и написано про ограниченные настройки? Откройте «Сведения о приложении» → ⋮ (вверху справа) → «Разрешить ограниченные настройки», подтвердите и снова нажмите «Дать доступ к уведомлениям».</string>
     <string name="local_broadcasts">От Juggluco или xDrip+</string>
-    <string name="local_broadcasts_hint">Эти приложения сами подключаются к датчику и могут отправлять каждое значение в SugarBridge прямо на телефоне. Juggluco: Settings → Exchange data → Glucodata broadcast → com.sugarbridge.app. xDrip+: Settings → Inter-app settings → Broadcast locally, Compatible Broadcast, Identify receiver: com.sugarbridge.app. Датчик обычно подключается к одному приложению: если его заберёт Juggluco или xDrip+, LibreLink может потерять его вместе со своими сигналами.</string>
+    <string name="local_broadcasts_hint">Эти приложения сами подключаются к датчику и могут отправлять каждое значение в SugarBridge прямо на телефоне. Juggluco: Settings → Exchange data → Glucodata broadcast → com.sugarbridge.app. xDrip+: Settings → Inter-app settings → Broadcast locally, Compatible Broadcast, Identify receiver: com.sugarbridge.app. Датчик обычно подключается к одному приложению: если его заберёт Juggluco или xDrip+, LibreLink может потерять его вместе со своими тревогами.</string>
     <string name="local_last">Последнее от %1$s: %2$s в %3$s</string>
     <string name="local_miss">В уведомлении LibreLink нет сахара: «%1$s»</string>
     <string name="local_nothing">Пока ничего не пришло</string>

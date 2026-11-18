@@ -3,9 +3,9 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
-// The version: a release takes it from the git tag (./gradlew -Psugarbridge.version=1.15.1), otherwise this one.
+// The version: a release takes it from the git tag (./gradlew -Psugarbridge.version=1.15.2), otherwise this one.
 // versionCode grows with it: 1.2.3 → 10203.
-val appVersion = providers.gradleProperty("sugarbridge.version").getOrElse("1.15.1")
+val appVersion = providers.gradleProperty("sugarbridge.version").getOrElse("1.15.2")
 val appVersionCode = (appVersion.substringBefore('-').split('.').map { it.toIntOrNull() ?: 0 } + listOf(0, 0, 0))
     .take(3)
     .let { (major, minor, patch) -> major * 10_000 + minor * 100 + patch }
@@ -76,6 +76,12 @@ android {
     buildFeatures {
         compose = true
     }
+}
+
+// The translations and fonts tests read src/main/res themselves: a changed string must run them again, not count as
+// up to date because no code changed
+tasks.withType<Test>().configureEach {
+    inputs.dir("src/main/res").withPathSensitivity(PathSensitivity.RELATIVE).withPropertyName("appResources")
 }
 
 dependencies {

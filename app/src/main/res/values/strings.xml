@@ -116,7 +116,7 @@
     <string name="history_write">Write to Health Connect</string>
     <string name="history_pick_title">Which days to sync</string>
     <string name="history_delete_title">Delete from Health Connect?</string>
-    <string name="history_delete_text">All SugarBridge glucose records for the selected days (%1$d) will disappear from Health Connect and Samsung Health, both those from LibreView and those from LibreLinkUp. Your data in LibreView stays untouched.</string>
+    <string name="history_delete_text">All SugarBridge glucose records for the selected days (%1$d) will disappear from Health Connect and Samsung Health, wherever they came from. Your data in LibreView stays untouched.</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
@@ -135,13 +135,13 @@
     <string name="settings_background_hint">Android allows no more than every 15 minutes without a notification. Each run fetches the last 12 hours, so nothing is missed even if the phone slept.</string>
     <string name="settings_live_title">Minute mode</string>
     <string name="settings_live_switch">Turn on</string>
-    <string name="settings_live_switch_hint">Glucose reaches Samsung Health a minute or two after the sensor reads it. A notification stays in the shade while it runs.</string>
+    <string name="settings_live_switch_hint">Each new value from LibreLinkUp reaches Health Connect within a minute, and Samsung Health picks it up from there. A notification stays in the shade while it runs.</string>
     <string name="settings_live_every_minute">every min</string>
     <string name="settings_live_every">every %1$d min</string>
     <string name="settings_live_value">Glucose in the notification</string>
-    <string name="settings_live_value_hint">The value in the notification shade. Turn it off and the notification becomes quiet and moves to the bottom of the shade</string>
+    <string name="settings_live_value_hint">The value in the notification shade. Turn it off and the notification becomes quiet and moves to the bottom of the shade.</string>
     <string name="settings_keep_awake">Keep the phone awake</string>
-    <string name="settings_keep_awake_hint">The interval doesn’t stretch while the screen is off. Without battery restrictions the phone wakes up only for each request; with them it stays awake and the battery drains faster</string>
+    <string name="settings_keep_awake_hint">The interval doesn’t stretch while the screen is off. Without battery restrictions the phone wakes up only for each request; with them it stays awake and the battery drains faster.</string>
     <string name="settings_hide_notification">Hide the notification completely</string>
     <string name="settings_battery">Remove battery restrictions</string>
     <string name="settings_live_hint">Android lets an app work this often only while it shows a notification. If it bothers you, turn it off with the button above; the mode keeps working.</string>
@@ -379,8 +379,8 @@
     <string name="error_github_server">GitHub answered with code %1$d</string>
     <string name="error_github_network">no connection to GitHub</string>
     <string name="privacy_title">Privacy</string>
-    <string name="privacy_health">SugarBridge writes only blood glucose from your LibreLinkUp account to Health Connect. It reads back only its own records there, for the history and the estimated HbA1c; other apps’ health data stays untouched.</string>
-    <string name="privacy_password">The LibreLinkUp password is kept on the phone, encrypted with an Android Keystore key, and goes only to LibreLinkUp. Besides LibreLinkUp, the app talks only to GitHub, to learn about a new version and download it.</string>
+    <string name="privacy_health">SugarBridge writes only blood glucose to Health Connect: from your LibreLinkUp account, the LibreView history you load and, if you turn that on, apps on this phone. It reads back only its own records there, for the history and the estimated HbA1c; other apps’ health data stays untouched.</string>
+    <string name="privacy_password">The LibreLinkUp password is kept on the phone, encrypted with an Android Keystore key, and goes only to LibreLinkUp. Besides LibreLinkUp, the app talks only to LibreView, when you open it in History, and to GitHub, to learn about a new version and download it.</string>
     <string name="privacy_nothing_else">SugarBridge has no server, analytics or ads: nothing is collected, sent anywhere else or sold. What it wrote can be deleted in Health Connect or in History.</string>
 
     <!-- Added in 1.13.0 -->
